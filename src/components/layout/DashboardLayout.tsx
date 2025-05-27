@@ -11,7 +11,7 @@ export function DashboardLayout() {
         <DashboardSidebar />
         <div className="flex flex-col flex-grow">
           <div className="flex items-center gap-2 p-4 border-b">
-            <SidebarTrigger />
+            {/* <SidebarTrigger /> */}
             <div className="flex-1">
               <DashboardHeader />
             </div>
