@@ -1,137 +1,137 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChartBig, ShoppingCart, Package, Users, TrendingUp, TrendingDown } from "lucide-react";
-import { 
-  mockRevenueData, 
-  mockSalesData, 
-  mockOrdersData, 
-  mockCustomersData, 
-  mockInventoryData,
-  mockOrders 
-} from "@/data/mock-data";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from "recharts";
+import { Badge } from "@/components/ui/badge";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package } from 'lucide-react';
+
+const chartData = [
+  { name: 'Jan', total: 1200 },
+  { name: 'Feb', total: 2100 },
+  { name: 'Mar', total: 800 },
+  { name: 'Apr', total: 1600 },
+  { name: 'May', total: 900 },
+  { name: 'Jun', total: 1700 },
+];
+
+const recentOrders = [
+  { customer: 'John Doe', email: 'john.doe@example.com', amount: 120, status: 'completed' },
+  { customer: 'Jane Smith', email: 'jane.smith@example.com', amount: 85, status: 'processing' },
+  { customer: 'Alice Johnson', email: 'alice.johnson@example.com', amount: 210, status: 'pending' },
+];
+
+interface StatCardProps {
+  title: string;
+  value: string;
+  change: string;
+  trend: "up" | "down";
+  icon: React.ElementType;
+}
+
+function StatCard({ title, value, change, trend, icon: Icon }: StatCardProps) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className="text-xs text-muted-foreground flex items-center gap-1">
+          {trend === "up" ? (
+            <TrendingUp className="h-3 w-3 text-green-500" />
+          ) : (
+            <TrendingDown className="h-3 w-3 text-red-500" />
+          )}
+          {change} from last month
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function Dashboard() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            Last updated: {new Date().toLocaleDateString()}
-          </span>
-        </div>
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <p className="text-muted-foreground">
+          Welcome to your e-commerce admin dashboard
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          title="Total Sales"
-          value={`$${mockSalesData.total.toLocaleString()}`}
-          description={`${mockSalesData.percentageChange}% from last month`}
-          icon={BarChartBig}
-          trend={mockSalesData.trend}
+        <StatCard
+          title="Total Revenue"
+          value="$45,231.89"
+          change="+20.1%"
+          trend="up"
+          icon={DollarSign}
         />
-        <MetricCard
+        <StatCard
           title="Orders"
-          value={mockOrdersData.total.toString()}
-          description={`${mockOrdersData.percentageChange}% from last month`}
+          value="2,350"
+          change="+180.1%"
+          trend="up"
           icon={ShoppingCart}
-          trend={mockOrdersData.trend}
         />
-        <MetricCard
+        <StatCard
           title="Customers"
-          value={mockCustomersData.total.toString()}
-          description={`${mockCustomersData.percentageChange}% from last month`}
+          value="12,234"
+          change="+19%"
+          trend="up"
           icon={Users}
-          trend={mockCustomersData.trend}
         />
-        <MetricCard
-          title="Inventory"
-          value={mockInventoryData.total.toString()}
-          description={`${mockInventoryData.percentageChange}% from last month`}
+        <StatCard
+          title="Products"
+          value="573"
+          change="+201"
+          trend="up"
           icon={Package}
-          trend={mockInventoryData.trend}
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="col-span-1">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Revenue Overview</CardTitle>
-            <CardDescription>Monthly revenue for the current year</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={mockRevenueData}
-                margin={{
-                  top: 5,
-                  right: 10,
-                  left: 10,
-                  bottom: 5,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis 
-                  tick={{ fontSize: 12 }} 
-                  tickFormatter={(value) => `$${value}`} 
-                />
-                <Tooltip 
-                  formatter={(value) => [`$${value}`, 'Revenue']}
-                  labelFormatter={(label) => `Month: ${label}`}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                  activeDot={{ r: 5 }}
-                />
-              </LineChart>
+          <CardContent className="pl-2">
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="total" fill="#8884d8" />
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
-
-        <Card className="col-span-1">
+        <Card className="col-span-3">
           <CardHeader>
             <CardTitle>Recent Orders</CardTitle>
-            <CardDescription>Last 5 orders placed</CardDescription>
+            <CardDescription>
+              You have 265 orders this month.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {mockOrders.slice(0, 5).map((order) => (
-                <div key={order.id} className="flex justify-between items-center border-b pb-2 last:border-0">
-                  <div>
-                    <p className="font-medium">{order.customerName}</p>
+            <div className="space-y-8">
+              {recentOrders.map((order, index) => (
+                <div key={index} className="flex items-center">
+                  <div className="ml-4 space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {order.customer}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(order.createdAt).toLocaleDateString()}
+                      {order.email}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">${order.total.toFixed(2)}</p>
-                    <div className="flex items-center justify-end">
-                      <span className={cn(
-                        "text-xs px-2 py-0.5 rounded-full",
-                        order.status === "completed" && "bg-success/20 text-success",
-                        order.status === "processing" && "bg-primary/20 text-primary",
-                        order.status === "pending" && "bg-warning/20 text-warning",
-                        order.status === "cancelled" && "bg-destructive/20 text-destructive"
-                      )}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      </span>
-                    </div>
+                  <div className="ml-auto">
+                    <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>
+                      {order.status}
+                    </Badge>
+                  </div>
+                  <div className="ml-2 font-medium">
+                    ${order.amount}
                   </div>
                 </div>
               ))}
@@ -141,44 +141,4 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}
-
-interface MetricCardProps {
-  title: string;
-  value: string;
-  description: string;
-  icon: React.ElementType;
-  trend: 'up' | 'down';
-}
-
-function MetricCard({ title, value, description, icon: Icon, trend }: MetricCardProps) {
-  const TrendIcon = trend === 'up' ? TrendingUp : TrendingDown;
-  return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon className="h-6 w-6 text-primary" />
-          </div>
-          <div className={cn(
-            "flex items-center",
-            trend === 'up' ? "text-success" : "text-destructive"
-          )}>
-            <TrendIcon className="h-4 w-4 mr-1" />
-          </div>
-        </div>
-        <div className="mt-3">
-          <h3 className="text-lg font-medium">{title}</h3>
-          <div className="flex items-end justify-between mt-1">
-            <p className="text-2xl font-bold">{value}</p>
-            <p className="text-xs text-muted-foreground mb-1">{description}</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ');
 }

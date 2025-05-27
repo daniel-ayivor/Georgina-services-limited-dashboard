@@ -33,7 +33,7 @@ interface SidebarItemProps {
 function SidebarItem({ icon: Icon, label, path, active }: SidebarItemProps) {
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={active}>
+      <SidebarMenuButton asChild isActive={active} tooltip={label}>
         <Link to={path} className="flex items-center gap-2">
           <Icon className="h-4 w-4" />
           <span>{label}</span>
@@ -52,7 +52,7 @@ export function DashboardSidebar() {
   };
   
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader className="flex flex-col items-center justify-center py-6">
         <h1 className="text-2xl font-bold">E-Commerce</h1>
         <p className="text-sm text-muted-foreground">Admin Dashboard</p>

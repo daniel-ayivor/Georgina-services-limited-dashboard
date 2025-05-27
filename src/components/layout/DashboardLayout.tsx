@@ -10,7 +10,12 @@ export function DashboardLayout() {
       <div className="min-h-screen flex w-full">
         <DashboardSidebar />
         <div className="flex flex-col flex-grow">
-          <DashboardHeader />
+          <div className="flex items-center gap-2 p-4 border-b">
+            <SidebarTrigger />
+            <div className="flex-1">
+              <DashboardHeader />
+            </div>
+          </div>
           <main className="flex-1 p-4 md:p-6 overflow-auto">
             <Outlet />
           </main>
