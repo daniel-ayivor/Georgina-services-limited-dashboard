@@ -10,7 +10,8 @@ import {
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton 
+  SidebarMenuButton,
+  useSidebar
 } from "@/components/ui/sidebar";
 import { 
   BarChartBig, 
@@ -46,6 +47,7 @@ function SidebarItem({ icon: Icon, label, path, active }: SidebarItemProps) {
 export function DashboardSidebar() {
   const location = useLocation();
   const pathname = location.pathname;
+  const { state } = useSidebar();
   
   const isActive = (path: string) => {
     return pathname === path;
@@ -54,8 +56,13 @@ export function DashboardSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex flex-col items-center justify-center py-6">
-        <h1 className="text-2xl font-bold">E-Commerce</h1>
-        <p className="text-sm text-muted-foreground">Admin Dashboard</p>
+        <div className={cn(
+          "transition-opacity duration-200",
+          state === "collapsed" ? "opacity-0" : "opacity-100"
+        )}>
+          <h1 className="text-2xl font-bold">E-Commerce</h1>
+          <p className="text-sm text-muted-foreground">Admin Dashboard</p>
+        </div>
       </SidebarHeader>
       <SidebarContent className="flex flex-col h-full justify-between">
         <div>
