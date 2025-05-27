@@ -48,3 +48,20 @@ export interface Notification {
   read: boolean;
   createdAt: string;
 }
+
+export interface Booking {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  serviceType: 'basic' | 'deep' | 'office' | 'post-construction';
+  address: string;
+  date: string;
+  time: string;
+  duration: number;
+  price: number;
+  status: 'pending' | 'confirmed' | 'in-progress' | 'completed' | 'cancelled';
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}

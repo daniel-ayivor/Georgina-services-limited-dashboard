@@ -18,7 +18,8 @@ import {
   ShoppingCart, 
   Users, 
   Settings, 
-  Bell 
+  Bell,
+  CalendarCheck
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -32,7 +33,7 @@ interface SidebarItemProps {
 function SidebarItem({ icon: Icon, label, path, active }: SidebarItemProps) {
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild active={active}>
+      <SidebarMenuButton asChild isActive={active}>
         <Link to={path} className="flex items-center gap-2">
           <Icon className="h-4 w-4" />
           <span>{label}</span>
@@ -78,6 +79,12 @@ export function DashboardSidebar() {
                   label="Orders" 
                   path="/orders" 
                   active={isActive("/orders")} 
+                />
+                <SidebarItem 
+                  icon={CalendarCheck} 
+                  label="Bookings" 
+                  path="/bookings" 
+                  active={isActive("/bookings")} 
                 />
                 <SidebarItem 
                   icon={Users} 
