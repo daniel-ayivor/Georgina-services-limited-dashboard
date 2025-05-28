@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,9 @@ import { Product } from "@/types";
 import { mockProducts } from "@/data/mock-data";
 import { Edit, Package, Plus, Search, Trash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { ImageUpload } from "@/components/ImageUpload";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>(mockProducts);
@@ -35,15 +38,59 @@ export default function Products() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { isAuthenticated, user } = useAuth();
   
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
     inventory: "",
-    category: "Electronics"
+    category: "Electronics",
+    imageUrl: null as string | null
   });
+
+  // Load products from Supabase on component mount
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading products:', error);
+        toast({
+          variant: "destructive",
+          title: "Error loading products",
+          description: "Using mock data instead."
+        });
+        return;
+      }
+
+      // Transform Supabase data to match our Product interface
+      const transformedProducts: Product[] = data.map(product => ({
+        id: product.id,
+        name: product.name,
+        description: product.description || "",
+        price: parseFloat(product.price.toString()),
+        inventory: product.stock_quantity,
+        category: "Electronics", // Default for now
+        image: product.image_url || "/placeholder.svg",
+        createdAt: product.created_at || new Date().toISOString(),
+        updatedAt: product.updated_at || new Date().toISOString()
+      }));
+
+      setProducts(transformedProducts);
+    } catch (error) {
+      console.error('Error loading products:', error);
+    }
+  };
   
   const filteredProducts = products.filter(
     (product) =>
@@ -65,6 +112,13 @@ export default function Products() {
       category: value
     });
   };
+
+  const handleImageChange = (imageUrl: string | null) => {
+    setFormData({
+      ...formData,
+      imageUrl
+    });
+  };
   
   const resetForm = () => {
     setFormData({
@@ -72,86 +126,193 @@ export default function Products() {
       description: "",
       price: "",
       inventory: "",
-      category: "Electronics"
+      category: "Electronics",
+      imageUrl: null
     });
   };
+
+  const checkAuthentication = () => {
+    if (!isAuthenticated) {
+      toast({
+        variant: "destructive",
+        title: "Authentication required",
+        description: "Please log in to manage products."
+      });
+      return false;
+    }
+    return true;
+  };
   
-  const handleAddProduct = () => {
-    const newProduct: Product = {
-      id: `prod-${Math.floor(Math.random() * 10000)}`,
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      inventory: parseInt(formData.inventory),
-      category: formData.category,
-      image: "/placeholder.svg",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+  const handleAddProduct = async () => {
+    if (!checkAuthentication()) return;
+
+    setIsLoading(true);
     
-    setProducts([newProduct, ...products]);
-    setIsAddDialogOpen(false);
-    resetForm();
-    toast({
-      title: "Product added",
-      description: `${newProduct.name} has been added successfully.`
-    });
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .insert([
+          {
+            name: formData.name,
+            description: formData.description,
+            price: parseFloat(formData.price),
+            stock_quantity: parseInt(formData.inventory),
+            image_url: formData.imageUrl,
+            created_by: user?.id
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Add to local state
+      const newProduct: Product = {
+        id: data.id,
+        name: data.name,
+        description: data.description || "",
+        price: parseFloat(data.price.toString()),
+        inventory: data.stock_quantity,
+        category: formData.category,
+        image: data.image_url || "/placeholder.svg",
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
+      
+      setProducts([newProduct, ...products]);
+      setIsAddDialogOpen(false);
+      resetForm();
+      toast({
+        title: "Product added",
+        description: `${newProduct.name} has been added successfully.`
+      });
+    } catch (error) {
+      console.error('Error adding product:', error);
+      toast({
+        variant: "destructive",
+        title: "Error adding product",
+        description: "Failed to add product. Please try again."
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleEditClick = (product: Product) => {
+    if (!checkAuthentication()) return;
+
     setCurrentProduct(product);
     setFormData({
       name: product.name,
       description: product.description,
       price: product.price.toString(),
       inventory: product.inventory.toString(),
-      category: product.category
+      category: product.category,
+      imageUrl: product.image !== "/placeholder.svg" ? product.image : null
     });
     setIsEditDialogOpen(true);
   };
   
-  const handleUpdateProduct = () => {
-    if (!currentProduct) return;
+  const handleUpdateProduct = async () => {
+    if (!currentProduct || !checkAuthentication()) return;
+
+    setIsLoading(true);
     
-    const updatedProducts = products.map(product => {
-      if (product.id === currentProduct.id) {
-        return {
-          ...product,
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .update({
           name: formData.name,
           description: formData.description,
           price: parseFloat(formData.price),
-          inventory: parseInt(formData.inventory),
-          category: formData.category,
-          updatedAt: new Date().toISOString()
-        };
+          stock_quantity: parseInt(formData.inventory),
+          image_url: formData.imageUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentProduct.id)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
       }
-      return product;
-    });
+
+      // Update local state
+      const updatedProducts = products.map(product => {
+        if (product.id === currentProduct.id) {
+          return {
+            ...product,
+            name: formData.name,
+            description: formData.description,
+            price: parseFloat(formData.price),
+            inventory: parseInt(formData.inventory),
+            image: formData.imageUrl || "/placeholder.svg",
+            updatedAt: data.updated_at
+          };
+        }
+        return product;
+      });
     
-    setProducts(updatedProducts);
-    setIsEditDialogOpen(false);
-    resetForm();
-    toast({
-      title: "Product updated",
-      description: `${formData.name} has been updated successfully.`
-    });
+      setProducts(updatedProducts);
+      setIsEditDialogOpen(false);
+      resetForm();
+      toast({
+        title: "Product updated",
+        description: `${formData.name} has been updated successfully.`
+      });
+    } catch (error) {
+      console.error('Error updating product:', error);
+      toast({
+        variant: "destructive",
+        title: "Error updating product",
+        description: "Failed to update product. Please try again."
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleDeleteClick = (product: Product) => {
+    if (!checkAuthentication()) return;
+
     setCurrentProduct(product);
     setIsDeleteDialogOpen(true);
   };
   
-  const handleDeleteProduct = () => {
-    if (!currentProduct) return;
+  const handleDeleteProduct = async () => {
+    if (!currentProduct || !checkAuthentication()) return;
+
+    setIsLoading(true);
     
-    const filteredProducts = products.filter(product => product.id !== currentProduct.id);
-    setProducts(filteredProducts);
-    setIsDeleteDialogOpen(false);
-    toast({
-      title: "Product deleted",
-      description: `${currentProduct.name} has been deleted successfully.`
-    });
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', currentProduct.id);
+
+      if (error) {
+        throw error;
+      }
+
+      const filteredProducts = products.filter(product => product.id !== currentProduct.id);
+      setProducts(filteredProducts);
+      setIsDeleteDialogOpen(false);
+      toast({
+        title: "Product deleted",
+        description: `${currentProduct.name} has been deleted successfully.`
+      });
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast({
+        variant: "destructive",
+        title: "Error deleting product",
+        description: "Failed to delete product. Please try again."
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -160,12 +321,12 @@ export default function Products() {
         <h1 className="text-3xl font-bold tracking-tight">Products</h1>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={!isAuthenticated}>
               <Plus className="h-4 w-4 mr-2" />
               Add Product
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Add New Product</DialogTitle>
               <DialogDescription>
@@ -191,6 +352,11 @@ export default function Products() {
                   onChange={handleInputChange} 
                 />
               </div>
+              <ImageUpload
+                currentImageUrl={formData.imageUrl}
+                onImageChange={handleImageChange}
+                disabled={isLoading}
+              />
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="price">Price ($)</Label>
@@ -233,12 +399,26 @@ export default function Products() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-              <Button onClick={handleAddProduct}>Add Product</Button>
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddProduct} disabled={isLoading}>
+                {isLoading ? "Adding..." : "Add Product"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
+
+      {!isAuthenticated && (
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">
+              Please log in to manage products. You can view products, but adding, editing, and deleting requires authentication.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader className="pb-2">
@@ -266,7 +446,7 @@ export default function Products() {
                 <TableHead>Category</TableHead>
                 <TableHead className="text-right">Price</TableHead>
                 <TableHead className="text-center">Inventory</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                {isAuthenticated && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -275,8 +455,16 @@ export default function Products() {
                   <TableRow key={product.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
-                          <Package className="h-5 w-5" />
+                        <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center overflow-hidden">
+                          {product.image && product.image !== "/placeholder.svg" ? (
+                            <img 
+                              src={product.image} 
+                              alt={product.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <Package className="h-5 w-5" />
+                          )}
                         </div>
                         <div>
                           <div className="font-medium">{product.name}</div>
@@ -289,32 +477,36 @@ export default function Products() {
                     <TableCell>{product.category}</TableCell>
                     <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
                     <TableCell className="text-center">{product.inventory}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          onClick={() => handleEditClick(product)}
-                        >
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          className="text-destructive" 
-                          onClick={() => handleDeleteClick(product)}
-                        >
-                          <Trash className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
-                        </Button>
-                      </div>
-                    </TableCell>
+                    {isAuthenticated && (
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => handleEditClick(product)}
+                            disabled={isLoading}
+                          >
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="text-destructive" 
+                            onClick={() => handleDeleteClick(product)}
+                            disabled={isLoading}
+                          >
+                            <Trash className="h-4 w-4" />
+                            <span className="sr-only">Delete</span>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10">
+                  <TableCell colSpan={isAuthenticated ? 5 : 4} className="text-center py-10">
                     <div className="flex flex-col items-center">
                       <Package className="h-10 w-10 text-muted-foreground mb-2" />
                       <p className="text-lg font-medium">No products found</p>
@@ -332,7 +524,7 @@ export default function Products() {
 
       {/* Edit Product Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Product</DialogTitle>
             <DialogDescription>
@@ -358,6 +550,11 @@ export default function Products() {
                 onChange={handleInputChange} 
               />
             </div>
+            <ImageUpload
+              currentImageUrl={formData.imageUrl}
+              onImageChange={handleImageChange}
+              disabled={isLoading}
+            />
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="edit-price">Price ($)</Label>
@@ -400,8 +597,12 @@ export default function Products() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleUpdateProduct}>Update Product</Button>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateProduct} disabled={isLoading}>
+              {isLoading ? "Updating..." : "Update Product"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -416,8 +617,12 @@ export default function Products() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDeleteProduct}>Delete</Button>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteProduct} disabled={isLoading}>
+              {isLoading ? "Deleting..." : "Delete"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
