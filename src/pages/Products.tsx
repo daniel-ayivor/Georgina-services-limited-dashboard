@@ -334,7 +334,15 @@ export default function Products() {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
+              <div className="grid justify-center items-center">
+                          <ImageUpload
+                currentImageUrl={formData.imageUrl}
+                onImageChange={handleImageChange}
+                disabled={isLoading}
+              />
+              </div>
+              <div className="grid gap-2 ">
+       
                 <Label htmlFor="name">Name</Label>
                 <Input 
                   id="name" 
@@ -343,20 +351,8 @@ export default function Products() {
                   onChange={handleInputChange} 
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  name="description" 
-                  value={formData.description} 
-                  onChange={handleInputChange} 
-                />
-              </div>
-              <ImageUpload
-                currentImageUrl={formData.imageUrl}
-                onImageChange={handleImageChange}
-                disabled={isLoading}
-              />
+           
+             
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="price">Price ($)</Label>
@@ -389,13 +385,20 @@ export default function Products() {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Electronics">Electronics</SelectItem>
+                    <SelectItem value="Electronics">Food stuffs</SelectItem>
                     <SelectItem value="Clothing">Clothing</SelectItem>
-                    <SelectItem value="Home Goods">Home Goods</SelectItem>
-                    <SelectItem value="Books">Books</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+                 <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea 
+                  id="description" 
+                  name="description" 
+                  value={formData.description} 
+                  onChange={handleInputChange} 
+                />
               </div>
             </div>
             <DialogFooter>
@@ -532,6 +535,15 @@ export default function Products() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            <div className="grid justify-center items-center">
+      <ImageUpload
+              currentImageUrl={formData.imageUrl}
+              onImageChange={handleImageChange}
+              disabled={isLoading}
+            />
+
+            </div>
+          
             <div className="grid gap-2">
               <Label htmlFor="edit-name">Name</Label>
               <Input 
@@ -541,20 +553,7 @@ export default function Products() {
                 onChange={handleInputChange} 
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea 
-                id="edit-description" 
-                name="description" 
-                value={formData.description} 
-                onChange={handleInputChange} 
-              />
-            </div>
-            <ImageUpload
-              currentImageUrl={formData.imageUrl}
-              onImageChange={handleImageChange}
-              disabled={isLoading}
-            />
+      
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="edit-price">Price ($)</Label>
@@ -594,6 +593,15 @@ export default function Products() {
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+                  <div className="grid gap-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea 
+                id="edit-description" 
+                name="description" 
+                value={formData.description} 
+                onChange={handleInputChange} 
+              />
             </div>
           </div>
           <DialogFooter>

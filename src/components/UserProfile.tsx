@@ -29,8 +29,8 @@ export function UserProfile() {
       <PopoverTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/placeholder.svg" alt={user.name} />
-            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+            <AvatarImage src="/placeholder.svg" alt={user.role} />
+            <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
           </Avatar>
         </Button>
       </PopoverTrigger>
@@ -38,10 +38,10 @@ export function UserProfile() {
         <Card className="border-0 shadow-none">
           <CardHeader className="text-center pb-4">
             <Avatar className="h-20 w-20 mx-auto mb-4">
-              <AvatarImage src="/placeholder.svg" alt={user.name} />
-              <AvatarFallback className="text-lg">{getInitials(user.name)}</AvatarFallback>
+              <AvatarImage src="/placeholder.svg" alt={user.role} />
+              <AvatarFallback className="text-lg">{getInitials(user.role)}</AvatarFallback>
             </Avatar>
-            <CardTitle className="text-xl">{user.name}</CardTitle>
+            <CardTitle className="text-xl">{user.role}</CardTitle>
             <CardDescription className="flex items-center justify-center gap-2">
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Shield className="h-3 w-3" />
