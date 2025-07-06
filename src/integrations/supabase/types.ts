@@ -28,15 +28,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "cart_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       cart_items: {
         Row: {
@@ -85,21 +77,27 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          image: string | null
           name: string
+          slug: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           description?: string | null
           id?: string
+          image?: string | null
           name: string
+          slug: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           description?: string | null
           id?: string
+          image?: string | null
           name?: string
+          slug?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -171,15 +169,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "orders_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       products: {
         Row: {
@@ -187,11 +177,18 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
+          discount_price: number | null
+          featured: boolean | null
           id: string
-          image_url: string | null
+          images: string[]
+          likes: number | null
           name: string
           price: number
-          stock_quantity: number
+          rating: number | null
+          sizes: string[] | null
+          slug: string
+          stock: number
+          subcategory_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -199,11 +196,18 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          discount_price?: number | null
+          featured?: boolean | null
           id?: string
-          image_url?: string | null
+          images: string[]
+          likes?: number | null
           name: string
           price: number
-          stock_quantity?: number
+          rating?: number | null
+          sizes?: string[] | null
+          slug: string
+          stock?: number
+          subcategory_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -211,11 +215,18 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          discount_price?: number | null
+          featured?: boolean | null
           id?: string
-          image_url?: string | null
+          images?: string[]
+          likes?: number | null
           name?: string
           price?: number
-          stock_quantity?: number
+          rating?: number | null
+          sizes?: string[] | null
+          slug?: string
+          stock?: number
+          subcategory_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -231,6 +242,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "subcategories"
             referencedColumns: ["id"]
           },
         ]
@@ -266,37 +284,64 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
+        Relationships: []
+      }
+      subcategories: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          parent_id: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          parent_id?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          updated_at?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "profiles_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "subcategories_parent_id_fkey"
+            columns: ["parent_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
         ]
       }
       users: {
         Row: {
-          created_at: string | null
+          created_at: string
           email: string
           id: string
-          role: Database["public"]["Enums"]["user_role"] | null
-          updated_at: string | null
+          role: string
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           email: string
-          id?: string
-          role?: Database["public"]["Enums"]["user_role"] | null
-          updated_at?: string | null
+          id: string
+          role?: string
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           email?: string
           id?: string
-          role?: Database["public"]["Enums"]["user_role"] | null
-          updated_at?: string | null
+          role?: string
+          updated_at?: string
         }
         Relationships: []
       }

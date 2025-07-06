@@ -79,9 +79,9 @@ export default function Products() {
         name: product.name,
         description: product.description || "",
         price: parseFloat(product.price.toString()),
-        inventory: product.stock_quantity,
+        inventory: product.stock,
         category: "Electronics", // Default for now
-        image: product.image_url || "/placeholder.svg",
+        image: product.images?.[0] || "/placeholder.svg",
         createdAt: product.created_at || new Date().toISOString(),
         updatedAt: product.updated_at || new Date().toISOString()
       }));
@@ -156,8 +156,9 @@ export default function Products() {
             name: formData.name,
             description: formData.description,
             price: parseFloat(formData.price),
-            stock_quantity: parseInt(formData.inventory),
-            image_url: formData.imageUrl,
+            stock: parseInt(formData.inventory),
+            images: formData.imageUrl ? [formData.imageUrl] : [],
+            slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
             created_by: user?.id
           }
         ])
@@ -174,9 +175,9 @@ export default function Products() {
         name: data.name,
         description: data.description || "",
         price: parseFloat(data.price.toString()),
-        inventory: data.stock_quantity,
+        inventory: data.stock,
         category: formData.category,
-        image: data.image_url || "/placeholder.svg",
+        image: data.images?.[0] || "/placeholder.svg",
         createdAt: data.created_at,
         updatedAt: data.updated_at
       };
@@ -227,8 +228,9 @@ export default function Products() {
           name: formData.name,
           description: formData.description,
           price: parseFloat(formData.price),
-          stock_quantity: parseInt(formData.inventory),
-          image_url: formData.imageUrl,
+          stock: parseInt(formData.inventory),
+          images: formData.imageUrl ? [formData.imageUrl] : [],
+          slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
           updated_at: new Date().toISOString()
         })
         .eq('id', currentProduct.id)

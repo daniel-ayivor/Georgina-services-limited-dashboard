@@ -91,7 +91,7 @@ export async function seedDatabase() {
       },
       {
         id: 'p4',
-        name: 'Men''s T-Shirt',
+        name: "Men's T-Shirt",
         description: 'Comfortable cotton t-shirt',
         price: 29.99,
         stock_quantity: 200,
@@ -101,7 +101,7 @@ export async function seedDatabase() {
       },
       {
         id: 'p5',
-        name: 'Women''s Dress',
+        name: "Women's Dress",
         description: 'Elegant summer dress',
         price: 59.99,
         stock_quantity: 150,
