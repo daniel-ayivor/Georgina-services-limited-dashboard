@@ -1,109 +1,64 @@
-import { supabase } from './supabase';
-import type { Product, Category, Order, User, Profile } from './supabase';
+// Mock API functions using dummy data
+import { mockProducts, mockOrders, mockCustomers } from "@/data/mock-data";
+import type { Product, Order, Customer } from "@/types";
+
+// Simulate API delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Product Management
-export const getProducts = async () => {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*, categories(name)');
-  if (error) throw error;
-  return data;
+export const getProducts = async (): Promise<Product[]> => {
+  await delay(300);
+  return mockProducts;
 };
 
-export const createProduct = async (product: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
-  const { data, error } = await supabase
-    .from('products')
-    .insert(product)
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+export const createProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> => {
+  await delay(300);
+  const newProduct = {
+    ...product,
+    id: `prod-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  return newProduct;
 };
 
-export const updateProduct = async (id: string, product: Partial<Product>) => {
-  const { data, error } = await supabase
-    .from('products')
-    .update(product)
-    .eq('id', id)
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+export const updateProduct = async (id: string, product: Partial<Product>): Promise<Product> => {
+  await delay(300);
+  const existingProduct = mockProducts.find(p => p.id === id);
+  if (!existingProduct) throw new Error('Product not found');
+  
+  return {
+    ...existingProduct,
+    ...product,
+    updatedAt: new Date().toISOString(),
+  };
 };
 
-export const deleteProduct = async (id: string) => {
-  const { error } = await supabase
-    .from('products')
-    .delete()
-    .eq('id', id);
-  if (error) throw error;
-};
-
-// Category Management
-export const getCategories = async () => {
-  const { data, error } = await supabase
-    .from('categories')
-    .select('*');
-  if (error) throw error;
-  return data;
+export const deleteProduct = async (id: string): Promise<void> => {
+  await delay(300);
+  // In a real app, this would delete from the database
 };
 
 // Order Management
-export const getOrders = async () => {
-  const { data, error } = await supabase
-    .from('orders')
-    .select(`
-      *,
-      users:user_id(email),
-      order_items(
-        *,
-        products(*)
-      )
-    `);
-  if (error) throw error;
-  return data;
+export const getOrders = async (): Promise<Order[]> => {
+  await delay(300);
+  return mockOrders;
 };
 
-export const updateOrderStatus = async (id: string, status: string) => {
-  const { data, error } = await supabase
-    .from('orders')
-    .update({ status })
-    .eq('id', id)
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+export const updateOrderStatus = async (id: string, status: string): Promise<Order> => {
+  await delay(300);
+  const order = mockOrders.find(o => o.id === id);
+  if (!order) throw new Error('Order not found');
+  
+  return {
+    ...order,
+    status: status as any,
+    updatedAt: new Date().toISOString(),
+  };
 };
 
-// User Management
-export const getUsers = async () => {
-  const { data, error } = await supabase
-    .from('users')
-    .select(`
-      *,
-      profiles(*)
-    `);
-  if (error) throw error;
-  return data;
+// Customer Management
+export const getCustomers = async (): Promise<Customer[]> => {
+  await delay(300);
+  return mockCustomers;
 };
-
-// Authentication
-export const signIn = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  if (error) throw error;
-  return data;
-};
-
-export const signOut = async () => {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
-};
-
-export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error) throw error;
-  return user;
-}; 

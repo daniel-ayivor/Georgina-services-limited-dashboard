@@ -18,8 +18,7 @@ import {
   Package, 
   ShoppingCart, 
   Users, 
-  Settings, 
-  Bell,
+  Settings,
   CalendarCheck
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -98,6 +97,12 @@ export function DashboardSidebar() {
                   label="Analytics" 
                   path="/analytics" 
                   active={isActive("/analytics")} 
+                />
+                <SidebarItem 
+                  icon={Users} 
+                  label="Customers" 
+                  path="/customers" 
+                  active={isActive("/customers")} 
                 />
               </SidebarMenu>
             </SidebarGroupContent>
