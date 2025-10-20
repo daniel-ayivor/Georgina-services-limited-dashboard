@@ -94,16 +94,10 @@ export function DashboardSidebar() {
                   active={isActive("/bookings")} 
                 />
                 <SidebarItem 
-                  icon={Users} 
-                  label="Customers" 
-                  path="/customers" 
-                  active={isActive("/customers")} 
-                />
-                <SidebarItem 
-                  icon={Bell} 
-                  label="Notifications" 
-                  path="/notifications" 
-                  active={isActive("/notifications")} 
+                  icon={BarChartBig} 
+                  label="Analytics" 
+                  path="/analytics" 
+                  active={isActive("/analytics")} 
                 />
               </SidebarMenu>
             </SidebarGroupContent>
