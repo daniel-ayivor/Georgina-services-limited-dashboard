@@ -19,7 +19,8 @@ import {
   ShoppingCart, 
   Users, 
   Settings,
-  CalendarCheck
+  CalendarCheck,
+  WrapText
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -91,6 +92,12 @@ export function DashboardSidebar() {
                   label="Bookings" 
                   path="/bookings" 
                   active={isActive("/bookings")} 
+                />
+                  <SidebarItem 
+                  icon={WrapText} 
+                  label="Create Bookings" 
+                  path="/create-bookings" 
+                  active={isActive("/create-bookings")} 
                 />
                 <SidebarItem 
                   icon={BarChartBig} 

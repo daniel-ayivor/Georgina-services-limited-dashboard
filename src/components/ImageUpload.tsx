@@ -9,6 +9,7 @@ interface ImageUploadProps {
   currentImageUrl?: string;
   onImageChange: (imageUrl: string | null) => void;
   disabled?: boolean;
+  className:string
 }
 
 export function ImageUpload({ currentImageUrl, onImageChange, disabled }: ImageUploadProps) {

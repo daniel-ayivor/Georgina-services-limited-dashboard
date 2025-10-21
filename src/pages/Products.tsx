@@ -260,97 +260,103 @@ export default function Products() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingProduct ? "Edit Product" : "Add New Product"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingProduct
-                ? "Update the product information"
-                : "Add a new product to your catalog"}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              <ImageUpload
-                currentImageUrl={formData.image}
-                onImageChange={(url) => setFormData({ ...formData, image: url || "" })}
-              />
-              
-              <div className="grid gap-2">
-                <Label htmlFor="name">Product Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Wireless Headphones"
-                  required
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe your product..."
-                  rows={3}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="price">Price *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="inventory">Inventory *</Label>
-                  <Input
-                    id="inventory"
-                    type="number"
-                    min="0"
-                    value={formData.inventory}
-                    onChange={(e) => setFormData({ ...formData, inventory: e.target.value })}
-                    placeholder="0"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="category">Category *</Label>
-                <Input
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="e.g., Electronics"
-                  required
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">
-                {editingProduct ? "Update" : "Add"} Product
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+   <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+  <DialogContent className="sm:max-w-[500px]">
+    <DialogHeader>
+      <DialogTitle className="text-base">
+        {editingProduct ? "Edit Product" : "Add New Product"}
+      </DialogTitle>
+      <DialogDescription className="text-xs">
+        {editingProduct
+          ? "Update the product information"
+          : "Add a new product to your catalog"}
+      </DialogDescription>
+    </DialogHeader>
+    <form onSubmit={handleSubmit}>
+      <div className="grid gap-2 py-1">
+        <ImageUpload
+          currentImageUrl={formData.image}
+          onImageChange={(url) => setFormData({ ...formData, image: url || "" })}
+          className="h-20"
+        />
+        
+        <div className="grid gap-1">
+          <Label htmlFor="name" className="text-xs">Product Name *</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="e.g., Wireless Headphones"
+            className="h-8 text-sm"
+            required
+          />
+        </div>
+        
+        <div className="grid gap-1">
+          <Label htmlFor="description" className="text-xs">Description</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Describe your product..."
+            rows={1}
+            className="min-h-[40px] text-sm"
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2">
+          <div className="grid gap-1">
+            <Label htmlFor="price" className="text-xs">Price *</Label>
+            <Input
+              id="price"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              placeholder="0.00"
+              className="h-8 text-sm"
+              required
+            />
+          </div>
+          <div className="grid gap-1">
+            <Label htmlFor="inventory" className="text-xs">Inventory *</Label>
+            <Input
+              id="inventory"
+              type="number"
+              min="0"
+              value={formData.inventory}
+              onChange={(e) => setFormData({ ...formData, inventory: e.target.value })}
+              placeholder="0"
+              className="h-8 text-sm"
+              required
+            />
+          </div>
+        </div>
+        
+        <div className="grid gap-1">
+          <Label htmlFor="category" className="text-xs">Category *</Label>
+          <Input
+            id="category"
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            placeholder="e.g., Electronics"
+            className="h-8 text-sm"
+            required
+          />
+        </div>
+      </div>
+      <DialogFooter className="gap-1 mt-3">
+        <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="h-8 text-xs px-3">
+          Cancel
+        </Button>
+        <Button type="submit" className="h-8 text-xs px-3">
+          {editingProduct ? "Update" : "Add"} Product
+        </Button>
+      </DialogFooter>
+    </form>
+  </DialogContent>
+</Dialog>
     </div>
   );
 }

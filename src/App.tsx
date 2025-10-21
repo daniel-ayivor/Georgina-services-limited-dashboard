@@ -17,6 +17,7 @@ import Customers from "./pages/Customers";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CreateBooking from "./pages/CreateBooking";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
                   <Route path="/products" element={<Products />} />
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/bookings" element={<Bookings />} />
+                    <Route path="/create-bookings" element={<CreateBooking />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/customers" element={<Customers />} />
                   <Route path="/settings" element={<Settings />} />
