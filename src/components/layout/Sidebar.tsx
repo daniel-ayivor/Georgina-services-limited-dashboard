@@ -20,7 +20,8 @@ import {
   Users, 
   Settings,
   CalendarCheck,
-  WrapText
+  WrapText,
+  FolderTree
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -80,6 +81,12 @@ export function DashboardSidebar() {
                   label="Products" 
                   path="/products" 
                   active={isActive("/products")} 
+                />
+                <SidebarItem 
+                  icon={FolderTree} 
+                  label="Categories" 
+                  path="/categories" 
+                  active={isActive("/categories")} 
                 />
                 <SidebarItem 
                   icon={ShoppingCart} 

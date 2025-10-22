@@ -14,6 +14,7 @@ import Bookings from "./pages/Bookings";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Customers from "./pages/Customers";
+import Categories from "./pages/Categories";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -39,6 +40,7 @@ const App = () => (
                   <Route path="/" element={<Navigate to="/dashboard" />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/products" element={<Products />} />
+                  <Route path="/categories" element={<Categories />} />
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/bookings" element={<Bookings />} />
                     <Route path="/create-bookings" element={<CreateBooking />} />
