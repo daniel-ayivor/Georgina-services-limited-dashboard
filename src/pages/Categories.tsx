@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Folder, FolderTree, Tag, ChevronDown, ChevronRight } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Folder, FolderTree, Tag, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getCategories, createCategory, updateCategory, deleteCategory, getSubCategories, createSubCategory, updateSubCategory, deleteSubCategory } from "@/lib/api";
 
 interface Category {
   id: string;
@@ -82,15 +83,43 @@ const initialSubcategories: Subcategory[] = [
 ];
 
 const Categories = () => {
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>(initialSubcategories);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [subcategoryDialogOpen, setSubcategoryDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+
+  // Load data on component mount
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [categoriesData, subcategoriesData] = await Promise.all([
+        getCategories(),
+        getSubCategories()
+      ]);
+      setCategories(categoriesData);
+      setSubcategories(subcategoriesData);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load categories and subcategories"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [categoryForm, setCategoryForm] = useState({
     name: "",
@@ -146,7 +175,7 @@ const Categories = () => {
     setCategoryDialogOpen(true);
   };
 
-  const handleDeleteCategory = (id: string) => {
+  const handleDeleteCategory = async (id: string) => {
     const relatedSubs = subcategories.filter(sub => sub.parentId === id);
     if (relatedSubs.length > 0) {
       toast({
@@ -156,11 +185,25 @@ const Categories = () => {
       });
       return;
     }
-    setCategories(categories.filter(cat => cat.id !== id));
-    toast({ title: "Category deleted", description: "Category has been removed successfully" });
+    
+    try {
+      setSaving(true);
+      await deleteCategory(id);
+      setCategories(categories.filter(cat => cat.id !== id));
+      toast({ title: "Category deleted", description: "Category has been removed successfully" });
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete category"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleCategorySubmit = (e: React.FormEvent) => {
+  const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!categoryForm.name || !categoryForm.slug) {
@@ -172,28 +215,38 @@ const Categories = () => {
       return;
     }
 
-    if (editingCategory) {
-      setCategories(categories.map(cat => 
-        cat.id === editingCategory.id ? {
-          ...cat,
+    try {
+      setSaving(true);
+      if (editingCategory) {
+        const updatedCategory = await updateCategory(editingCategory.id, {
           name: categoryForm.name,
           description: categoryForm.description,
           slug: categoryForm.slug
-        } : cat
-      ));
-      toast({ title: "Category updated", description: "Category has been updated successfully" });
-    } else {
-      const newCategory: Category = {
-        id: `cat-${Date.now()}`,
-        name: categoryForm.name,
-        description: categoryForm.description,
-        slug: categoryForm.slug,
-        createdAt: new Date()
-      };
-      setCategories([...categories, newCategory]);
-      toast({ title: "Category added", description: "Category has been added successfully" });
+        });
+        setCategories(categories.map(cat => 
+          cat.id === editingCategory.id ? updatedCategory : cat
+        ));
+        toast({ title: "Category updated", description: "Category has been updated successfully" });
+      } else {
+        const newCategory = await createCategory({
+          name: categoryForm.name,
+          description: categoryForm.description,
+          slug: categoryForm.slug
+        });
+        setCategories([...categories, newCategory]);
+        toast({ title: "Category added", description: "Category has been added successfully" });
+      }
+      setCategoryDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to save category:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save category"
+      });
+    } finally {
+      setSaving(false);
     }
-    setCategoryDialogOpen(false);
   };
 
   const handleAddSubcategory = () => {
@@ -212,12 +265,25 @@ const Categories = () => {
     setSubcategoryDialogOpen(true);
   };
 
-  const handleDeleteSubcategory = (id: string) => {
-    setSubcategories(subcategories.filter(sub => sub.id !== id));
-    toast({ title: "Subcategory deleted", description: "Subcategory has been removed successfully" });
+  const handleDeleteSubcategory = async (id: string) => {
+    try {
+      setSaving(true);
+      await deleteSubCategory(id);
+      setSubcategories(subcategories.filter(sub => sub.id !== id));
+      toast({ title: "Subcategory deleted", description: "Subcategory has been removed successfully" });
+    } catch (error) {
+      console.error('Failed to delete subcategory:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete subcategory"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSubcategorySubmit = (e: React.FormEvent) => {
+  const handleSubcategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!subcategoryForm.name || !subcategoryForm.parentId || !subcategoryForm.slug) {
@@ -229,29 +295,50 @@ const Categories = () => {
       return;
     }
 
-    if (editingSubcategory) {
-      setSubcategories(subcategories.map(sub => 
-        sub.id === editingSubcategory.id ? {
-          ...sub,
+    try {
+      setSaving(true);
+      if (editingSubcategory) {
+        const updatedSubcategory = await updateSubCategory(editingSubcategory.id, {
           name: subcategoryForm.name,
           parentId: subcategoryForm.parentId,
           slug: subcategoryForm.slug
-        } : sub
-      ));
-      toast({ title: "Subcategory updated", description: "Subcategory has been updated successfully" });
-    } else {
-      const newSubcategory: Subcategory = {
-        id: `sub-${Date.now()}`,
-        parentId: subcategoryForm.parentId,
-        name: subcategoryForm.name,
-        slug: subcategoryForm.slug,
-        createdAt: new Date()
-      };
-      setSubcategories([...subcategories, newSubcategory]);
-      toast({ title: "Subcategory added", description: "Subcategory has been added successfully" });
+        });
+        setSubcategories(subcategories.map(sub => 
+          sub.id === editingSubcategory.id ? updatedSubcategory : sub
+        ));
+        toast({ title: "Subcategory updated", description: "Subcategory has been updated successfully" });
+      } else {
+        const newSubcategory = await createSubCategory({
+          name: subcategoryForm.name,
+          parentId: subcategoryForm.parentId,
+          slug: subcategoryForm.slug
+        });
+        setSubcategories([...subcategories, newSubcategory]);
+        toast({ title: "Subcategory added", description: "Subcategory has been added successfully" });
+      }
+      setSubcategoryDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to save subcategory:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save subcategory"
+      });
+    } finally {
+      setSaving(false);
     }
-    setSubcategoryDialogOpen(false);
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Loading categories...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -262,11 +349,11 @@ const Categories = () => {
           <p className="text-muted-foreground">Manage categories and subcategories for your products</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={handleAddCategory}>
+          <Button onClick={handleAddCategory} disabled={saving}>
             <Plus className="mr-2 h-4 w-4" />
             Add Category
           </Button>
-          <Button onClick={handleAddSubcategory} variant="outline">
+          <Button onClick={handleAddSubcategory} variant="outline" disabled={saving}>
             <Plus className="mr-2 h-4 w-4" />
             Add Subcategory
           </Button>
@@ -505,10 +592,11 @@ const Categories = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setCategoryDialogOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => setCategoryDialogOpen(false)} disabled={saving}>
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={saving}>
+                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {editingCategory ? "Update" : "Add"} Category
               </Button>
             </DialogFooter>
@@ -567,10 +655,11 @@ const Categories = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setSubcategoryDialogOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => setSubcategoryDialogOpen(false)} disabled={saving}>
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={saving}>
+                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {editingSubcategory ? "Update" : "Add"} Subcategory
               </Button>
             </DialogFooter>
