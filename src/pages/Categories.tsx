@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Plus, Edit, Trash2, Folder, FolderTree, Tag } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Folder, FolderTree, Tag, ChevronDown, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Category {
@@ -89,6 +89,7 @@ const Categories = () => {
   const [subcategoryDialogOpen, setSubcategoryDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   const [categoryForm, setCategoryForm] = useState({
@@ -112,6 +113,17 @@ const Categories = () => {
   // Get subcategories for a category
   const getSubcategories = (categoryId: string) => {
     return subcategories.filter(sub => sub.parentId === categoryId);
+  };
+
+  // Toggle category expansion
+  const toggleCategory = (categoryId: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+    }
+    setExpandedCategories(newExpanded);
   };
 
   // Stats
@@ -306,75 +318,150 @@ const Categories = () => {
         />
       </div>
 
-      {/* Categories List */}
-      <div className="space-y-4">
-        {filteredCategories.map(category => (
-          <Card key={category.id}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="flex items-center gap-2">
-                    <Folder className="h-5 w-5" />
-                    {category.name}
-                    <Badge variant="secondary">{getSubcategories(category.id).length} subcategories</Badge>
-                  </CardTitle>
-                  <CardDescription>{category.description}</CardDescription>
-                  <p className="text-xs text-muted-foreground">Slug: {category.slug}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditCategory(category)}
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteCategory(category.id)}
-                  >
-                    <Trash2 className="h-3 w-3 mr-1" />
-                    Delete
-                  </Button>
-                </div>
+      {/* Categories Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Categories & Subcategories</CardTitle>
+          <CardDescription>
+            Manage your product categories and their subcategories in a structured table format
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="h-12 px-4 text-left align-middle font-medium">Name</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium">Slug</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium">Description</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium">Subcategories</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium">Created</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCategories.map(category => {
+                  const categorySubs = getSubcategories(category.id);
+                  const isExpanded = expandedCategories.has(category.id);
+                  
+                  return (
+                    <React.Fragment key={category.id}>
+                      {/* Category Row */}
+                      <tr className="border-b hover:bg-muted/50">
+                        <td className="p-4 align-middle">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => toggleCategory(category.id)}
+                              disabled={categorySubs.length === 0}
+                            >
+                              {categorySubs.length > 0 ? (
+                                isExpanded ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )
+                              ) : (
+                                <Folder className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Folder className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">{category.name}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 align-middle">
+                          <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                            {category.slug}
+                          </code>
+                        </td>
+                        <td className="p-4 align-middle">{category.description}</td>
+                        <td className="p-4 align-middle">
+                          <Badge variant="secondary">{categorySubs.length}</Badge>
+                        </td>
+                        <td className="p-4 align-middle text-muted-foreground">
+                          {category.createdAt.toLocaleDateString()}
+                        </td>
+                        <td className="p-4 align-middle">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditCategory(category)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteCategory(category.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Subcategory Rows */}
+                      {isExpanded && categorySubs.map(subcategory => (
+                        <tr key={subcategory.id} className="border-b hover:bg-muted/30 bg-muted/20">
+                          <td className="p-4 align-middle pl-12">
+                            <div className="flex items-center gap-2">
+                              <FolderTree className="h-4 w-4 text-muted-foreground" />
+                              <span>{subcategory.name}</span>
+                            </div>
+                          </td>
+                          <td className="p-4 align-middle">
+                            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                              {subcategory.slug}
+                            </code>
+                          </td>
+                          <td className="p-4 align-middle text-muted-foreground">
+                            <span className="text-xs">Subcategory of {category.name}</span>
+                          </td>
+                          <td className="p-4 align-middle">
+                            <Badge variant="outline">Subcategory</Badge>
+                          </td>
+                          <td className="p-4 align-middle text-muted-foreground">
+                            {subcategory.createdAt.toLocaleDateString()}
+                          </td>
+                          <td className="p-4 align-middle">
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditSubcategory(subcategory)}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteSubcategory(subcategory.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {filteredCategories.length === 0 && (
+              <div className="p-8 text-center text-muted-foreground">
+                <Folder className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No categories found</p>
+                <p className="text-sm">Try adjusting your search or add a new category</p>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {getSubcategories(category.id).map(subcategory => (
-                  <div key={subcategory.id} className="flex items-center gap-2 bg-muted px-3 py-2 rounded-md">
-                    <FolderTree className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">{subcategory.name}</span>
-                    <div className="flex gap-1 ml-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => handleEditSubcategory(subcategory)}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => handleDeleteSubcategory(subcategory.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {getSubcategories(category.id).length === 0 && (
-                  <p className="text-sm text-muted-foreground">No subcategories yet</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Add/Edit Category Dialog */}
       <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
