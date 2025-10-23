@@ -32,13 +32,10 @@ class ApiService {
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    // Use a CORS proxy to bypass CORS restrictions
-    const corsProxyUrl = 'https://cors-anywhere.herokuapp.com/';
-    const url = `${corsProxyUrl}${this.baseUrl}${endpoint}`;
+    const url = `${this.baseUrl}${endpoint}`;
     
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest', // Required by some CORS proxies
       ...options.headers,
     };
 
