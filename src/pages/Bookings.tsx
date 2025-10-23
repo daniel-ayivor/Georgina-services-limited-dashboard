@@ -319,7 +319,7 @@ export default function Bookings() {
                     <TableCell>{getServiceTypeName(booking.serviceType)}</TableCell>
                     <TableCell>
                       <div>
-                        {new Date(booking.date).toLocaleDateString()}
+                        {booking.date ? new Date(booking.date).toLocaleDateString() : 'N/A'}
                         <div className="text-sm text-muted-foreground">
                           {booking.time} ({booking.duration}h)
                         </div>

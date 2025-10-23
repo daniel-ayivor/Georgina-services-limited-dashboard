@@ -3,20 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package } from 'lucide-react';
 
-const chartData = [
-  { name: 'Jan', total: 1200 },
-  { name: 'Feb', total: 2100 },
-  { name: 'Mar', total: 800 },
-  { name: 'Apr', total: 1600 },
-  { name: 'May', total: 900 },
-  { name: 'Jun', total: 1700 },
-];
+const chartData: any[] = [];
 
-const recentOrders = [
-  { customer: 'John Doe', email: 'john.doe@example.com', amount: 120, status: 'completed' },
-  { customer: 'Jane Smith', email: 'jane.smith@example.com', amount: 85, status: 'processing' },
-  { customer: 'Alice Johnson', email: 'alice.johnson@example.com', amount: 210, status: 'pending' },
-];
+const recentOrders: any[] = [];
 
 interface StatCardProps {
   title: string;
@@ -95,15 +84,24 @@ export default function Dashboard() {
             <CardTitle>Revenue Overview</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="total" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="total" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[350px]">
+                <div className="text-center">
+                  <TrendingUp className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No revenue data available</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
         <Card className="col-span-3">
@@ -115,26 +113,33 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-8">
-              {recentOrders.map((order, index) => (
-                <div key={index} className="flex items-center">
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {order.customer}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {order.email}
-                    </p>
+              {recentOrders.length > 0 ? (
+                recentOrders.map((order, index) => (
+                  <div key={index} className="flex items-center">
+                    <div className="ml-4 space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {order.customer}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {order.email}
+                      </p>
+                    </div>
+                    <div className="ml-auto">
+                      <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>
+                        {order.status}
+                      </Badge>
+                    </div>
+                    <div className="ml-2 font-medium">
+                      ${order.amount}
+                    </div>
                   </div>
-                  <div className="ml-auto">
-                    <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>
-                      {order.status}
-                    </Badge>
-                  </div>
-                  <div className="ml-2 font-medium">
-                    ${order.amount}
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <ShoppingCart className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No recent orders</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>

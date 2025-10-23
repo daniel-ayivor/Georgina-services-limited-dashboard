@@ -42,9 +42,12 @@ import {
 import { mockOrders } from "@/data/mock-data";
 import { Order } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { getOrders } from "@/lib/api";
+import { useEffect } from "react";
 
 export default function Orders() {
-  const [orders, setOrders] = useState(mockOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
@@ -52,6 +55,29 @@ export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        const ordersData = await getOrders();
+        setOrders(ordersData);
+      } catch (error) {
+        console.error('Failed to load orders:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load orders"
+        });
+        // Fallback to empty array instead of mock data
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrders();
+  }, [toast]);
 
   const filteredOrders = orders.filter((order) => {
     // Search filter
@@ -216,7 +242,14 @@ export default function Orders() {
           <CardDescription>Manage and track customer orders</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <RefreshCw className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Loading orders...</span>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
             <div className="relative w-full md:w-96">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -285,7 +318,7 @@ export default function Orders() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {new Date(order.createdAt).toLocaleDateString()}
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
                     </TableCell>
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
                     <TableCell>{getPaymentStatusBadge(order.paymentStatus)}</TableCell>
@@ -307,6 +340,8 @@ export default function Orders() {
               )}
             </TableBody>
           </Table>
+            </>
+          )}
         </CardContent>
       </Card>
       

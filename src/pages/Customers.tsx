@@ -21,12 +21,32 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Users, DollarSign, ShoppingBag, TrendingUp } from "lucide-react";
 import { mockCustomers } from "@/data/mock-data";
 import { Customer } from "@/types";
+import { getCustomers } from "@/lib/api";
+import { useEffect } from "react";
 
 export default function Customers() {
-  const [customers] = useState(mockCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  useEffect(() => {
+    const loadCustomers = async () => {
+      try {
+        setLoading(true);
+        const customersData = await getCustomers();
+        setCustomers(customersData);
+      } catch (error) {
+        console.error('Failed to load customers:', error);
+        setCustomers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCustomers();
+  }, []);
 
   const filteredCustomers = customers.filter(
     (customer) =>
@@ -109,7 +129,14 @@ export default function Customers() {
           <CardDescription>View and manage your customers</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-6">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Users className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Loading customers...</span>
+            </div>
+          ) : (
+            <>
+              <div className="mb-6">
             <div className="relative w-full md:w-96">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -155,7 +182,7 @@ export default function Customers() {
                       ${customer.totalSpent.toFixed(2)}
                     </TableCell>
                     <TableCell>
-                      {new Date(customer.createdAt).toLocaleDateString()}
+                      {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString() : 'N/A'}
                     </TableCell>
                   </TableRow>
                 ))
@@ -169,6 +196,8 @@ export default function Customers() {
               )}
             </TableBody>
           </Table>
+            </>
+          )}
         </CardContent>
       </Card>
 
