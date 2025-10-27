@@ -1,12 +1,20 @@
-
 export interface Product {
   id: string;
   name: string;
-  description: string;
+  slug: string;
+  description: string | null;
   price: number;
-  inventory: number;
-  category: string;
-  image: string;
+  categoryLevel1: string;
+  categoryLevel2: string | null;
+  categoryLevel3: string | null;
+  serviceType: 'physical' | 'service';
+  serviceDuration: string | null;
+  unit: string;
+  stock: number;
+  images: string[];
+  isActive: boolean;
+  tags: string[] | null;
+  brand: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -47,48 +55,6 @@ export interface Notification {
   type: 'order' | 'product' | 'system';
   read: boolean;
   createdAt: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  description: string;
-  image?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface SubCategory {
-  id: string;
-  name: string;
-  description: string;
-  categoryId: string;
-  image?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface CleaningBooking {
-  id: string;
-  customerId: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  serviceType: string;
-  date: string;
-  time: string;
-  address: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
 }
 
 export interface Booking {

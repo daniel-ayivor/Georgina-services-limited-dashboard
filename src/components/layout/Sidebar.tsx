@@ -102,9 +102,9 @@ export function DashboardSidebar() {
                 />
                   <SidebarItem 
                   icon={WrapText} 
-                  label="Create Bookings" 
-                  path="/create-bookings" 
-                  active={isActive("/create-bookings")} 
+                  label="Create Services" 
+                  path="/create-service" 
+                  active={isActive("/create-services")} 
                 />
                 <SidebarItem 
                   icon={BarChartBig} 

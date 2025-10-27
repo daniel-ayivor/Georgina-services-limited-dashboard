@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -37,47 +36,140 @@ import {
   XCircle,
   CreditCard,
   BanknoteIcon,
-  RefreshCw
+  RefreshCw,
+  AlertCircle,
+  Package
 } from "lucide-react";
-import { mockOrders } from "@/data/mock-data";
-import { Order } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { getOrders } from "@/lib/api";
-import { useEffect } from "react";
+import adminApiService, { Customer, OrderItem } from "@/contexts/adminApiService";
+// import { adminApiService, OrderItem, Customer } from "@/lib/adminApiService";
+
+interface Order {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'shipped' | 'delivered';
+  paymentStatus: 'paid' | 'unpaid' | 'refunded';
+  total: number;
+  items: OrderItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Helper function to safely access properties that might not be in the TypeScript interface
+const getOrderItemDate = (item: OrderItem): string => {
+  // Try to get date from createdAt, updatedAt, or fallback to current date
+  const dateString = (item as any).createdAt || (item as any).updatedAt;
+  return dateString || new Date().toISOString();
+};
+
+// Helper function to get quantity from order item
+const getOrderItemQuantity = (item: OrderItem): number => {
+  return (item as any).quantity || 1;
+};
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const loadOrders = async () => {
-      try {
-        setLoading(true);
-        const ordersData = await getOrders();
-        setOrders(ordersData);
-      } catch (error) {
-        console.error('Failed to load orders:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load orders"
-        });
-        // Fallback to empty array instead of mock data
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Fetch orders data from API
+  const fetchOrdersData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const [orderItemsData, customersData] = await Promise.all([
+        adminApiService.getOrderItems(),
+        adminApiService.getCustomers()
+      ]);
+      
+      setOrderItems(orderItemsData);
+      setCustomers(customersData);
+      
+      // Transform order items into orders format
+      const transformedOrders = transformOrderItemsToOrders(orderItemsData, customersData);
+      setOrders(transformedOrders);
+      
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+      setError('Failed to load orders. Please try again.');
+      toast({
+        variant: "destructive",
+        title: "Error loading orders",
+        description: "Could not fetch orders data.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    loadOrders();
-  }, [toast]);
+  useEffect(() => {
+    fetchOrdersData();
+  }, []);
+
+  // Transform order items and customers into orders
+  const transformOrderItemsToOrders = (orderItems: OrderItem[], customers: Customer[]): Order[] => {
+    if (orderItems.length === 0) return [];
+
+    // Group order items by order (using a simple grouping logic)
+    const orderGroups: { [key: string]: OrderItem[] } = {};
+    
+    orderItems.forEach((item, index) => {
+      // Create a unique order ID based on the item properties or index
+      const orderId = `order-${item.id || index}`;
+      
+      if (!orderGroups[orderId]) {
+        orderGroups[orderId] = [];
+      }
+      orderGroups[orderId].push(item);
+    });
+
+    // Transform grouped items into orders
+    return Object.entries(orderGroups).map(([orderId, items], index) => {
+      const customer = customers[index % customers.length] || {
+        name: `Customer ${index + 1}`,
+        email: `customer${index + 1}@example.com`
+      };
+
+      const total = items.reduce((sum, item) => {
+        const quantity = getOrderItemQuantity(item);
+        return sum + (item.price * quantity);
+      }, 0);
+
+      const statusOptions: Order['status'][] = ['pending', 'processing', 'completed', 'cancelled', 'shipped', 'delivered'];
+      const paymentOptions: Order['paymentStatus'][] = ['paid', 'unpaid', 'refunded'];
+      
+      // Get the most recent date from items
+      const orderDates = items.map(item => new Date(getOrderItemDate(item)));
+      const latestDate = new Date(Math.max(...orderDates.map(d => d.getTime())));
+      
+      return {
+        id: orderId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        status: statusOptions[Math.floor(Math.random() * statusOptions.length)],
+        paymentStatus: paymentOptions[Math.floor(Math.random() * paymentOptions.length)],
+        total,
+        items: items.map(item => ({
+          ...item,
+          productName: `Product ${item.id?.split('-')[1] || 'Unknown'}`,
+          quantity: getOrderItemQuantity(item)
+        })),
+        createdAt: getOrderItemDate(items[0]),
+        updatedAt: latestDate.toISOString()
+      };
+    });
+  };
 
   const filteredOrders = orders.filter((order) => {
     // Search filter
@@ -100,58 +192,77 @@ export default function Orders() {
     setOrderDetailsOpen(true);
   };
 
-  const handleStatusChange = (status: 'pending' | 'processing' | 'completed' | 'cancelled') => {
+  const handleStatusChange = async (status: Order['status']) => {
     if (!selectedOrder) return;
     setUpdatingStatus(true);
     
-    // Simulate API delay
-    setTimeout(() => {
+    try {
+      // In a real app, you would call an API to update the order status
+      // For now, we'll simulate it by updating local state
       const updatedOrders = orders.map(order => 
         order.id === selectedOrder.id ? {...order, status, updatedAt: new Date().toISOString()} : order
       );
       
       setOrders(updatedOrders);
       setSelectedOrder({...selectedOrder, status, updatedAt: new Date().toISOString()});
-      setUpdatingStatus(false);
       
       toast({
         title: "Order status updated",
         description: `Order ${selectedOrder.id} is now ${status}`
       });
-    }, 600);
+    } catch (err) {
+      console.error('Failed to update order status:', err);
+      toast({
+        variant: "destructive",
+        title: "Error updating order",
+        description: "Could not update order status. Please try again.",
+      });
+    } finally {
+      setUpdatingStatus(false);
+    }
   };
   
-  const handlePaymentStatusChange = (paymentStatus: 'paid' | 'unpaid' | 'refunded') => {
+  const handlePaymentStatusChange = async (paymentStatus: Order['paymentStatus']) => {
     if (!selectedOrder) return;
     setUpdatingStatus(true);
     
-    // Simulate API delay
-    setTimeout(() => {
+    try {
+      // In a real app, you would call an API to update the payment status
       const updatedOrders = orders.map(order => 
         order.id === selectedOrder.id ? {...order, paymentStatus, updatedAt: new Date().toISOString()} : order
       );
       
       setOrders(updatedOrders);
       setSelectedOrder({...selectedOrder, paymentStatus, updatedAt: new Date().toISOString()});
-      setUpdatingStatus(false);
       
       toast({
         title: "Payment status updated",
         description: `Payment for order ${selectedOrder.id} is now ${paymentStatus}`
       });
-    }, 600);
+    } catch (err) {
+      console.error('Failed to update payment status:', err);
+      toast({
+        variant: "destructive",
+        title: "Error updating payment",
+        description: "Could not update payment status. Please try again.",
+      });
+    } finally {
+      setUpdatingStatus(false);
+    }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-success">{status}</Badge>;
+      case "delivered":
+        return <Badge className="bg-green-100 text-green-800 border-green-200">{status}</Badge>;
       case "processing":
-        return <Badge className="bg-primary">{status}</Badge>;
+      case "shipped":
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-200">{status}</Badge>;
       case "pending":
-        return <Badge className="bg-warning">{status}</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">{status}</Badge>;
       case "cancelled":
-        return <Badge className="bg-destructive">{status}</Badge>;
+        return <Badge className="bg-red-100 text-red-800 border-red-200">{status}</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -160,11 +271,11 @@ export default function Orders() {
   const getPaymentStatusBadge = (status: string) => {
     switch (status) {
       case "paid":
-        return <Badge className="bg-success">{status}</Badge>;
+        return <Badge className="bg-green-100 text-green-800 border-green-200">{status}</Badge>;
       case "unpaid":
-        return <Badge className="bg-warning">{status}</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">{status}</Badge>;
       case "refunded":
-        return <Badge variant="outline" className="text-muted-foreground">{status}</Badge>;
+        return <Badge variant="outline" className="text-gray-600 border-gray-300">{status}</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -173,13 +284,68 @@ export default function Orders() {
   // Calculate stats
   const totalRevenue = filteredOrders.reduce((sum, order) => sum + order.total, 0);
   const paidOrders = filteredOrders.filter(o => o.paymentStatus === 'paid').length;
-  const completedOrders = filteredOrders.filter(o => o.status === 'completed').length;
+  const completedOrders = filteredOrders.filter(o => o.status === 'completed' || o.status === 'delivered').length;
   const avgOrderValue = filteredOrders.length > 0 ? totalRevenue / filteredOrders.length : 0;
+
+  const SkeletonRow = () => (
+    <TableRow>
+      <TableCell>
+        <div className="h-4 bg-muted rounded animate-pulse w-20" />
+      </TableCell>
+      <TableCell>
+        <div className="space-y-2">
+          <div className="h-4 bg-muted rounded animate-pulse w-24" />
+          <div className="h-3 bg-muted rounded animate-pulse w-32" />
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="h-4 bg-muted rounded animate-pulse w-16" />
+      </TableCell>
+      <TableCell>
+        <div className="h-6 bg-muted rounded animate-pulse w-20" />
+      </TableCell>
+      <TableCell>
+        <div className="h-6 bg-muted rounded animate-pulse w-16" />
+      </TableCell>
+      <TableCell>
+        <div className="h-4 bg-muted rounded animate-pulse w-12 ml-auto" />
+      </TableCell>
+    </TableRow>
+  );
+
+  if (error && orders.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
+          <Button onClick={fetchOrdersData} variant="outline">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Retry
+          </Button>
+        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-lg font-medium mb-2">Failed to load orders</p>
+            <p className="text-muted-foreground text-center mb-4">{error}</p>
+            <Button onClick={fetchOrdersData}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
+        <Button onClick={fetchOrdersData} variant="outline" disabled={isLoading}>
+          <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -190,10 +356,19 @@ export default function Orders() {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredOrders.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {completedOrders} completed
-            </p>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{filteredOrders.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {completedOrders} completed
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -202,10 +377,19 @@ export default function Orders() {
             <BanknoteIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
-              From {paidOrders} paid orders
-            </p>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+                <p className="text-xs text-muted-foreground">
+                  From {paidOrders} paid orders
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -214,10 +398,19 @@ export default function Orders() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${avgOrderValue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
-              Per order average
-            </p>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">${avgOrderValue.toFixed(2)}</div>
+                <p className="text-xs text-muted-foreground">
+                  Per order average
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -226,12 +419,21 @@ export default function Orders() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {filteredOrders.filter(o => o.status === 'pending').length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting processing
-            </p>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">
+                  {filteredOrders.filter(o => o.status === 'pending').length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Awaiting processing
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -242,14 +444,7 @@ export default function Orders() {
           <CardDescription>Manage and track customer orders</CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <RefreshCw className="h-8 w-8 animate-spin" />
-              <span className="ml-2">Loading orders...</span>
-            </div>
-          ) : (
-            <>
-              <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
             <div className="relative w-full md:w-96">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -257,12 +452,13 @@ export default function Orders() {
                 className="pl-8"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={setStatusFilter} disabled={isLoading}>
                 <SelectTrigger className="w-[130px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -270,12 +466,14 @@ export default function Orders() {
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="shipped">Shipped</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
               
-              <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+              <Select value={paymentFilter} onValueChange={setPaymentFilter} disabled={isLoading}>
                 <SelectTrigger className="w-[130px]">
                   <SelectValue placeholder="Payment" />
                 </SelectTrigger>
@@ -301,7 +499,12 @@ export default function Orders() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredOrders.length > 0 ? (
+              {isLoading ? (
+                // Show skeleton loading rows
+                Array.from({ length: 5 }).map((_, index) => (
+                  <SkeletonRow key={index} />
+                ))
+              ) : filteredOrders.length > 0 ? (
                 filteredOrders.map((order) => (
                   <TableRow 
                     key={order.id} 
@@ -318,7 +521,7 @@ export default function Orders() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
+                      {new Date(order.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
                     <TableCell>{getPaymentStatusBadge(order.paymentStatus)}</TableCell>
@@ -329,10 +532,12 @@ export default function Orders() {
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-10">
                     <div className="flex flex-col items-center">
-                      <ShoppingCart className="h-10 w-10 text-muted-foreground mb-2" />
+                      <Package className="h-10 w-10 text-muted-foreground mb-2" />
                       <p className="text-lg font-medium">No orders found</p>
                       <p className="text-sm text-muted-foreground">
-                        Try adjusting your filters or search terms
+                        {searchTerm || statusFilter !== 'all' || paymentFilter !== 'all' 
+                          ? "Try adjusting your filters or search terms" 
+                          : "Orders will appear here once customers start purchasing"}
                       </p>
                     </div>
                   </TableCell>
@@ -340,8 +545,6 @@ export default function Orders() {
               )}
             </TableBody>
           </Table>
-            </>
-          )}
         </CardContent>
       </Card>
       
@@ -382,11 +585,13 @@ export default function Orders() {
                     </TableHeader>
                     <TableBody>
                       {selectedOrder.items.map((item) => (
-                        <TableRow key={item.productId}>
-                          <TableCell>{item.productName}</TableCell>
-                          <TableCell className="text-center">{item.quantity}</TableCell>
+                        <TableRow key={item.id}>
+                          <TableCell>{item.productId || `Product ${item.id}`}</TableCell>
+                          <TableCell className="text-center">{getOrderItemQuantity(item)}</TableCell>
                           <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                          <TableCell className="text-right">${(item.price * item.quantity).toFixed(2)}</TableCell>
+                          <TableCell className="text-right">
+                            ${((item.price * getOrderItemQuantity(item)).toFixed(2))}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -398,7 +603,7 @@ export default function Orders() {
                     <p className="font-medium mb-2">Order Status</p>
                     <Select 
                       value={selectedOrder.status} 
-                      onValueChange={(value) => handleStatusChange(value as any)} 
+                      onValueChange={(value) => handleStatusChange(value as Order['status'])} 
                       disabled={updatingStatus}
                     >
                       <SelectTrigger>
@@ -407,25 +612,37 @@ export default function Orders() {
                       <SelectContent>
                         <SelectItem value="pending">
                           <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-2 text-warning" />
+                            <Clock className="h-4 w-4 mr-2 text-yellow-600" />
                             Pending
                           </div>
                         </SelectItem>
                         <SelectItem value="processing">
                           <div className="flex items-center">
-                            <RefreshCw className="h-4 w-4 mr-2 text-primary" />
+                            <RefreshCw className="h-4 w-4 mr-2 text-blue-600" />
                             Processing
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="shipped">
+                          <div className="flex items-center">
+                            <Package className="h-4 w-4 mr-2 text-blue-600" />
+                            Shipped
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="delivered">
+                          <div className="flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                            Delivered
                           </div>
                         </SelectItem>
                         <SelectItem value="completed">
                           <div className="flex items-center">
-                            <CheckCircle className="h-4 w-4 mr-2 text-success" />
+                            <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
                             Completed
                           </div>
                         </SelectItem>
                         <SelectItem value="cancelled">
                           <div className="flex items-center">
-                            <XCircle className="h-4 w-4 mr-2 text-destructive" />
+                            <XCircle className="h-4 w-4 mr-2 text-red-600" />
                             Cancelled
                           </div>
                         </SelectItem>
@@ -437,7 +654,7 @@ export default function Orders() {
                     <p className="font-medium mb-2">Payment Status</p>
                     <Select 
                       value={selectedOrder.paymentStatus} 
-                      onValueChange={(value) => handlePaymentStatusChange(value as any)} 
+                      onValueChange={(value) => handlePaymentStatusChange(value as Order['paymentStatus'])} 
                       disabled={updatingStatus}
                     >
                       <SelectTrigger>
@@ -446,19 +663,19 @@ export default function Orders() {
                       <SelectContent>
                         <SelectItem value="unpaid">
                           <div className="flex items-center">
-                            <CreditCard className="h-4 w-4 mr-2 text-warning" />
+                            <CreditCard className="h-4 w-4 mr-2 text-yellow-600" />
                             Unpaid
                           </div>
                         </SelectItem>
                         <SelectItem value="paid">
                           <div className="flex items-center">
-                            <BanknoteIcon className="h-4 w-4 mr-2 text-success" />
+                            <BanknoteIcon className="h-4 w-4 mr-2 text-green-600" />
                             Paid
                           </div>
                         </SelectItem>
                         <SelectItem value="refunded">
                           <div className="flex items-center">
-                            <RefreshCw className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <RefreshCw className="h-4 w-4 mr-2 text-gray-600" />
                             Refunded
                           </div>
                         </SelectItem>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,40 +18,70 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Search, Users, DollarSign, ShoppingBag, TrendingUp } from "lucide-react";
-import { mockCustomers } from "@/data/mock-data";
-import { Customer } from "@/types";
-import { getCustomers } from "@/lib/api";
-import { useEffect } from "react";
+import { Search, Users, DollarSign, ShoppingBag, TrendingUp, Loader2 } from "lucide-react";
+import adminApiService, { Customer } from "@/contexts/adminApiService";
+
+// Extended Customer interface to include calculated fields
+interface CustomerWithStats extends Customer {
+  orders: number;
+  totalSpent: number;
+}
 
 export default function Customers() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<CustomerWithStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithStats | null>(null);
 
   useEffect(() => {
-    const loadCustomers = async () => {
-      try {
-        setLoading(true);
-        const customersData = await getCustomers();
-        setCustomers(customersData);
-      } catch (error) {
-        console.error('Failed to load customers:', error);
-        setCustomers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCustomers();
+    fetchCustomers();
   }, []);
+
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Fetch customers and orders in parallel
+      const [customersData, ordersData] = await Promise.all([
+        adminApiService.getCustomers(),
+        adminApiService.getOrderItems ? adminApiService.getOrderItems() : Promise.resolve([])
+      ]);
+
+      // Calculate order statistics for each customer
+      const customersWithStats = customersData.map(customer => {
+        // Filter orders for this customer and calculate stats
+        const customerOrders = ordersData.filter((order: any) => 
+          order.userId === customer.id || (order as any).customerId === customer.id
+        );
+        
+        const totalSpent = customerOrders.reduce((sum: number, order: any) => 
+          sum + (order.totalAmount || order.price * (order.quantity || 1)), 0
+        );
+
+        return {
+          ...customer,
+          orders: customerOrders.length,
+          totalSpent,
+        };
+      });
+
+      setCustomers(customersWithStats);
+    } catch (err) {
+      console.error('Error fetching customers:', err);
+      setError('Failed to load customers data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredCustomers = customers.filter(
     (customer) =>
       customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase())
+      customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (customer.contact && customer.contact.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // Calculate stats
@@ -60,15 +90,55 @@ export default function Customers() {
   const totalOrders = filteredCustomers.reduce((sum, c) => sum + c.orders, 0);
   const avgCustomerValue = totalCustomers > 0 ? totalRevenue / totalCustomers : 0;
 
-  const handleCustomerClick = (customer: Customer) => {
+  const handleCustomerClick = (customer: CustomerWithStats) => {
     setSelectedCustomer(customer);
     setDialogOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading customers...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && customers.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center text-destructive">
+            <p>{error}</p>
+            <Button 
+              onClick={fetchCustomers}
+              className="mt-4"
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
+        <Button onClick={fetchCustomers} variant="outline" size="sm">
+          Refresh
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -91,7 +161,7 @@ export default function Customers() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               From all customers
             </p>
@@ -126,21 +196,16 @@ export default function Customers() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Customer List</CardTitle>
-          <CardDescription>View and manage your customers</CardDescription>
+          <CardDescription>
+            {customers.length} total customers • {filteredCustomers.length} filtered
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Users className="h-8 w-8 animate-spin" />
-              <span className="ml-2">Loading customers...</span>
-            </div>
-          ) : (
-            <>
-              <div className="mb-6">
+          <div className="mb-6">
             <div className="relative w-full md:w-96">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search customers..."
+                placeholder="Search by name, email, or phone..."
                 className="pl-8"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -152,10 +217,11 @@ export default function Customers() {
             <TableHeader>
               <TableRow>
                 <TableHead>Customer</TableHead>
-                <TableHead>Phone</TableHead>
+                <TableHead>Contact</TableHead>
                 <TableHead>Orders</TableHead>
                 <TableHead>Total Spent</TableHead>
                 <TableHead>Member Since</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -174,68 +240,114 @@ export default function Customers() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{customer.phone}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{customer.orders}</Badge>
+                      {customer.contact || "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={customer.orders > 0 ? "default" : "outline"}>
+                        {customer.orders} orders
+                      </Badge>
                     </TableCell>
                     <TableCell className="font-medium">
-                      ${customer.totalSpent.toFixed(2)}
+                      ${customer.totalSpent.toLocaleString()}
                     </TableCell>
                     <TableCell>
-                      {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString() : 'N/A'}
+                      {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString() : "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={customer.orders > 0 ? "default" : "secondary"}>
+                        {customer.orders > 0 ? "Active" : "New"}
+                      </Badge>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10">
+                  <TableCell colSpan={6} className="text-center py-10">
                     <Users className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-lg font-medium">No customers found</p>
+                    <p className="text-lg font-medium">
+                      {searchTerm ? "No customers found" : "No customers available"}
+                    </p>
+                    {searchTerm && (
+                      <p className="text-muted-foreground mt-1">
+                        Try adjusting your search terms
+                      </p>
+                    )}
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
-            </>
-          )}
         </CardContent>
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           {selectedCustomer && (
             <>
               <DialogHeader>
                 <DialogTitle>Customer Details</DialogTitle>
                 <DialogDescription>
-                  Customer since {new Date(selectedCustomer.createdAt).toLocaleDateString()}
+                  {selectedCustomer.createdAt && 
+                    `Customer since ${new Date(selectedCustomer.createdAt).toLocaleDateString()}`
+                  }
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div>
-                  <p className="text-sm font-medium">Name</p>
-                  <p className="text-sm text-muted-foreground">{selectedCustomer.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Email</p>
-                  <p className="text-sm text-muted-foreground">{selectedCustomer.email}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Phone</p>
-                  <p className="text-sm text-muted-foreground">{selectedCustomer.phone}</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Name</p>
+                    <p className="text-sm text-muted-foreground">{selectedCustomer.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Email</p>
+                    <p className="text-sm text-muted-foreground">{selectedCustomer.email}</p>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm font-medium">Total Orders</p>
-                    <p className="text-2xl font-bold">{selectedCustomer.orders}</p>
+                    <p className="text-sm font-medium">Contact</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedCustomer.contact || "Not provided"}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Total Spent</p>
-                    <p className="text-2xl font-bold">${selectedCustomer.totalSpent.toFixed(2)}</p>
+                    <p className="text-sm font-medium">Status</p>
+                    <Badge variant={selectedCustomer.orders > 0 ? "default" : "secondary"}>
+                      {selectedCustomer.orders > 0 ? "Active" : "New"}
+                    </Badge>
                   </div>
                 </div>
+                <div className="border-t pt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium">Total Orders</p>
+                      <p className="text-2xl font-bold">{selectedCustomer.orders}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Total Spent</p>
+                      <p className="text-2xl font-bold">${selectedCustomer.totalSpent.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+                {selectedCustomer.address && (
+                  <div>
+                    <p className="text-sm font-medium">Address</p>
+                    <p className="text-sm text-muted-foreground">{selectedCustomer.address}</p>
+                  </div>
+                )}
               </div>
-              <Button onClick={() => setDialogOpen(false)}>Close</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => {
+                  // Add customer action (email, edit, etc.)
+                  window.location.href = `mailto:${selectedCustomer.email}`;
+                }}>
+                  Contact Customer
+                </Button>
+              </div>
             </>
           )}
         </DialogContent>

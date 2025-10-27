@@ -15,10 +15,15 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Customers from "./pages/Customers";
 import Categories from "./pages/Categories";
-import Login from "./pages/Login";
+
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
-import CreateBooking from "./pages/CreateBooking";
+
+import Login from "./pages/Login";
+import CreateServices from "./pages/CreateService";
+
+
+
 
 const queryClient = new QueryClient();
 
@@ -43,7 +48,7 @@ const App = () => (
                   <Route path="/categories" element={<Categories />} />
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/bookings" element={<Bookings />} />
-                    <Route path="/create-bookings" element={<CreateBooking />} />
+                    <Route path="/create-service" element={<CreateServices/>} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/customers" element={<Customers />} />
                   <Route path="/settings" element={<Settings />} />

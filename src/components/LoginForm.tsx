@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Label } from "@/components/ui/label";
 
 export function LoginForm() {
-  const [email, setEmail] = useState("admin@example.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -17,7 +16,7 @@ export function LoginForm() {
     setIsLoading(true);
     
     try {
-      await login(email, password);
+      await login(email, password); // Only 2 arguments now
     } catch (error) {
       console.error("Login failed:", error);
     } finally {
@@ -40,7 +39,7 @@ export function LoginForm() {
             <Input
               id="email"
               type="email"
-              placeholder="admin@example.com"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -53,7 +52,7 @@ export function LoginForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Use 'admin123' for demo"
+              placeholder="Enter your password"
               required
             />
           </div>
@@ -67,13 +66,7 @@ export function LoginForm() {
         </form>
       </CardContent>
       <CardFooter className="text-sm text-center text-muted-foreground">
-        <p className="w-full">
-          For demo purposes use:
-          <br />
-          Email: admin@example.com
-          <br />
-          Password: admin123
-        </p>
+        {/* Footer content if needed */}
       </CardFooter>
     </Card>
   );
