@@ -21,7 +21,8 @@ import {
   Settings,
   CalendarCheck,
   WrapText,
-  FolderTree
+  FolderTree,
+  MessageCircle
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -117,6 +118,12 @@ export function DashboardSidebar() {
                   label="Customers" 
                   path="/customers" 
                   active={isActive("/customers")} 
+                />
+                      <SidebarItem 
+                  icon={MessageCircle} 
+                  label="Contacts" 
+                  path="/contacts" 
+                  active={isActive("/contacts")} 
                 />
               </SidebarMenu>
             </SidebarGroupContent>

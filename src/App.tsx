@@ -21,6 +21,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import Login from "./pages/Login";
 import CreateServices from "./pages/CreateService";
+import ContactMessagesAdmin from "./pages/Contacts";
 
 
 
@@ -48,6 +49,7 @@ const App = () => (
                   <Route path="/categories" element={<Categories />} />
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/bookings" element={<Bookings />} />
+                  <Route path="/contacts" element={<ContactMessagesAdmin />} />
                     <Route path="/create-service" element={<CreateServices/>} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/customers" element={<Customers />} />

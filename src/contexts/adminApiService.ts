@@ -13,6 +13,45 @@ export interface User {
   updatedAt?: string;
 }
 
+// In your adminApiService file - change this:
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  read: boolean;
+  userId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// In your adminApiService file - update the AppNotification interface:
+export interface AppNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'order' | 'booking' | 'contact' | 'product' | 'system' | 'info' | 'success' | 'warning' | 'error';
+  read: boolean;
+  userId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+// Add to your existing types in the API service file
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContactFormData {
+  name: string;
+  email: string;
+  message: string;
+}
+
 export interface CleaningService {
   id: string;
   name: string;
@@ -190,6 +229,31 @@ class AdminApiService {
     }
   }
 
+
+  // Add these methods to your AdminApiService class
+
+// 📧 CONTACT MESSAGES MANAGEMENT
+async submitContactForm(contactData: ContactFormData) {
+  return this.request('/api/contact', {
+    method: 'POST',
+    body: JSON.stringify(contactData),
+  });
+}
+
+async getAllContactMessages(): Promise<ContactMessage[]> {
+  const response = await this.request('/api/admin/contact/messages');
+  return response || [];
+}
+
+async getContactMessageById(id: string): Promise<ContactMessage> {
+  return this.request(`/api/admin/contact/messages/${id}`);
+}
+
+async deleteContactMessage(id: string) {
+  return this.request(`/api/admin/contact/messages/${id}`, {
+    method: 'DELETE',
+  });
+}
   private async requestWithFormData(endpoint: string, formData: FormData, method = 'POST') {
     const url = `${this.baseUrl}${endpoint}`;
     const headers = {};
@@ -512,34 +576,8 @@ class AdminApiService {
     });
   }
 
-  // 🔔 NOTIFICATIONS
-  async getNotifications() {
-    return this.request('/api/notifications');
-  }
+  // 🔔 NOTIFI
 
-  async getNotificationById(id) {
-    return this.request(`/api/notifications/${id}`);
-  }
-
-  async createNotification(notificationData) {
-    return this.request('/api/notifications', {
-      method: 'POST',
-      body: JSON.stringify(notificationData),
-    });
-  }
-
-  async updateNotification(id, notificationData) {
-    return this.request(`/api/notifications/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(notificationData),
-    });
-  }
-
-  async deleteNotification(id) {
-    return this.request(`/api/notifications/${id}`, {
-      method: 'DELETE',
-    });
-  }
 
   // 💰 PAYMENTS
   async createPaymentIntent(paymentData) {
@@ -557,23 +595,8 @@ class AdminApiService {
   }
 
 
-   // 🔐 AUTHENTICATION
-  // ========================
 
 
-
-
-  // ========================
-  // 🧹 CLEANING SERVICES
-  // ========================
-
-
-  // Create new service (admin only) - matches your backend routepdate service (admin only) - matches your backend route
-
-
-  // ========================
-  // 📅 CLEANING BOOKINGS
-  // ========================
 
   // Create booking (customer) - matches your backend route
   async createUserCleaningBooking(bookingData: any) {
@@ -583,119 +606,18 @@ class AdminApiService {
     });
   }
 
-  // Get all bookings (admin only) - matches your backend route
-  // async getAdminCleaningBookings(): Promise<{ bookings: CleaningBooking[] }> {
-  //   return this.request('/api/bookings');
-  // }
-
-  // // Get specific booking by ID - matches your backend route
-  // async getUserCleaningBooking(id: string): Promise<{ booking: CleaningBooking }> {
-  //   return this.request(`/api/bookings/${id}`);
-  // }
-
-  // // Update booking status (admin only) - matches your backend route
-  // async updateAdminCleaningBooking(id: string, bookingData: { status: string; notes?: string }) {
-  //   return this.request(`/api/bookings/${id}`, {
-  //     method: 'PUT',
-  //     body: JSON.stringify(bookingData),
-  //   });
-  // }
-
-  // // Delete booking (admin only) - matches your backend route
-
-  // // ========================
-  // // 👥 USER MANAGEMENT
-  // // ========================
 
 
 
 
-
-
-  // // ========================
-  // // 🛍️ PRODUCT MANAGEMENT
-  // // ========================
-
-  // async getProducts(): Promise<{ products: Product[] }> {
-  //   const response = await this.request('/api/admin/products');
-  //   return response.products || [];
-  // }
-
-  // async getProductById(id: string): Promise<{ product: Product }> {
-  //   return this.request(`/api/admin/products/${id}`);
-  // }
-
-  // async createProduct(productData: FormData) {
-  //   return this.requestWithFormData('/api/admin/products', productData, 'POST');
-  // }
-
-  // async updateProduct(id: string, productData: FormData) {
-  //   return this.requestWithFormData(`/api/admin/products/${id}`, productData, 'PUT');
-  // }
-
-  // async deleteProduct(id: string) {
-  //   return this.request(`/api/admin/products/${id}`, {
-  //     method: 'DELETE',
-  //   });
-  // }
-
-  // async toggleProductStatus(id: string) {
-  //   return this.request(`/api/admin/products/${id}/toggle-status`, {
-  //     method: 'PATCH',
-  //   });
-  // }
-
-  // ========================
-  // 📦 CATEGORY MANAGEMENT
-  // ========================
-
-  // async getCategories(): Promise<{ categories: Category[] }> {
-  //   return this.request('/api/categories');
-  // }
-
-  // async getCategoryById(id: string): Promise<{ category: Category }> {
-  //   return this.request(`/api/categories/${id}`);
-  // }
-
-  // async getCategoryTree(): Promise<{ categories: Category[] }> {
-  //   return this.request('/api/categories-tree');
-  // }
-
-  // async createCategory(categoryData: Partial<Category>) {
-  //   return this.request('/api/admin/categories', {
-  //     method: 'POST',
-  //     body: JSON.stringify(categoryData),
-  //   });
-  // }
-
-  // async updateCategory(id: string, categoryData: Partial<Category>) {
-  //   return this.request(`/api/admin/categories/${id}`, {
-  //     method: 'PUT',
-  //     body: JSON.stringify(categoryData),
-  //   });
-  // }
-
-  // async deleteCategory(id: string) {
-  //   return this.request(`/api/admin/categories/${id}`, {
-  //     method: 'DELETE',
-  //   });
-  // }
-
-  // async getCategoriesByLevel(level: number): Promise<{ categories: Category[] }> {
-  //   return this.request(`/api/categories/level/${level}`);
-  // }
-
-  // async getCategoriesByParent(parentId: string): Promise<{ categories: Category[] }> {
-  //   return this.request(`/api/categories/parent/${parentId}`);
-  // }
-
-  // ========================
-  // 📊 ORDERS & CUSTOMERS
-  // ========================
 
   async getOrders(): Promise<{ orders: Order[] }> {
     return this.request('/api/admin/orders');
   }
+
+
+
+
 
 
 
@@ -717,7 +639,64 @@ class AdminApiService {
   async getSalesReport(startDate: string, endDate: string) {
     return this.request(`/api/admin/analytics/sales-report?startDate=${startDate}&endDate=${endDate}`);
   }
+
+
+
+  // In your AdminApiService class - update these methods:
+
+// 🔔 NOTIFICATION METHODS
+async getUnreadNotifications(): Promise<AppNotification[]> {
+  const response = await this.request('/api/notifications/unread');
+  return response || [];
 }
+
+async getNotificationStats() {
+  return this.request('/api/notifications/stats');
+}
+
+async markNotificationAsRead(id: string) {
+  return this.request(`/api/notifications/${id}/read`, {
+    method: 'PATCH',
+  });
+}
+
+async markAllNotificationsAsRead() {
+  return this.request('/api/notifications/mark-all-read', {
+    method: 'PATCH',
+  });
+}
+
+// Also update any other notification methods to use AppNotification
+async getNotifications(): Promise<AppNotification[]> {
+  const response = await this.request('/api/notifications');
+  return response || [];
+}
+
+async getNotificationById(id: string): Promise<AppNotification> {
+  return this.request(`/api/notifications/${id}`);
+}
+
+async createNotification(notificationData: Partial<AppNotification>) {
+  return this.request('/api/notifications', {
+    method: 'POST',
+    body: JSON.stringify(notificationData),
+  });
+}
+
+async updateNotification(id: string, notificationData: Partial<AppNotification>) {
+  return this.request(`/api/notifications/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(notificationData),
+  });
+}
+
+async deleteNotification(id: string) {
+  return this.request(`/api/notifications/${id}`, {
+    method: 'DELETE',
+  });
+}
+}
+
 
 
  

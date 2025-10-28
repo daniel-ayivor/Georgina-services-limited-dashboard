@@ -412,22 +412,7 @@ export default function Products() {
 
   return (
     <div className="space-y-6">
-      {/* Debug Info - Remove this after fixing */}
-      {/* {!isLoading && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="pt-6">
-            <p className="text-sm font-mono">
-              <strong>Debug Info:</strong><br/>
-              Total Products Loaded: {products.length}<br/>
-              Filtered Products: {filteredProducts.length}<br/>
-              Search Term: "{searchTerm}"<br/>
-              {products.length > 0 && (
-                <>Sample Product: {JSON.stringify(products[0], null, 2)}</>
-              )}
-            </p>
-          </CardContent>
-        </Card>
-      )} */}
+
       
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Products</h1>
@@ -603,7 +588,7 @@ export default function Products() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">${parseFloat(product.price.toString()).toFixed(2)}</TableCell>
+                    <TableCell className="font-medium">$${product.price != null ? parseFloat(product.price.toString()).toFixed(2) : '0.00'}</TableCell>
                     <TableCell>
                       <span className={product.stock < 10 ? "text-destructive font-medium" : ""}>
                         {product.stock}
