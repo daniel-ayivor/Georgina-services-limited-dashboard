@@ -230,7 +230,6 @@ class AdminApiService {
   }
 
 
-  // Add these methods to your AdminApiService class
 
 // 📧 CONTACT MESSAGES MANAGEMENT
 async submitContactForm(contactData: ContactFormData) {
@@ -498,9 +497,7 @@ async deleteContactMessage(id: string) {
     });
   }
 
-  // ========================
-  // 🔵 USER SERVICE ACCESS
-  // ========================
+
 
   // Get active services for users to select from
   async getActiveCleaningServices(): Promise<CleaningService[]> {
@@ -540,9 +537,6 @@ async deleteContactMessage(id: string) {
     });
   }
 
-  // ========================
-  // 🔵 USER BOOKING ACCESS
-  // ========================
 
 
 
@@ -607,30 +601,9 @@ async deleteContactMessage(id: string) {
   }
 
 
-
-
-
-
   async getOrders(): Promise<{ orders: Order[] }> {
     return this.request('/api/admin/orders');
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
 
   async getDashboardStats() {
     return this.request('/api/admin/analytics/dashboard-stats');
@@ -640,9 +613,6 @@ async deleteContactMessage(id: string) {
     return this.request(`/api/admin/analytics/sales-report?startDate=${startDate}&endDate=${endDate}`);
   }
 
-
-
-  // In your AdminApiService class - update these methods:
 
 // 🔔 NOTIFICATION METHODS
 async getUnreadNotifications(): Promise<AppNotification[]> {
