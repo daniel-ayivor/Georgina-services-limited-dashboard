@@ -51,7 +51,9 @@ export interface ContactFormData {
   email: string;
   message: string;
 }
+// In your adminApiService file - CORRECT TYPES:
 
+// Service interface (for cleaning services)
 export interface CleaningService {
   id: string;
   name: string;
@@ -60,7 +62,30 @@ export interface CleaningService {
   price: number;
   duration: number;
   features: string[];
+  icon?: string;
+  category: 'residential' | 'commercial' | 'specialized';
   status: 'active' | 'inactive';
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Booking interface (separate from services)
+export interface CleaningBooking {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  serviceType: string;
+  address: string;
+  date: string;
+  time: string;
+  duration: number;
+  price: number;
+  status: 'pending' | 'confirmed' | 'in-progress' | 'completed' | 'cancelled';
+  notes?: string;
+  specialInstructions?: string;
+  bookingReference?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -139,17 +164,7 @@ export interface Customer {
   updatedAt: string;
 }
 
-export interface CleaningBooking {
-  id: string;
-  userId: string;
-  serviceType: string;
-  date: string;
-  time: string;
-  address: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-  createdAt: string;
-  updatedAt: string;
-}
+
 
 export interface Notification {
   id: string;
@@ -469,41 +484,9 @@ async deleteContactMessage(id: string) {
   }
 
   // Get all services (admin only)
-  async getCleaningServices(): Promise<CleaningService[]> {
-    const response = await this.request('/api/admin/services');
-    return response.services || [];
-  }
 
-  // Create new service (admin only)
-  async createCleaningService(serviceData: any) {
-    return this.request('/api/admin/services', {
-      method: 'POST',
-      body: JSON.stringify(serviceData),
-    });
-  }
-
-  // Update service (admin only)
-  async updateCleaningService(id: string, serviceData: any) {
-    return this.request(`/api/admin/services/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(serviceData),
-    });
-  }
 
   // Delete service (admin only)
-  async deleteCleaningService(id: string) {
-    return this.request(`/api/admin/services/${id}`, {
-      method: 'DELETE',
-    });
-  }
-
-
-
-  // Get active services for users to select from
-  async getActiveCleaningServices(): Promise<CleaningService[]> {
-    const response = await this.request('/api/services');
-    return response.services || [];
-  }
 
   // ========================
   // 🔴 ADMIN BOOKING MANAGEMENT
@@ -665,7 +648,94 @@ async deleteNotification(id: string) {
     method: 'DELETE',
   });
 }
+
+
+
+
+// In your adminApiService class - CORRECTED SERVICE METHODS:
+
+// Get all services (admin only) - CORRECTED
+async getCleaningServices(): Promise<CleaningService[]> {
+  const response = await this.request('/api/admin/services');
+  // Handle different response structures
+  if (response.data && response.data.services) {
+    return response.data.services;
+  } else if (response.services) {
+    return response.services;
+  } else if (Array.isArray(response)) {
+    return response;
+  } else if (response.data && Array.isArray(response.data)) {
+    return response.data;
+  }
+  return [];
 }
+
+// Create new service (admin only) - CORRECTED
+async createCleaningService(serviceData: any): Promise<{ data: CleaningService }> {
+  return this.request('/api/admin/services', {
+    method: 'POST',
+    body: JSON.stringify(serviceData),
+  });
+}
+
+// Update service (admin only) - CORRECTED
+async updateCleaningService(id: string, serviceData: any): Promise<{ data: CleaningService }> {
+  return this.request(`/api/admin/services/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(serviceData),
+  });
+}
+
+// Update service status (admin only) - ADD THIS METHOD
+async updateCleaningServiceStatus(id: string, status: 'active' | 'inactive'): Promise<{ data: CleaningService }> {
+  return this.request(`/api/admin/services/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+}
+
+// Delete service (admin only) - CORRECTED
+async deleteCleaningService(id: string): Promise<{ message: string }> {
+  return this.request(`/api/admin/services/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+// Get active services for users to select from - CORRECTED
+async getActiveCleaningServices(): Promise<CleaningService[]> {
+  const response = await this.request('/api/admin/services/active');
+  // Handle different response structures
+  if (response.data && response.data.services) {
+    return response.data.services;
+  } else if (response.services) {
+    return response.services;
+  } else if (Array.isArray(response)) {
+    return response;
+  } else if (response.data && Array.isArray(response.data)) {
+    return response.data;
+  }
+  return [];
+}
+
+// Get service by ID (admin only) - ADD THIS METHOD
+async getCleaningServiceById(id: string): Promise<{ data: CleaningService }> {
+  return this.request(`/api/admin/services/${id}`);
+}
+
+// Get service statistics (admin only) - ADD THIS METHOD
+async getServiceStats(): Promise<any> {
+  return this.request('/api/admin/services/stats');
+}
+
+// Reorder services (admin only) - ADD THIS METHOD
+async reorderServices(orderUpdates: Array<{ id: string; displayOrder: number }>): Promise<{ message: string }> {
+  return this.request('/api/admin/services/reorder', {
+    method: 'PATCH',
+    body: JSON.stringify({ orderUpdates }),
+  });
+}
+}
+
 
 
 

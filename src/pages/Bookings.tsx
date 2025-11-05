@@ -49,10 +49,11 @@ import {
   AlertCircle,
   RefreshCw,
   DollarSign,
-  MapPin
+  MapPin,
+  Sparkles
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import adminApiService, { CleaningBooking } from "@/contexts/adminApiService";
+import adminApiService from "@/contexts/adminApiService";
 
 interface Booking {
   id: string;
@@ -60,6 +61,7 @@ interface Booking {
   customerEmail: string;
   customerPhone: string;
   serviceType: string;
+  selectedFeatures: string[]; // NEW: Added selectedFeatures array
   address: string;
   date: string;
   time: string;
@@ -67,6 +69,7 @@ interface Booking {
   price: number;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes?: string;
+  specialInstructions?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -85,29 +88,26 @@ export default function Bookings() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Fix the fetchBookings function
   const fetchBookings = async () => {
     try {
       setIsLoading(true);
       setError(null);
       const response = await adminApiService.getAdminCleaningBookings();
       
-      console.log('📦 Bookings API response:', response); // Debug log
+      console.log('📦 Bookings API response:', response);
       
       // Handle different response formats
       let bookingsData: any[] = [];
       
       if (Array.isArray(response)) {
-        // If response is directly an array
         bookingsData = response;
       } else if (response && Array.isArray(response.bookings)) {
-        // If response has bookings property
         bookingsData = response.bookings;
+      } else if (response && response.data && Array.isArray(response.data.bookings)) {
+        bookingsData = response.data.bookings;
       } else if (response && response.data && Array.isArray(response.data)) {
-        // If response has data property
         bookingsData = response.data;
       } else {
-        // If it's some other structure, log it and use empty array
         console.warn('Unexpected bookings response format:', response);
         bookingsData = [];
       }
@@ -116,23 +116,36 @@ export default function Bookings() {
       
       // Transform API data to match our Booking interface
       const transformedBookings: Booking[] = bookingsData.map((booking: any) => {
-        // Safely handle the ID - convert to string and handle different formats
-        const bookingId = String(booking.id || 'unknown');
+        const bookingId = String(booking.id);
         
-        // Use actual data from the API response instead of hardcoded values
+        // Handle selectedFeatures - ensure it's always an array
+        let selectedFeatures: string[] = [];
+        if (Array.isArray(booking.selectedFeatures)) {
+          selectedFeatures = booking.selectedFeatures;
+        } else if (booking.selectedFeatures) {
+          // If it's a string or other type, try to parse it
+          try {
+            selectedFeatures = JSON.parse(booking.selectedFeatures);
+          } catch {
+            selectedFeatures = [];
+          }
+        }
+        
         return {
           id: bookingId,
-          customerName: booking.customerName || `Customer ${bookingId}`,
-          customerEmail: booking.customerEmail || `customer${bookingId}@example.com`,
-          customerPhone: booking.customerPhone || '+1-555-XXXX',
-          serviceType: booking.serviceType || 'basic',
+          customerName: booking.customerName || 'Unknown Customer',
+          customerEmail: booking.customerEmail || '',
+          customerPhone: booking.customerPhone || '',
+          serviceType: booking.serviceType || 'Unknown Service',
+          selectedFeatures: selectedFeatures, // NEW: Include selected features
           address: booking.address || 'Address not specified',
           date: booking.date || new Date().toISOString().split('T')[0],
-          time: booking.time || '09:00',
-          duration: booking.duration || 2, // Use actual duration from API
-          price: booking.price || 100, // Use actual price from API
+          time: booking.time || '00:00',
+          duration: booking.duration || 1,
+          price: booking.price || 0,
           status: (booking.status as 'pending' | 'confirmed' | 'completed' | 'cancelled') || 'pending',
-          notes: booking.specialInstructions || booking.notes || (booking.serviceType ? `Service: ${booking.serviceType}` : undefined),
+          notes: booking.notes || '',
+          specialInstructions: booking.specialInstructions || '',
           createdAt: booking.createdAt || new Date().toISOString(),
           updatedAt: booking.updatedAt || new Date().toISOString()
         };
@@ -178,16 +191,13 @@ export default function Bookings() {
     setUpdatingStatus(true);
     
     try {
-      // Update booking status via API
       const updateData = {
         status: status,
-        notes: selectedBooking.notes // Include existing notes if any
+        notes: selectedBooking.notes
       };
 
-      // Call the API to update the booking
       await adminApiService.updateAdminCleaningBooking(selectedBooking.id, updateData);
       
-      // Update local state
       const updatedBookings = bookings.map(booking => 
         booking.id === selectedBooking.id 
           ? { ...booking, status, updatedAt: new Date().toISOString() }
@@ -240,7 +250,6 @@ export default function Bookings() {
   const handleSendReply = () => {
     if (!selectedBooking || !replyMessage.trim()) return;
     
-    // Simulate sending reply (in real app, this would call an API)
     setReplyDialogOpen(false);
     setReplyMessage("");
     
@@ -266,13 +275,30 @@ export default function Bookings() {
   };
 
   const getServiceTypeName = (type: string) => {
-    switch (type) {
-      case "basic": return "Basic Cleaning";
-      case "deep": return "Deep Cleaning";
-      case "office": return "Office Cleaning";
-      case "post-construction": return "Post-Construction";
-      default: return type.charAt(0).toUpperCase() + type.slice(1) + " Cleaning";
+    // Use the actual service type names from your database
+    return type || "Unknown Service";
+  };
+
+  // NEW: Function to display selected features in table view
+  const renderSelectedFeatures = (features: string[]) => {
+    if (!features || features.length === 0) {
+      return <span className="text-xs text-muted-foreground">No features selected</span>;
     }
+    
+    return (
+      <div className="flex flex-wrap gap-1">
+        {features.slice(0, 2).map((feature, index) => (
+          <Badge key={index} variant="outline" className="text-xs">
+            {feature}
+          </Badge>
+        ))}
+        {features.length > 2 && (
+          <Badge variant="secondary" className="text-xs">
+            +{features.length - 2} more
+          </Badge>
+        )}
+      </div>
+    );
   };
 
   // Calculate stats
@@ -474,6 +500,7 @@ export default function Bookings() {
                 <TableHead>Booking ID</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Service</TableHead>
+                <TableHead>Selected Features</TableHead> {/* NEW COLUMN */}
                 <TableHead>Date & Time</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Price</TableHead>
@@ -481,7 +508,6 @@ export default function Bookings() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                // Show skeleton loading rows
                 Array.from({ length: 5 }).map((_, index) => (
                   <SkeletonRow key={index} />
                 ))
@@ -503,6 +529,9 @@ export default function Bookings() {
                     </TableCell>
                     <TableCell>{getServiceTypeName(booking.serviceType)}</TableCell>
                     <TableCell>
+                      {renderSelectedFeatures(booking.selectedFeatures)}
+                    </TableCell>
+                    <TableCell>
                       <div>
                         {new Date(booking.date).toLocaleDateString()}
                         <div className="text-sm text-muted-foreground">
@@ -516,7 +545,7 @@ export default function Bookings() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10">
+                  <TableCell colSpan={7} className="text-center py-10">
                     <div className="flex flex-col items-center">
                       <CalendarCheck className="h-10 w-10 text-muted-foreground mb-2" />
                       <p className="text-lg font-medium">No bookings found</p>
@@ -536,7 +565,7 @@ export default function Bookings() {
 
       {/* Booking Details Dialog */}
       <Dialog open={bookingDetailsOpen} onOpenChange={setBookingDetailsOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[700px]">
           {selectedBooking && (
             <>
               <DialogHeader>
@@ -558,6 +587,29 @@ export default function Bookings() {
                     <p className="font-medium">Service & Price</p>
                     <p className="text-sm">{getServiceTypeName(selectedBooking.serviceType)}</p>
                     <p className="text-xl font-bold">${selectedBooking.price.toFixed(2)}</p>
+                  </div>
+                </div>
+                
+                {/* NEW: Selected Features Section */}
+                <div>
+                  <p className="font-medium mb-2 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Selected Features
+                  </p>
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    {selectedBooking.selectedFeatures && selectedBooking.selectedFeatures.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedBooking.selectedFeatures.map((feature, index) => (
+                          <Badge key={index} variant="default" className="text-sm">
+                            {feature}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">
+                        No specific features selected for this service
+                      </p>
+                    )}
                   </div>
                 </div>
                 
@@ -586,9 +638,16 @@ export default function Bookings() {
                   </div>
                 </div>
 
+                {selectedBooking.specialInstructions && (
+                  <div>
+                    <p className="font-medium mb-2">Special Instructions</p>
+                    <p className="text-sm bg-muted p-3 rounded">{selectedBooking.specialInstructions}</p>
+                  </div>
+                )}
+
                 {selectedBooking.notes && (
                   <div>
-                    <p className="font-medium mb-2">Customer Notes</p>
+                    <p className="font-medium mb-2">Admin Notes</p>
                     <p className="text-sm bg-muted p-3 rounded">{selectedBooking.notes}</p>
                   </div>
                 )}
