@@ -43,7 +43,7 @@ const App = () => (
               {/* Protected Dashboard Routes */}
               <Route element={<ProtectedRoute />}>
                 <Route element={<DashboardLayout />}>
-                  <Route path="/overview" element={<Navigate to="/dashboard" />} />
+                  <Route path="/overview" element={<Navigate to="/overview" />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/categories" element={<Categories />} />
