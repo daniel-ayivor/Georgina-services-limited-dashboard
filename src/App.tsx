@@ -38,12 +38,12 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               {/* Public Routes */}
-              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Login />} />
               
               {/* Protected Dashboard Routes */}
               <Route element={<ProtectedRoute />}>
                 <Route element={<DashboardLayout />}>
-                  <Route path="/" element={<Navigate to="/dashboard" />} />
+                  <Route path="/overview" element={<Navigate to="/dashboard" />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/categories" element={<Categories />} />
