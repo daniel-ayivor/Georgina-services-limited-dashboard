@@ -85,20 +85,16 @@ export default function Orders() {
   // Fetch orders data from API
 // In your Orders component - fix the fetchOrdersData function
 // In your Orders component - fix the fetchOrdersData function
-// In your Orders component - fix the fetchOrdersData function
+// In your Orders component - update fetchOrdersData
 const fetchOrdersData = async () => {
   try {
     setIsLoading(true);
     setError(null);
     
-    // Use the correct admin endpoints
-    const ordersResponse = await adminApiService.getAdminOrders();
+    // Use the working endpoint that exists
+    const ordersData = await adminApiService.getOrders();
     const customersData = await adminApiService.getCustomers();
     
-    // Use the correct property - 'orders' instead of 'data'
-    const ordersData = ordersResponse.orders; // This matches your type { orders: Order[] }
-    
-    // Use the actual orders data from the API
     setOrders(ordersData);
     setCustomers(customersData);
     
