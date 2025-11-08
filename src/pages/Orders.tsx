@@ -83,93 +83,42 @@ export default function Orders() {
   const { toast } = useToast();
 
   // Fetch orders data from API
-  const fetchOrdersData = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const [orderItemsData, customersData] = await Promise.all([
-        adminApiService.getOrderItems(),
-        adminApiService.getCustomers()
-      ]);
-      
-      setOrderItems(orderItemsData);
-      setCustomers(customersData);
-      
-      // Transform order items into orders format
-      const transformedOrders = transformOrderItemsToOrders(orderItemsData, customersData);
-      setOrders(transformedOrders);
-      
-    } catch (err) {
-      console.error('Failed to fetch orders:', err);
-      setError('Failed to load orders. Please try again.');
-      toast({
-        variant: "destructive",
-        title: "Error loading orders",
-        description: "Could not fetch orders data.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+// In your Orders component - fix the fetchOrdersData function
+// In your Orders component - fix the fetchOrdersData function
+// In your Orders component - fix the fetchOrdersData function
+const fetchOrdersData = async () => {
+  try {
+    setIsLoading(true);
+    setError(null);
+    
+    // Use the correct admin endpoints
+    const ordersResponse = await adminApiService.getAdminOrders();
+    const customersData = await adminApiService.getCustomers();
+    
+    // Use the correct property - 'orders' instead of 'data'
+    const ordersData = ordersResponse.orders; // This matches your type { orders: Order[] }
+    
+    // Use the actual orders data from the API
+    setOrders(ordersData);
+    setCustomers(customersData);
+    
+  } catch (err) {
+    console.error('Failed to fetch orders:', err);
+    setError('Failed to load orders. Please try again.');
+    toast({
+      variant: "destructive",
+      title: "Error loading orders",
+      description: "Could not fetch orders data.",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchOrdersData();
   }, []);
 
-  // Transform order items and customers into orders
-  const transformOrderItemsToOrders = (orderItems: OrderItem[], customers: Customer[]): Order[] => {
-    if (orderItems.length === 0) return [];
-
-    // Group order items by order (using a simple grouping logic)
-    const orderGroups: { [key: string]: OrderItem[] } = {};
-    
-    orderItems.forEach((item, index) => {
-      // Create a unique order ID based on the item properties or index
-      const orderId = `order-${item.id || index}`;
-      
-      if (!orderGroups[orderId]) {
-        orderGroups[orderId] = [];
-      }
-      orderGroups[orderId].push(item);
-    });
-
-    // Transform grouped items into orders
-    return Object.entries(orderGroups).map(([orderId, items], index) => {
-      const customer = customers[index % customers.length] || {
-        name: `Customer ${index + 1}`,
-        email: `customer${index + 1}@example.com`
-      };
-
-      const total = items.reduce((sum, item) => {
-        const quantity = getOrderItemQuantity(item);
-        return sum + (item.price * quantity);
-      }, 0);
-
-      const statusOptions: Order['status'][] = ['pending', 'processing', 'completed', 'cancelled', 'shipped', 'delivered'];
-      const paymentOptions: Order['paymentStatus'][] = ['paid', 'unpaid', 'refunded'];
-      
-      // Get the most recent date from items
-      const orderDates = items.map(item => new Date(getOrderItemDate(item)));
-      const latestDate = new Date(Math.max(...orderDates.map(d => d.getTime())));
-      
-      return {
-        id: orderId,
-        customerName: customer.name,
-        customerEmail: customer.email,
-        status: statusOptions[Math.floor(Math.random() * statusOptions.length)],
-        paymentStatus: paymentOptions[Math.floor(Math.random() * paymentOptions.length)],
-        total,
-        items: items.map(item => ({
-          ...item,
-          productName: `Product ${item.id?.split('-')[1] || 'Unknown'}`,
-          quantity: getOrderItemQuantity(item)
-        })),
-        createdAt: getOrderItemDate(items[0]),
-        updatedAt: latestDate.toISOString()
-      };
-    });
-  };
 
   const filteredOrders = orders.filter((order) => {
     // Search filter

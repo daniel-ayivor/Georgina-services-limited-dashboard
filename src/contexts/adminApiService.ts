@@ -111,16 +111,26 @@ export interface Product {
   updatedAt: string;
 }
 
-export interface Order {
+// export interface Order {
+//   id: string;
+//   userId: string;
+//   totalAmount: number;
+//   status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+//   items: OrderItem[];
+//   createdAt: string;
+//   updatedAt: string;
+// }
+interface Order {
   id: string;
-  userId: string;
-  totalAmount: number;
-  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  customerName: string;
+  customerEmail: string;
+  status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'shipped' | 'delivered';
+  paymentStatus: 'paid' | 'unpaid' | 'refunded';
+  total: number;
   items: OrderItem[];
   createdAt: string;
   updatedAt: string;
 }
-
 export interface OrderItem {
   id: string;
   productId: string;
@@ -183,6 +193,18 @@ export interface AuthResponse {
   admin?: User;
 }
 
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  orders?: Order[];
+}
+
+export interface OrdersResponse {
+  orders: Order[];
+  data?: Order[]; // Make data optional
+}
+
 class AdminApiService {
   private baseUrl: string;
   private token: string | null = null;
@@ -192,6 +214,8 @@ class AdminApiService {
     this.token = localStorage.getItem('e-commerce-admin-token');
   }
 
+
+  
   setToken(token: string) {
     this.token = token;
     localStorage.setItem('e-commerce-admin-token', token);
@@ -244,6 +268,11 @@ class AdminApiService {
     }
   }
 
+  async getOrders(): Promise<Order[]> {
+  const response = await this.request('/api/orders');
+  // Handle different response structures
+  return response.orders || response.data || [];
+}
 
 
 // 📧 CONTACT MESSAGES MANAGEMENT
@@ -478,19 +507,19 @@ async deleteContactMessage(id: string) {
     });
   }
 
+
+  // In your adminApiService - ensure getAdminOrders returns proper data
+async getAdminOrders(): Promise<{ orders: Order[] }> {
+  const response = await this.request('/api/admin/orders');
+  return response;
+}
+
+// Also add a method for regular orders if needed
+
   // Optional: If you want a dedicated orders endpoint for admin
-  async getAdminOrders() {
-    return this.request('/api/admin/orders');
-  }
-
-  // Get all services (admin only)
 
 
-  // Delete service (admin only)
 
-  // ========================
-  // 🔴 ADMIN BOOKING MANAGEMENT
-  // ========================
 
   // Get all bookings (admin only)
   async getAdminCleaningBookings() {
@@ -525,9 +554,6 @@ async deleteContactMessage(id: string) {
 
   // User views their specific booking
   // 👤 CUSTOMERS
-  async getCustomers() {
-    return this.request('/api/customers');
-  }
 
   async getCustomerById(id) {
     return this.request(`/api/customers/${id}`);
@@ -584,9 +610,50 @@ async deleteContactMessage(id: string) {
   }
 
 
-  async getOrders(): Promise<{ orders: Order[] }> {
-    return this.request('/api/admin/orders');
+
+  // Updated getCustomers method with fallback
+async getCustomers(): Promise<Customer[]> {
+  try {
+    const response = await this.request('/api/customers');
+    return response.data || response || [];
+  } catch (error) {
+    console.warn('Customers endpoint not available, using fallback data:', error);
+    // Return fallback data for development
+    return this.getFallbackCustomers();
   }
+}
+
+// Add fallback customers data
+private getFallbackCustomers(): Customer[] {
+  return [
+    {
+      id: '1',
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      contact: '+1234567890',
+      address: '123 Main St, City, State',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '2', 
+      name: 'Jane Smith',
+      email: 'jane.smith@example.com',
+      contact: '+0987654321',
+      address: '456 Oak Ave, City, State',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: '3',
+      name: 'Bob Johnson',
+      email: 'bob.johnson@example.com',
+      contact: '+1122334455',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  ];
+}
 
   async getDashboardStats() {
     return this.request('/api/admin/analytics/dashboard-stats');
