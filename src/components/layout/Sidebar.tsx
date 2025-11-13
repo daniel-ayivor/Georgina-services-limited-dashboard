@@ -120,12 +120,7 @@ export function DashboardSidebar() {
                    path="/analytics" 
                    active={isActive("/analytics")} 
                  />
-                 <SidebarItem 
-                   icon={Users} 
-                   label="Customers" 
-                   path="/customers" 
-                   active={isActive("/customers")} 
-                 />
+           
                        <SidebarItem 
                    icon={MessageCircle} 
                    label="Contacts" 

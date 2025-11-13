@@ -82,7 +82,6 @@ import Orders from "./pages/Orders";
 import Bookings from "./pages/Bookings";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
-import Customers from "./pages/Customers";
 import Categories from "./pages/Categories";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -118,7 +117,6 @@ const App = () => (
                   <Route path="/contacts" element={<ContactMessagesAdmin />} />
                   <Route path="/create-service" element={<CreateServices/>} />
                   <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/customers" element={<Customers />} />
                   <Route path="/settings" element={<Settings />} />
                 </Route>
               </Route>

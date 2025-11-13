@@ -29,20 +29,17 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Search,
   ShoppingCart,
-  Calendar,
-  Filter,
-  CheckCircle,
-  Clock,
-  XCircle,
-  CreditCard,
   BanknoteIcon,
+  CreditCard,
   RefreshCw,
   AlertCircle,
-  Package
+  Package,
+  Clock,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import adminApiService, { Customer, OrderItem } from "@/contexts/adminApiService";
-// import { adminApiService, OrderItem, Customer } from "@/lib/adminApiService";
+import adminApiService, { OrderItem } from "@/contexts/adminApiService";
 
 interface Order {
   id: string;
@@ -71,7 +68,6 @@ const getOrderItemQuantity = (item: OrderItem): number => {
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
@@ -83,38 +79,32 @@ export default function Orders() {
   const { toast } = useToast();
 
   // Fetch orders data from API
-// In your Orders component - fix the fetchOrdersData function
-// In your Orders component - fix the fetchOrdersData function
-// In your Orders component - update fetchOrdersData
-const fetchOrdersData = async () => {
-  try {
-    setIsLoading(true);
-    setError(null);
-    
-    // Use the working endpoint that exists
-    const ordersData = await adminApiService.getOrders();
-    const customersData = await adminApiService.getCustomers();
-    
-    setOrders(ordersData);
-    setCustomers(customersData);
-    
-  } catch (err) {
-    console.error('Failed to fetch orders:', err);
-    setError('Failed to load orders. Please try again.');
-    toast({
-      variant: "destructive",
-      title: "Error loading orders",
-      description: "Could not fetch orders data.",
-    });
-  } finally {
-    setIsLoading(false);
-  }
-};
+  const fetchOrdersData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Use the working endpoint that exists
+      const ordersData = await adminApiService.getOrders();
+      
+      setOrders(ordersData);
+      
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+      setError('Failed to load orders. Please try again.');
+      toast({
+        variant: "destructive",
+        title: "Error loading orders",
+        description: "Could not fetch orders data.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchOrdersData();
   }, []);
-
 
   const filteredOrders = orders.filter((order) => {
     // Search filter
@@ -402,7 +392,6 @@ const fetchOrdersData = async () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
               <Select value={statusFilter} onValueChange={setStatusFilter} disabled={isLoading}>
                 <SelectTrigger className="w-[130px]">
                   <SelectValue placeholder="Status" />

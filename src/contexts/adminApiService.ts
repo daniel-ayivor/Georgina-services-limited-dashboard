@@ -559,7 +559,8 @@ async getAdminOrders(): Promise<{ orders: Order[] }> {
     });
   }
 
-
+  // Update any booking (admin only)
+// In your adminApiService - FIXED VERSION
 async updateAdminCleaningBooking(id: string | number, bookingData: any) {
   // Convert to number if it's a string, otherwise use as-is
   const bookingId = typeof id === 'string' ? parseInt(id, 10) : id;
