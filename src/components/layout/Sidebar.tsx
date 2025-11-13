@@ -1,9 +1,8 @@
-
 import { cn } from "@/lib/utils";
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarHeader, 
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
   SidebarTrigger,
   SidebarGroup,
   SidebarGroupLabel,
@@ -13,11 +12,11 @@ import {
   SidebarMenuButton,
   useSidebar
 } from "@/components/ui/sidebar";
-import { 
-  BarChartBig, 
-  Package, 
-  ShoppingCart, 
-  Users, 
+import {
+  BarChartBig,
+  Package,
+  ShoppingCart,
+  Users,
   Settings,
   CalendarCheck,
   WrapText,
@@ -34,12 +33,15 @@ interface SidebarItemProps {
 }
 
 function SidebarItem({ icon: Icon, label, path, active }: SidebarItemProps) {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={active} tooltip={label}>
-        <Link to={path} className="flex items-center gap-2">
-          <Icon className="h-4 w-4" />
-          <span>{label}</span>
+        <Link to={path} className="flex items-center gap-3">
+          <Icon className="h-5 w-5 flex-shrink-0" />
+          {!isCollapsed && <span>{label}</span>}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -50,99 +52,103 @@ export function DashboardSidebar() {
   const location = useLocation();
   const pathname = location.pathname;
   const { state } = useSidebar();
-  
+  const isCollapsed = state === "collapsed";
+
   const isActive = (path: string) => {
     return pathname === path;
   };
-  
+
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="flex flex-col items-center justify-center py-6">
-        <div className={cn(
-          "transition-opacity duration-200",
-          state === "collapsed" ? "opacity-0" : "opacity-100"
-        )}>
-          <h1 className="text-2xl font-bold">E-Commerce</h1>
-          <p className="text-sm text-muted-foreground">Admin Dashboard</p>
+      <SidebarHeader className="border-b px-4 py-3">
+        <div className="flex items-center gap-2">
+          <ShoppingCart className="h-6 w-6 flex-shrink-0" />
+          {!isCollapsed && (
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold">E-Commerce</span>
+              <span className="text-xs text-muted-foreground">Admin Dashboard</span>
+            </div>
+          )}
         </div>
       </SidebarHeader>
-      <SidebarContent className="flex flex-col h-full justify-between">
-        <div>
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarItem 
-                  icon={BarChartBig} 
-                  label="Dashboard" 
-                  path="/dashboard" 
-                  active={isActive("/dashboard") || isActive("/")} 
-                />
-                <SidebarItem 
-                  icon={Package} 
-                  label="Products" 
-                  path="/products" 
-                  active={isActive("/products")} 
-                />
-                <SidebarItem 
-                  icon={FolderTree} 
-                  label="Categories" 
-                  path="/categories" 
-                  active={isActive("/categories")} 
-                />
-                <SidebarItem 
-                  icon={ShoppingCart} 
-                  label="Orders" 
-                  path="/orders" 
-                  active={isActive("/orders")} 
-                />
-                <SidebarItem 
-                  icon={CalendarCheck} 
-                  label="Bookings" 
-                  path="/bookings" 
-                  active={isActive("/bookings")} 
-                />
-                  <SidebarItem 
-                  icon={WrapText} 
-                  label="Create Services" 
-                  path="/create-service" 
-                  active={isActive("/create-services")} 
-                />
-                <SidebarItem 
-                  icon={BarChartBig} 
-                  label="Analytics" 
-                  path="/analytics" 
-                  active={isActive("/analytics")} 
-                />
-                <SidebarItem 
-                  icon={Users} 
-                  label="Customers" 
-                  path="/customers" 
-                  active={isActive("/customers")} 
-                />
-                      <SidebarItem 
-                  icon={MessageCircle} 
-                  label="Contacts" 
-                  path="/contacts" 
-                  active={isActive("/contacts")} 
-                />
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          
-          <SidebarGroup className="mt-auto pt-6">
-            <SidebarGroupLabel>Settings</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarItem 
-                  icon={Settings} 
-                  label="Settings" 
-                  path="/settings" 
-                  active={isActive("/settings")} 
-                />
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </div>
+
+      <SidebarContent>
+        <SidebarGroup>
+          {!isCollapsed && <SidebarGroupLabel>Main</SidebarGroupLabel>}
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarItem
+                icon={BarChartBig}
+                label="Dashboard"
+                path="/dashboard"
+                active={isActive("/dashboard")}
+              />
+
+                 <SidebarItem 
+                   icon={Package} 
+                   label="Products" 
+                   path="/products" 
+                   active={isActive("/products")} 
+                 />
+                 <SidebarItem 
+                   icon={FolderTree} 
+                   label="Categories" 
+                   path="/categories" 
+                   active={isActive("/categories")} 
+                 />
+                 <SidebarItem 
+                   icon={ShoppingCart} 
+                   label="Orders" 
+                   path="/orders" 
+                   active={isActive("/orders")} 
+                 />
+                 <SidebarItem 
+                   icon={CalendarCheck} 
+                   label="Bookings" 
+                   path="/bookings" 
+                   active={isActive("/bookings")} 
+                 />
+                   <SidebarItem 
+                   icon={WrapText} 
+                   label="Create Services" 
+                   path="/create-service" 
+                   active={isActive("/create-services")} 
+                 />
+                 <SidebarItem 
+                   icon={BarChartBig} 
+                   label="Analytics" 
+                   path="/analytics" 
+                   active={isActive("/analytics")} 
+                 />
+                 <SidebarItem 
+                   icon={Users} 
+                   label="Customers" 
+                   path="/customers" 
+                   active={isActive("/customers")} 
+                 />
+                       <SidebarItem 
+                   icon={MessageCircle} 
+                   label="Contacts" 
+                   path="/contacts" 
+                   active={isActive("/contacts")} 
+                 />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          {!isCollapsed && <SidebarGroupLabel>Settings</SidebarGroupLabel>}
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarItem
+                icon={Settings}
+                label="Settings"
+                path="/settings"
+                active={isActive("/settings")}
+              />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );

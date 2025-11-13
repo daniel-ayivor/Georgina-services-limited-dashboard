@@ -1,3 +1,5 @@
+
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -186,42 +188,79 @@ export default function Bookings() {
     setBookingDetailsOpen(true);
   };
 
-  const handleStatusChange = async (status: 'pending' | 'confirmed' | 'completed' | 'cancelled') => {
-    if (!selectedBooking) return;
-    setUpdatingStatus(true);
-    
-    try {
-      const updateData = {
-        status: status,
-        notes: selectedBooking.notes
-      };
 
-      await adminApiService.updateAdminCleaningBooking(selectedBooking.id, updateData);
-      
-      const updatedBookings = bookings.map(booking => 
-        booking.id === selectedBooking.id 
-          ? { ...booking, status, updatedAt: new Date().toISOString() }
-          : booking
-      );
-      
-      setBookings(updatedBookings);
-      setSelectedBooking(prev => prev ? { ...prev, status, updatedAt: new Date().toISOString() } : null);
-      
-      toast({
-        title: "Booking status updated",
-        description: `Booking ${selectedBooking.id} is now ${status}`
-      });
-    } catch (err: any) {
-      console.error('Failed to update booking status:', err);
-      toast({
-        variant: "destructive",
-        title: "Error updating booking",
-        description: err.message || "Could not update booking status. Please try again.",
-      });
-    } finally {
-      setUpdatingStatus(false);
-    }
-  };
+// Replace the handleStatusChange function with this updated version:
+const handleStatusChange = async (
+  status: "pending" | "confirmed" | "completed" | "cancelled"
+) => {
+  if (!selectedBooking) return;
+
+  console.log('🔄 Starting status change to:', status);
+  setUpdatingStatus(true);
+
+  const prevStatus = selectedBooking.status;
+  const updatedAt = new Date().toISOString();
+
+  // ✅ Optimistic UI update
+  setBookings((prev) =>
+    prev.map((b) =>
+      b.id === selectedBooking.id ? { ...b, status, updatedAt } : b
+    )
+  );
+  setSelectedBooking((prev) =>
+    prev ? { ...prev, status, updatedAt } : null
+  );
+
+  try {
+    console.log('📡 Making API call with ID:', {
+      id: selectedBooking.id,
+      type: typeof selectedBooking.id
+    });
+
+    // ✅ Ensure ID is properly handled
+    const bookingId = selectedBooking.id; // This should be a number from your data
+    
+    const response = await adminApiService.updateAdminCleaningBooking(bookingId, {
+      status,
+      notes: selectedBooking.notes,
+    });
+    
+    console.log('✅ API call successful:', response);
+    
+    toast({
+      title: "Status updated",
+      description: `Booking ${selectedBooking.id} is now ${status}.`,
+    });
+
+  } catch (err: any) {
+    console.error('❌ API call failed:', err);
+    
+    // ❌ Rollback on failure
+    setBookings((prev) =>
+      prev.map((b) =>
+        b.id === selectedBooking.id ? { ...b, status: prevStatus } : b
+      )
+    );
+    setSelectedBooking((prev) =>
+      prev ? { ...prev, status: prevStatus } : null
+    );
+
+    toast({
+      variant: "destructive",
+      title: "Update failed",
+      description: err.message || "Could not update booking status. Please try again.",
+    });
+  } finally {
+    console.log('🏁 Clearing updatingStatus');
+    setUpdatingStatus(false);
+  }
+};
+
+// Add this to monitor the updatingStatus state
+useEffect(() => {
+  console.log('🔄 updatingStatus changed to:', updatingStatus);
+}, [updatingStatus]);
+
 
   const handleDeleteBooking = async () => {
     if (!selectedBooking) return;
@@ -297,7 +336,7 @@ export default function Bookings() {
             +{features.length - 2} more
           </Badge>
         )}
-      </div>
+    </div>
     );
   };
 
@@ -563,146 +602,156 @@ export default function Bookings() {
         </CardContent>
       </Card>
 
-      {/* Booking Details Dialog */}
-      <Dialog open={bookingDetailsOpen} onOpenChange={setBookingDetailsOpen}>
-        <DialogContent className="sm:max-w-[700px]">
-          {selectedBooking && (
-            <>
-              <DialogHeader>
-                <DialogTitle>Booking Details</DialogTitle>
-                <DialogDescription>
-                  Booking {selectedBooking.id} - Created on {new Date(selectedBooking.createdAt).toLocaleDateString()}
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="grid gap-6 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="font-medium">Customer</p>
-                    <p className="text-sm">{selectedBooking.customerName}</p>
-                    <p className="text-sm text-muted-foreground">{selectedBooking.customerEmail}</p>
-                    <p className="text-sm text-muted-foreground">{selectedBooking.customerPhone}</p>
+      {/* Booking Details Dialog - Made Scrollable */}
+{/* Booking Details Dialog - Made Scrollable */}
+<Dialog open={bookingDetailsOpen} onOpenChange={setBookingDetailsOpen}>
+  <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-auto">
+    {/* Get the latest booking data from the bookings array */}
+   {(() => {
+      // Always get the freshest data from the bookings array
+      const currentBooking = bookings.find(b => b.id === selectedBooking?.id) || selectedBooking;
+      if (!currentBooking) return null;
+      
+      return (
+        <>
+         <DialogHeader>
+            <DialogTitle>Booking Details</DialogTitle>
+            <DialogDescription>
+              Booking {currentBooking.id} - Created on {new Date(currentBooking.createdAt).toLocaleDateString()}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-6 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="font-medium">Customer</p>
+                <p className="text-sm">{currentBooking.customerName}</p>
+                <p className="text-sm text-muted-foreground">{currentBooking.customerEmail}</p>
+                <p className="text-sm text-muted-foreground">{currentBooking.customerPhone}</p>
+              </div>
+              <div>
+                <p className="font-medium">Service & Price</p>
+                <p className="text-sm">{getServiceTypeName(currentBooking.serviceType)}</p>
+                <p className="text-xl font-bold">${currentBooking.price.toFixed(2)}</p>
+              </div>
+            </div>
+            
+            {/* Selected Features Section */}
+            <div>
+              <p className="font-medium mb-2 flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Selected Features
+              </p>
+              <div className="bg-muted/50 rounded-lg p-4">
+                {currentBooking.selectedFeatures && currentBooking.selectedFeatures.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {currentBooking.selectedFeatures.map((feature, index) => (
+                      <Badge key={index} variant="default" className="text-sm">
+                        {feature}
+                      </Badge>
+                    ))}
                   </div>
-                  <div>
-                    <p className="font-medium">Service & Price</p>
-                    <p className="text-sm">{getServiceTypeName(selectedBooking.serviceType)}</p>
-                    <p className="text-xl font-bold">${selectedBooking.price.toFixed(2)}</p>
-                  </div>
-                </div>
-                
-                {/* NEW: Selected Features Section */}
-                <div>
-                  <p className="font-medium mb-2 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    Selected Features
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">
+                    No specific features selected for this service
                   </p>
-                  <div className="bg-muted/50 rounded-lg p-4">
-                    {selectedBooking.selectedFeatures && selectedBooking.selectedFeatures.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {selectedBooking.selectedFeatures.map((feature, index) => (
-                          <Badge key={index} variant="default" className="text-sm">
-                            {feature}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground italic">
-                        No specific features selected for this service
-                      </p>
-                    )}
-                  </div>
-                </div>
-                
-                <div>
-                  <p className="font-medium mb-2">Service Details</p>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Date:</p>
-                      <p>{new Date(selectedBooking.date).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Time:</p>
-                      <p>{selectedBooking.time}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Duration:</p>
-                      <p>{selectedBooking.duration} hours</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-muted-foreground flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        Address:
-                      </p>
-                      <p>{selectedBooking.address}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {selectedBooking.specialInstructions && (
-                  <div>
-                    <p className="font-medium mb-2">Special Instructions</p>
-                    <p className="text-sm bg-muted p-3 rounded">{selectedBooking.specialInstructions}</p>
-                  </div>
                 )}
-
-                {selectedBooking.notes && (
-                  <div>
-                    <p className="font-medium mb-2">Admin Notes</p>
-                    <p className="text-sm bg-muted p-3 rounded">{selectedBooking.notes}</p>
-                  </div>
-                )}
-                
+              </div>
+            </div>
+            
+            <div>
+              <p className="font-medium mb-2">Service Details</p>
+              <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="font-medium mb-2">Status</p>
-                  <Select 
-                    value={selectedBooking.status} 
-                    onValueChange={(value) => handleStatusChange(value as any)} 
-                    disabled={updatingStatus}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="confirmed">Confirmed</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <p className="text-muted-foreground">Date:</p>
+                  <p>{new Date(currentBooking.date).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Time:</p>
+                  <p>{currentBooking.time}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Duration:</p>
+                  <p>{currentBooking.duration} hours</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-muted-foreground flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    Address:
+                  </p>
+                  <p>{currentBooking.address}</p>
                 </div>
               </div>
-              
-              <DialogFooter className="flex justify-between">
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setReplyDialogOpen(true)}
-                    disabled={updatingStatus}
-                  >
-                    <Reply className="h-4 w-4 mr-2" />
-                    Reply
-                  </Button>
-                  <Button 
-                    variant="destructive" 
-                    onClick={() => setDeleteDialogOpen(true)}
-                    disabled={updatingStatus}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                </div>
-                <Button onClick={() => setBookingDetailsOpen(false)} disabled={updatingStatus}>
-                  Close
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+            </div>
 
-      {/* Reply Dialog */}
+            {currentBooking.specialInstructions && (
+              <div>
+                <p className="font-medium mb-2">Special Instructions</p>
+                <p className="text-sm bg-muted p-3 rounded">{currentBooking.specialInstructions}</p>
+              </div>
+            )}
+
+            {currentBooking.notes && (
+              <div>
+                <p className="font-medium mb-2">Admin Notes</p>
+                <p className="text-sm bg-muted p-3 rounded">{currentBooking.notes}</p>
+              </div>
+            )}
+            
+            
+            <div>
+           <p className="font-medium mb-2">Status</p>
+              <Select 
+                value={currentBooking.status} 
+                onValueChange={(value) => handleStatusChange(value as any)} 
+                disabled={updatingStatus}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                  {updatingStatus && <RefreshCw className="h-4 w-4 ml-2 animate-spin" />}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <DialogFooter className="flex justify-between">
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setReplyDialogOpen(true)}
+                disabled={updatingStatus}
+              >
+                <Reply className="h-4 w-4 mr-2" />
+                Reply
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={() => setDeleteDialogOpen(true)}
+                disabled={updatingStatus}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </div>
+            <Button onClick={() => setBookingDetailsOpen(false)} disabled={updatingStatus}>
+              Close
+            </Button>
+          </DialogFooter>
+        </>
+      );
+    })()}
+  </DialogContent>
+</Dialog>
+
+      {/* Reply Dialog - Made Scrollable */}
       <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-auto"> {/* Added max-h and overflow-auto */}
           <DialogHeader>
             <DialogTitle>Reply to Customer</DialogTitle>
             <DialogDescription>
@@ -728,9 +777,9 @@ export default function Bookings() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog - Made Scrollable */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-h-[90vh] overflow-auto"> {/* Added max-h and overflow-auto */}
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>

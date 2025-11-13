@@ -29,10 +29,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Search, Plus, Edit, Trash2, Package, DollarSign, TrendingUp, AlertTriangle, RefreshCw, AlertCircle } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Package, DollarSign, TrendingUp, AlertTriangle, RefreshCw, AlertCircle, X, Eye, Calendar } from "lucide-react";
 import { Product } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { ImageUpload } from "@/components/ImageUpload";
 import adminApiService from "@/contexts/adminApiService";
 import { ImageUploadWithFile } from "@/lib/ImageLoader";
 
@@ -49,9 +48,9 @@ interface ProductFormData {
   unit: string;
   stock: string;
   brand: string;
-  tags: string;
+  tags: string[];
   isActive: boolean;
-  image: File | string | null; // Can be File, string URL, or null
+  image: File | string | null;
 }
 
 interface Category {
@@ -60,11 +59,283 @@ interface Category {
   slug?: string;
 }
 
+// Tag Input Component
+const TagInput = ({ 
+  tags, 
+  onTagsChange, 
+  disabled 
+}: { 
+  tags: string[]; 
+  onTagsChange: (tags: string[]) => void; 
+  disabled?: boolean;
+}) => {
+  const [inputValue, setInputValue] = useState('');
+
+  const addTag = (tag: string) => {
+    const cleanTag = tag.trim();
+    if (cleanTag && !tags.includes(cleanTag)) {
+      onTagsChange([...tags, cleanTag]);
+    }
+    setInputValue('');
+  };
+
+  const removeTag = (index: number) => {
+    onTagsChange(tags.filter((_, i) => i !== index));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(inputValue);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-10 bg-background">
+        {tags.map((tag, index) => (
+          <Badge key={index} variant="secondary" className="flex items-center gap-1 text-xs py-1">
+            {tag}
+            <button
+              type="button"
+              onClick={() => removeTag(index)}
+              className="ml-1 hover:text-destructive text-xs"
+              disabled={disabled}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </Badge>
+        ))}
+        <input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={() => inputValue && addTag(inputValue)}
+          placeholder={tags.length === 0 ? "Add tags..." : "Add another tag..."}
+          className="flex-1 outline-none bg-transparent text-sm min-w-20 placeholder:text-muted-foreground"
+          disabled={disabled}
+        />
+      </div>
+      <p className="text-xs text-muted-foreground">Press Enter, comma, or click outside to add tags</p>
+    </div>
+  );
+};
+
+// Product Details Modal Component
+const ProductDetailsModal = ({ 
+  product, 
+  open, 
+  onOpenChange 
+}: { 
+  product: Product | null; 
+  open: boolean; 
+  onOpenChange: (open: boolean) => void;
+}) => {
+  const getImageUrl = (imagePath: string | undefined) => {
+    if (!imagePath) return "/placeholder.svg";
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8003';
+    const filename = imagePath.split(/[\\/]/).pop();
+    return `${BACKEND_URL}/uploads/products/${filename}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Safely convert tags to array for display
+  const getDisplayTags = (tags: any): string[] => {
+    if (!tags) return [];
+    
+    if (Array.isArray(tags)) {
+      return tags.filter(tag => typeof tag === 'string');
+    }
+    
+    if (typeof tags === 'string') {
+      try {
+        const parsed = JSON.parse(tags);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(tag => typeof tag === 'string');
+        }
+      } catch {
+        return tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      }
+    }
+    
+    return [];
+  };
+
+  if (!product) return null;
+
+  const displayTags = getDisplayTags(product.tags);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Product Details
+          </DialogTitle>
+          <DialogDescription>
+            Complete information about {product.name}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="grid gap-6 py-4">
+          {/* Product Image */}
+          <div className="flex justify-center">
+            <img
+              src={getImageUrl(product.images?.[0])}
+              alt={product.name}
+              className="h-64 w-64 object-cover rounded-lg border shadow-sm"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/placeholder.svg";
+              }}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
+                <p className="text-muted-foreground">{product.description || "No description available"}</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="font-medium">Price</span>
+                  <span className="text-lg font-bold text-green-600">
+                    ${parseFloat(product.price?.toString() || '0').toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="font-medium">Stock</span>
+                  <Badge variant={product.stock < 10 ? "destructive" : "default"}>
+                    {product.stock} units
+                  </Badge>
+                </div>
+
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="font-medium">Status</span>
+                  <Badge variant={product.isActive ? "default" : "destructive"}>
+                    {product.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                </div>
+
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="font-medium">Type</span>
+                  <Badge variant={product.serviceType === 'service' ? "default" : "secondary"}>
+                    {product.serviceType}
+                  </Badge>
+                </div>
+
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="font-medium">Unit</span>
+                  <span className="text-muted-foreground capitalize">{product.unit || 'piece'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Details */}
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <h4 className="font-semibold">Category Information</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Main Category</span>
+                    <Badge variant="outline">{product.categoryLevel1}</Badge>
+                  </div>
+                  {product.categoryLevel2 && (
+                    <div className="flex justify-between">
+                      <span>Subcategory</span>
+                      <span className="text-muted-foreground">{product.categoryLevel2}</span>
+                    </div>
+                  )}
+                  {product.categoryLevel3 && (
+                    <div className="flex justify-between">
+                      <span>Sub-subcategory</span>
+                      <span className="text-muted-foreground">{product.categoryLevel3}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {product.brand && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold">Brand</h4>
+                  <Badge variant="secondary" className="text-sm">
+                    {product.brand}
+                  </Badge>
+                </div>
+              )}
+
+              {product.serviceDuration && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold">Service Duration</h4>
+                  <p className="text-muted-foreground">{product.serviceDuration}</p>
+                </div>
+              )}
+
+              {/* Tags */}
+              {displayTags.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold">Tags</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {displayTags.map((tag, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Timestamps */}
+              <div className="space-y-2 pt-4 border-t">
+                <h4 className="font-semibold">Timestamps</h4>
+                <div className="space-y-1 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-3 w-3" />
+                    <span>Created: {formatDate(product.createdAt)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-3 w-3" />
+                    <span>Updated: {formatDate(product.updatedAt)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,7 +352,7 @@ export default function Products() {
     unit: "piece",
     stock: "0",
     brand: "",
-    tags: "",
+    tags: [],
     isActive: true,
     image: "",
   });
@@ -95,29 +366,16 @@ export default function Products() {
   // Helper function to convert file path to URL
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath) {
-      console.log('No image path provided');
       return "/placeholder.svg";
     }
     
-    console.log('Original image path:', imagePath);
-    
-    // If it's already a URL, return it
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      console.log('Already a URL:', imagePath);
       return imagePath;
     }
     
-    // Extract filename from Windows/Unix file path
     const filename = imagePath.split(/[\\/]/).pop();
-    console.log('Extracted filename:', filename);
-    
-    // Construct the full URL to your backend (port 8003)
-    // Use import.meta.env for Vite projects, not process.env
     const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8003';
-    const imageUrl = `${BACKEND_URL}/uploads/products/${filename}`;
-    
-    console.log('Final image URL:', imageUrl);
-    return imageUrl;
+    return `${BACKEND_URL}/uploads/products/${filename}`;
   };
 
   // Fetch products and categories from API
@@ -126,13 +384,8 @@ export default function Products() {
       setIsLoading(true);
       setError(null);
 
-      // Fetch products using admin endpoint
       const productsResponse = await adminApiService.getProducts();
-      console.log('API Response:', productsResponse); // Debug log
-      
-      // Handle different response structures
       const productsList = productsResponse.products || productsResponse.data?.products || productsResponse || [];
-      console.log('Products List:', productsList); // Debug log
       
       setProducts(Array.isArray(productsList) ? productsList : []);
 
@@ -173,7 +426,6 @@ export default function Products() {
     return sum + price;
   }, 0) / totalProducts : 0;
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -189,7 +441,6 @@ export default function Products() {
     setIsSubmitting(true);
 
     try {
-      // Always use FormData for file uploads
       const formDataObj = new FormData();
 
       // Append all product data
@@ -204,14 +455,16 @@ export default function Products() {
       formDataObj.append('unit', formData.unit);
       formDataObj.append('stock', formData.stock);
       formDataObj.append('brand', formData.brand);
-      formDataObj.append('tags', formData.tags);
+      
+      // Append tags as JSON string
+      formDataObj.append('tags', JSON.stringify(formData.tags));
+      
       formDataObj.append('isActive', formData.isActive.toString());
 
-      // Handle image upload - only append if it's a File object
+      // Handle image upload
       if (formData.image instanceof File) {
         formDataObj.append('image', formData.image);
       } else if (!formData.image && !editingProduct) {
-        // Only require image for new products, not for edits
         toast({
           variant: "destructive",
           title: "Image required",
@@ -220,7 +473,6 @@ export default function Products() {
         setIsSubmitting(false);
         return;
       }
-      // For editing existing products without new image, don't append image field
 
       let result;
       if (editingProduct) {
@@ -232,13 +484,33 @@ export default function Products() {
         });
       } else {
         result = await adminApiService.createProduct(formDataObj);
-        setProducts([...products, result]);
+        setProducts(prev => [...prev, result]);
         toast({
           title: "Product added",
           description: "Product has been added successfully"
         });
       }
+      
+      // Reset form and close dialog
+      setFormData({
+        name: "",
+        description: "",
+        price: "",
+        categoryLevel1: "",
+        categoryLevel2: "",
+        categoryLevel3: "",
+        serviceType: "physical",
+        serviceDuration: "",
+        unit: "piece",
+        stock: "0",
+        brand: "",
+        tags: [],
+        isActive: true,
+        image: null
+      });
+      setEditingProduct(null);
       setDialogOpen(false);
+      
     } catch (err) {
       console.error('Failed to save product:', err);
       toast({
@@ -251,7 +523,6 @@ export default function Products() {
     }
   };
 
-  // Update the handleAddProduct function
   const handleAddProduct = () => {
     setEditingProduct(null);
     setFormData({
@@ -266,35 +537,72 @@ export default function Products() {
       unit: "piece",
       stock: "0",
       brand: "",
-      tags: "",
+      tags: [],
       isActive: true,
-      image: null // Start with null
+      image: null
     });
     setDialogOpen(true);
   };
 
-  // Update the handleEditProduct function
-  const handleEditProduct = (product: Product) => {
-    setEditingProduct(product);
+  const handleEditProduct = (productToEdit: Product) => {
+    setEditingProduct(productToEdit);
+    
+    const convertTagsToArray = (tags: unknown): string[] => {
+      if (!tags) return [];
+      
+      if (Array.isArray(tags)) {
+        return tags.reduce<string[]>((acc, tag) => {
+          if (typeof tag === 'string' && tag.trim()) {
+            acc.push(tag.trim());
+          }
+          return acc;
+        }, []);
+      }
+      
+      if (typeof tags === 'string') {
+        try {
+          const parsed = JSON.parse(tags);
+          if (Array.isArray(parsed)) {
+            return parsed.reduce<string[]>((acc, tag) => {
+              if (typeof tag === 'string' && tag.trim()) {
+                acc.push(tag.trim());
+              }
+              return acc;
+            }, []);
+          }
+        } catch {
+          return tags.split(',')
+            .map(tag => tag.trim())
+            .filter(tag => tag !== '');
+        }
+      }
+      
+      return [];
+    };
+
     setFormData({
-      name: product.name,
-      description: product.description || "",
-      price: product.price.toString(),
-      categoryLevel1: product.categoryLevel1 || "",
-      categoryLevel2: product.categoryLevel2 || "",
-      categoryLevel3: product.categoryLevel3 || "",
-      serviceType: product.serviceType || "physical",
-      serviceDuration: product.serviceDuration || "",
-      unit: product.unit || "piece",
-      stock: product.stock?.toString() || "0",
-      brand: product.brand || "",
-      tags: product.tags ? JSON.stringify(product.tags) : "",
-      isActive: product.isActive !== undefined ? product.isActive : true,
-      image: getImageUrl(product.images?.[0]) || "", // Convert path to URL
+      name: productToEdit.name,
+      description: productToEdit.description || "",
+      price: productToEdit.price.toString(),
+      categoryLevel1: productToEdit.categoryLevel1 || "",
+      categoryLevel2: productToEdit.categoryLevel2 || "",
+      categoryLevel3: productToEdit.categoryLevel3 || "",
+      serviceType: productToEdit.serviceType || "physical",
+      serviceDuration: productToEdit.serviceDuration || "",
+      unit: productToEdit.unit || "piece",
+      stock: productToEdit.stock?.toString() || "0",
+      brand: productToEdit.brand || "",
+      tags: convertTagsToArray(productToEdit.tags),
+      isActive: productToEdit.isActive !== undefined ? productToEdit.isActive : true,
+      image: getImageUrl(productToEdit.images?.[0]) || "",
     });
     setDialogOpen(true);
   };
 
+  const handleViewProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setDetailsDialogOpen(true);
+  };
 
   const handleDeleteProduct = async (id: string) => {
     if (!confirm('Are you sure you want to delete this product?')) {
@@ -318,15 +626,15 @@ export default function Products() {
     }
   };
 
-  const handleToggleStatus = async (product: Product) => {
+  const handleToggleStatus = async (productToToggle: Product) => {
     try {
-      const updatedProduct = await adminApiService.updateProduct(product.id, {
-        isActive: !product.isActive
+      const updatedProduct = await adminApiService.updateProduct(productToToggle.id, {
+        isActive: !productToToggle.isActive
       });
-      setProducts(products.map((p) => p.id === product.id ? updatedProduct : p));
+      setProducts(products.map((p) => p.id === productToToggle.id ? updatedProduct : p));
       toast({
-        title: `Product ${!product.isActive ? 'activated' : 'deactivated'}`,
-        description: `Product has been ${!product.isActive ? 'activated' : 'deactivated'} successfully`
+        title: `Product ${!productToToggle.isActive ? 'activated' : 'deactivated'}`,
+        description: `Product has been ${!productToToggle.isActive ? 'activated' : 'deactivated'} successfully`
       });
     } catch (err) {
       console.error('Failed to toggle product status:', err);
@@ -338,7 +646,7 @@ export default function Products() {
     }
   };
 
-
+  // Loading and Skeleton Components
   const LoadingRow = () => (
     <TableRow>
       <TableCell colSpan={7} className="text-center py-8">
@@ -380,6 +688,7 @@ export default function Products() {
         <div className="flex justify-end gap-2">
           <div className="h-8 w-8 bg-muted rounded animate-pulse" />
           <div className="h-8 w-8 bg-muted rounded animate-pulse" />
+          <div className="h-8 w-8 bg-muted rounded animate-pulse" />
         </div>
       </TableCell>
     </TableRow>
@@ -412,8 +721,6 @@ export default function Products() {
 
   return (
     <div className="space-y-6">
-
-      
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Products</h1>
         <div className="flex gap-2">
@@ -547,29 +854,24 @@ export default function Products() {
                 ))
               ) : filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
+                  <TableRow key={product.id} className="hover:bg-muted/50">
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <img
-                            src={getImageUrl(product.images?.[0])}
-                            alt={product.name}
-                            className="h-12 w-12 rounded object-cover border"
-                            onError={(e) => {
-                              console.error('Image failed to load:', product.images?.[0]);
-                              (e.target as HTMLImageElement).src = "/placeholder.svg";
-                            }}
-                            onLoad={() => {
-                              console.log('Image loaded successfully:', product.images?.[0]);
-                            }}
-                          />
-                          {/* Debug overlay - remove after fixing */}
-                          <div className="absolute -bottom-1 -right-1 bg-red-500 text-white text-[8px] px-1 rounded">
-                            img
-                          </div>
-                        </div>
+                        <img
+                          src={getImageUrl(product.images?.[0])}
+                          alt={product.name}
+                          className="h-12 w-12 rounded object-cover border"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/placeholder.svg";
+                          }}
+                        />
                         <div>
-                          <div className="font-medium">{product.name}</div>
+                          <div 
+                            className="font-medium cursor-pointer hover:text-blue-600 transition-colors" 
+                            onClick={() => handleViewProduct(product)}
+                          >
+                            {product.name}
+                          </div>
                           <div className="text-sm text-muted-foreground line-clamp-1">
                             {product.brand && <span>{product.brand} • </span>}
                             {product.description || "No description"}
@@ -583,12 +885,11 @@ export default function Products() {
                         {product.categoryLevel2 && (
                           <div className="text-xs text-muted-foreground">{product.categoryLevel2}</div>
                         )}
-                        {product.categoryLevel3 && (
-                          <div className="text-xs text-muted-foreground">{product.categoryLevel3}</div>
-                        )}
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">$${product.price != null ? parseFloat(product.price.toString()).toFixed(2) : '0.00'}</TableCell>
+                    <TableCell className="font-medium">
+                      ${product.price != null ? parseFloat(product.price.toString()).toFixed(2) : '0.00'}
+                    </TableCell>
                     <TableCell>
                       <span className={product.stock < 10 ? "text-destructive font-medium" : ""}>
                         {product.stock}
@@ -605,7 +906,16 @@ export default function Products() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewProduct(product)}
+                          disabled={isLoading}
+                          title="View Details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -667,18 +977,15 @@ export default function Products() {
             <div className="grid gap-4 py-1">
               <ImageUploadWithFile
                 onImageChange={(file, previewUrl) => {
-                  // Store the File object in formData
                   setFormData({ ...formData, image: file });
                 }}
                 currentImage={
-                  // Only pass string URLs for currentImage, not File objects
                   typeof formData.image === 'string' ? formData.image :
                     formData.image instanceof File ? '' :
                       formData.image || ''
                 }
                 className="h-40"
               />
-
 
               <div className="grid gap-2">
                 <Label htmlFor="name" className="text-xs">Product Name *</Label>
@@ -805,13 +1112,10 @@ export default function Products() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="tags" className="text-xs">Tags (JSON)</Label>
-                  <Input
-                    id="tags"
-                    value={formData.tags}
-                    onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                    placeholder='["tag1", "tag2"]'
-                    className="h-9 text-sm"
+                  <Label htmlFor="tags" className="text-xs">Tags</Label>
+                  <TagInput
+                    tags={formData.tags}
+                    onTagsChange={(newTags) => setFormData({ ...formData, tags: newTags })}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -909,6 +1213,13 @@ export default function Products() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Product Details Modal */}
+      <ProductDetailsModal 
+        product={selectedProduct}
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+      />
     </div>
   );
 }

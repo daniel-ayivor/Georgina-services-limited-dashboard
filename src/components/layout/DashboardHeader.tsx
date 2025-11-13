@@ -1,9 +1,10 @@
-// components/DashboardHeader.tsx
-import { Bell, Search, CheckCheck, Clock } from "lucide-react";
+
+import { Bell, Search, CheckCheck, Clock, Menu, MenuSquareIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserProfile } from "@/components/UserProfile";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from 'date-fns';
-import { AppNotification } from '@/contexts/adminApiService'; // Import the renamed type
+import { AppNotification } from '@/contexts/adminApiService';
 import { useNotifications } from "@/contexts/useNotifications";
 
 export function DashboardHeader() {
@@ -54,7 +55,6 @@ export function DashboardHeader() {
       markAsRead(notification.id);
     }
     
-    // Handle navigation based on notification type
     switch (notification.type) {
       case 'order':
         window.location.href = '/admin/orders';
@@ -69,7 +69,6 @@ export function DashboardHeader() {
         window.location.href = '/admin/products';
         break;
       default:
-        // Do nothing for other types
         break;
     }
   };
@@ -85,6 +84,11 @@ export function DashboardHeader() {
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center px-4 md:px-6">
+        {/* Mobile Menu Trigger - Only shows on small screens */}
+        <SidebarTrigger className="md:hidden mr-2">
+          <MenuSquareIcon className="h-5 w-5" />
+        </SidebarTrigger>
+
         <div className="ml-auto flex items-center gap-2">
           <form className="hidden md:flex">
             <div className="relative">

@@ -543,10 +543,6 @@ async getAdminOrders(): Promise<{ orders: Order[] }> {
   return response;
 }
 
-// Also add a method for regular orders if needed
-
-  // Optional: If you want a dedicated orders endpoint for admin
-
 
 
 
@@ -563,13 +559,16 @@ async getAdminOrders(): Promise<{ orders: Order[] }> {
     });
   }
 
-  // Update any booking (admin only)
-  async updateAdminCleaningBooking(id: string, bookingData: any) {
-    return this.request(`/api/admin/bookings/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(bookingData),
-    });
-  }
+
+async updateAdminCleaningBooking(id: string | number, bookingData: any) {
+  // Convert to number if it's a string, otherwise use as-is
+  const bookingId = typeof id === 'string' ? parseInt(id, 10) : id;
+  
+  return this.request(`/api/admin/bookings/${bookingId}`, {
+    method: 'PUT',
+    body: JSON.stringify(bookingData),
+  });
+}
 
   // Delete any booking (admin only)
   async deleteAdminCleaningBooking(id: string) {
