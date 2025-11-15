@@ -1,22 +1,31 @@
+// In your types file (e.g., src/types/index.ts or src/types/product.ts)
 export interface Product {
   id: string;
   name: string;
   slug: string;
   description: string | null;
-  price: number;
+  price: string;
   categoryLevel1: string;
-  categoryLevel2: string | null;
-  categoryLevel3: string | null;
-  serviceType: 'physical' | 'service';
+  categoryLevel2: string;
+  categoryLevel3: string;
+serviceType: 'physical' | 'service';
   serviceDuration: string | null;
   unit: string;
   stock: number;
   images: string[];
   isActive: boolean;
-  tags: string[] | null;
+  tags: string[];
   brand: string | null;
   createdAt: string;
   updatedAt: string;
+  
+  // ADD THESE NEW FIELDS:
+  isFeatured: boolean;
+  isTrending: boolean;
+  isNewArrival: boolean;
+  featuredOrder: number;
+  trendingOrder: number;
+  newArrivalOrder: number;
 }
 
 export interface Order {

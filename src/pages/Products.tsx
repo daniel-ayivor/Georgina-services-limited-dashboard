@@ -29,13 +29,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Search, Plus, Edit, Trash2, Package, DollarSign, TrendingUp, AlertTriangle, RefreshCw, AlertCircle, X, Eye, Calendar } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Package, DollarSign, TrendingUp, AlertTriangle, RefreshCw, AlertCircle, X, Eye, Calendar, Star, Zap, Clock } from "lucide-react";
 import { Product } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import adminApiService from "@/contexts/adminApiService";
 import { ImageUploadWithFile } from "@/lib/ImageLoader";
 
-// Update the interface
+// Update the Product interface to include special category fields
+interface ProductWithSpecial extends Product {
+  isFeatured: boolean;
+  isTrending: boolean;
+  isNewArrival: boolean;
+  featuredOrder: number;
+  trendingOrder: number;
+  newArrivalOrder: number;
+}
+
 interface ProductFormData {
   name: string;
   description: string;
@@ -43,7 +52,7 @@ interface ProductFormData {
   categoryLevel1: string;
   categoryLevel2: string;
   categoryLevel3: string;
-  serviceType: string;
+  serviceType: 'physical' | 'service';
   serviceDuration: string;
   unit: string;
   stock: string;
@@ -51,6 +60,14 @@ interface ProductFormData {
   tags: string[];
   isActive: boolean;
   image: File | string | null;
+  
+  // NEW SPECIAL CATEGORY FIELDS
+  isFeatured: boolean;
+  isTrending: boolean;
+  isNewArrival: boolean;
+  featuredOrder: string;
+  trendingOrder: string;
+  newArrivalOrder: string;
 }
 
 interface Category {
@@ -127,7 +144,7 @@ const ProductDetailsModal = ({
   open, 
   onOpenChange 
 }: { 
-  product: Product | null; 
+  product: ProductWithSpecial | null; 
   open: boolean; 
   onOpenChange: (open: boolean) => void;
 }) => {
@@ -245,6 +262,40 @@ const ProductDetailsModal = ({
                   <span className="text-muted-foreground capitalize">{product.unit || 'piece'}</span>
                 </div>
               </div>
+
+              {/* Special Categories */}
+              <div className="space-y-3 pt-4 border-t">
+                <h4 className="font-semibold">Special Categories</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-2">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      Featured
+                    </span>
+                    <Badge variant={product.isFeatured ? "default" : "outline"}>
+                      {product.isFeatured ? `Yes (Order: ${product.featuredOrder || 0})` : "No"}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-orange-500" />
+                      Trending
+                    </span>
+                    <Badge variant={product.isTrending ? "default" : "outline"}>
+                      {product.isTrending ? `Yes (Order: ${product.trendingOrder || 0})` : "No"}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-500" />
+                      New Arrival
+                    </span>
+                    <Badge variant={product.isNewArrival ? "default" : "outline"}>
+                      {product.isNewArrival ? `Yes (Order: ${product.newArrivalOrder || 0})` : "No"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Additional Details */}
@@ -330,13 +381,13 @@ const ProductDetailsModal = ({
 };
 
 export default function Products() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithSpecial[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductWithSpecial | null>(null);
+  const [editingProduct, setEditingProduct] = useState<ProductWithSpecial | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -355,6 +406,14 @@ export default function Products() {
     tags: [],
     isActive: true,
     image: "",
+    
+    // NEW SPECIAL CATEGORY FIELDS
+    isFeatured: false,
+    isTrending: false,
+    isNewArrival: false,
+    featuredOrder: "0",
+    trendingOrder: "0",
+    newArrivalOrder: "0",
   });
   const { toast } = useToast();
 
@@ -387,7 +446,18 @@ export default function Products() {
       const productsResponse = await adminApiService.getProducts();
       const productsList = productsResponse.products || productsResponse.data?.products || productsResponse || [];
       
-      setProducts(Array.isArray(productsList) ? productsList : []);
+      // Cast the products to include special fields with defaults
+      const productsWithDefaults = (Array.isArray(productsList) ? productsList : []).map(product => ({
+        ...product,
+        isFeatured: (product as any).isFeatured ?? false,
+        isTrending: (product as any).isTrending ?? false,
+        isNewArrival: (product as any).isNewArrival ?? false,
+        featuredOrder: (product as any).featuredOrder ?? 0,
+        trendingOrder: (product as any).trendingOrder ?? 0,
+        newArrivalOrder: (product as any).newArrivalOrder ?? 0,
+      })) as ProductWithSpecial[];
+      
+      setProducts(productsWithDefaults);
 
     } catch (err) {
       console.error('Failed to fetch data:', err);
@@ -426,6 +496,11 @@ export default function Products() {
     return sum + price;
   }, 0) / totalProducts : 0;
 
+  // Count special category products
+  const featuredCount = filteredProducts.filter(p => p.isFeatured).length;
+  const trendingCount = filteredProducts.filter(p => p.isTrending).length;
+  const newArrivalsCount = filteredProducts.filter(p => p.isNewArrival).length;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -461,6 +536,14 @@ export default function Products() {
       
       formDataObj.append('isActive', formData.isActive.toString());
 
+      // NEW: Append special category fields
+      formDataObj.append('isFeatured', formData.isFeatured.toString());
+      formDataObj.append('isTrending', formData.isTrending.toString());
+      formDataObj.append('isNewArrival', formData.isNewArrival.toString());
+      formDataObj.append('featuredOrder', formData.featuredOrder);
+      formDataObj.append('trendingOrder', formData.trendingOrder);
+      formDataObj.append('newArrivalOrder', formData.newArrivalOrder);
+
       // Handle image upload
       if (formData.image instanceof File) {
         formDataObj.append('image', formData.image);
@@ -477,14 +560,36 @@ export default function Products() {
       let result;
       if (editingProduct) {
         result = await adminApiService.updateProduct(editingProduct.id, formDataObj);
-        setProducts(products.map((p) => p.id === editingProduct.id ? result : p));
+        // Cast the result to include special fields
+        const resultWithSpecial = {
+          ...result,
+          isFeatured: (result as any).isFeatured ?? false,
+          isTrending: (result as any).isTrending ?? false,
+          isNewArrival: (result as any).isNewArrival ?? false,
+          featuredOrder: (result as any).featuredOrder ?? 0,
+          trendingOrder: (result as any).trendingOrder ?? 0,
+          newArrivalOrder: (result as any).newArrivalOrder ?? 0,
+        } as ProductWithSpecial;
+        
+        setProducts(products.map((p) => p.id === editingProduct.id ? resultWithSpecial : p));
         toast({
           title: "Product updated",
           description: "Product has been updated successfully"
         });
       } else {
         result = await adminApiService.createProduct(formDataObj);
-        setProducts(prev => [...prev, result]);
+        // Cast the result to include special fields
+        const resultWithSpecial = {
+          ...result,
+          isFeatured: (result as any).isFeatured ?? false,
+          isTrending: (result as any).isTrending ?? false,
+          isNewArrival: (result as any).isNewArrival ?? false,
+          featuredOrder: (result as any).featuredOrder ?? 0,
+          trendingOrder: (result as any).trendingOrder ?? 0,
+          newArrivalOrder: (result as any).newArrivalOrder ?? 0,
+        } as ProductWithSpecial;
+        
+        setProducts(prev => [...prev, resultWithSpecial]);
         toast({
           title: "Product added",
           description: "Product has been added successfully"
@@ -506,7 +611,15 @@ export default function Products() {
         brand: "",
         tags: [],
         isActive: true,
-        image: null
+        image: null,
+        
+        // NEW: Reset special category fields
+        isFeatured: false,
+        isTrending: false,
+        isNewArrival: false,
+        featuredOrder: "0",
+        trendingOrder: "0",
+        newArrivalOrder: "0",
       });
       setEditingProduct(null);
       setDialogOpen(false);
@@ -539,12 +652,20 @@ export default function Products() {
       brand: "",
       tags: [],
       isActive: true,
-      image: null
+      image: null,
+      
+      // NEW: Reset special category fields
+      isFeatured: false,
+      isTrending: false,
+      isNewArrival: false,
+      featuredOrder: "0",
+      trendingOrder: "0",
+      newArrivalOrder: "0",
     });
     setDialogOpen(true);
   };
 
-  const handleEditProduct = (productToEdit: Product) => {
+  const handleEditProduct = (productToEdit: ProductWithSpecial) => {
     setEditingProduct(productToEdit);
     
     const convertTagsToArray = (tags: unknown): string[] => {
@@ -595,11 +716,19 @@ export default function Products() {
       tags: convertTagsToArray(productToEdit.tags),
       isActive: productToEdit.isActive !== undefined ? productToEdit.isActive : true,
       image: getImageUrl(productToEdit.images?.[0]) || "",
+      
+      // NEW: Set special category fields
+      isFeatured: productToEdit.isFeatured || false,
+      isTrending: productToEdit.isTrending || false,
+      isNewArrival: productToEdit.isNewArrival || false,
+      featuredOrder: (productToEdit.featuredOrder || 0).toString(),
+      trendingOrder: (productToEdit.trendingOrder || 0).toString(),
+      newArrivalOrder: (productToEdit.newArrivalOrder || 0).toString(),
     });
     setDialogOpen(true);
   };
 
-  const handleViewProduct = (product: Product) => {
+  const handleViewProduct = (product: ProductWithSpecial) => {
     setSelectedProduct(product);
     setDetailsDialogOpen(true);
   };
@@ -626,12 +755,24 @@ export default function Products() {
     }
   };
 
-  const handleToggleStatus = async (productToToggle: Product) => {
+  const handleToggleStatus = async (productToToggle: ProductWithSpecial) => {
     try {
-      const updatedProduct = await adminApiService.updateProduct(productToToggle.id, {
-        isActive: !productToToggle.isActive
-      });
-      setProducts(products.map((p) => p.id === productToToggle.id ? updatedProduct : p));
+      const formData = new FormData();
+      formData.append('isActive', (!productToToggle.isActive).toString());
+      
+      const updatedProduct = await adminApiService.updateProduct(productToToggle.id, formData);
+      // Cast the updated product to include special fields
+      const updatedProductWithSpecial = {
+        ...updatedProduct,
+        isFeatured: (updatedProduct as any).isFeatured ?? productToToggle.isFeatured,
+        isTrending: (updatedProduct as any).isTrending ?? productToToggle.isTrending,
+        isNewArrival: (updatedProduct as any).isNewArrival ?? productToToggle.isNewArrival,
+        featuredOrder: (updatedProduct as any).featuredOrder ?? productToToggle.featuredOrder,
+        trendingOrder: (updatedProduct as any).trendingOrder ?? productToToggle.trendingOrder,
+        newArrivalOrder: (updatedProduct as any).newArrivalOrder ?? productToToggle.newArrivalOrder,
+      } as ProductWithSpecial;
+      
+      setProducts(products.map((p) => p.id === productToToggle.id ? updatedProductWithSpecial : p));
       toast({
         title: `Product ${!productToToggle.isActive ? 'activated' : 'deactivated'}`,
         description: `Product has been ${!productToToggle.isActive ? 'activated' : 'deactivated'} successfully`
@@ -649,7 +790,7 @@ export default function Products() {
   // Loading and Skeleton Components
   const LoadingRow = () => (
     <TableRow>
-      <TableCell colSpan={7} className="text-center py-8">
+      <TableCell colSpan={8} className="text-center py-8">
         <div className="flex items-center justify-center gap-2">
           <RefreshCw className="h-4 w-4 animate-spin" />
           <span>Loading products...</span>
@@ -680,6 +821,9 @@ export default function Products() {
       </TableCell>
       <TableCell>
         <div className="h-4 bg-muted rounded animate-pulse w-16" />
+      </TableCell>
+      <TableCell>
+        <div className="h-6 bg-muted rounded animate-pulse w-16" />
       </TableCell>
       <TableCell>
         <div className="h-6 bg-muted rounded animate-pulse w-16" />
@@ -735,8 +879,8 @@ export default function Products() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Cards - Updated with Special Categories */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -758,6 +902,63 @@ export default function Products() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Featured</CardTitle>
+            <Star className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{featuredCount}</div>
+                <p className="text-xs text-muted-foreground">Featured products</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Trending</CardTitle>
+            <Zap className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{trendingCount}</div>
+                <p className="text-xs text-muted-foreground">Trending products</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">New Arrivals</CardTitle>
+            <Clock className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{newArrivalsCount}</div>
+                <p className="text-xs text-muted-foreground">New arrivals</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Value</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -771,25 +972,6 @@ export default function Products() {
               <>
                 <div className="text-2xl font-bold">${totalValue.toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground">Inventory worth</p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Price</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <>
-                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-                <div className="h-4 bg-muted rounded animate-pulse" />
-              </>
-            ) : (
-              <>
-                <div className="text-2xl font-bold">${avgPrice.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">Average product price</p>
               </>
             )}
           </CardContent>
@@ -844,6 +1026,7 @@ export default function Products() {
                 <TableHead>Stock</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Special</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -905,6 +1088,31 @@ export default function Products() {
                         {product.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        {product.isFeatured && (
+                          <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-xs">
+                            <Star className="h-3 w-3 mr-1" />
+                            F
+                          </Badge>
+                        )}
+                        {product.isTrending && (
+                          <Badge variant="default" className="bg-orange-500 hover:bg-orange-600 text-xs">
+                            <Zap className="h-3 w-3 mr-1" />
+                            T
+                          </Badge>
+                        )}
+                        {product.isNewArrival && (
+                          <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 text-xs">
+                            <Clock className="h-3 w-3 mr-1" />
+                            N
+                          </Badge>
+                        )}
+                        {!product.isFeatured && !product.isTrending && !product.isNewArrival && (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button
@@ -946,7 +1154,7 @@ export default function Products() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10">
+                  <TableCell colSpan={8} className="text-center py-10">
                     <Package className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
                     <p className="text-lg font-medium">No products found</p>
                     <p className="text-muted-foreground">
@@ -962,7 +1170,7 @@ export default function Products() {
 
       {/* Add/Edit Product Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base">
               {editingProduct ? "Edit Product" : "Add New Product"}
@@ -1049,7 +1257,7 @@ export default function Products() {
                   <Label htmlFor="serviceType" className="text-xs">Service Type *</Label>
                   <Select
                     value={formData.serviceType}
-                    onValueChange={(value) => setFormData({ ...formData, serviceType: value })}
+                    onValueChange={(value: 'physical' | 'service') => setFormData({ ...formData, serviceType: value })}
                     disabled={isSubmitting}
                   >
                     <SelectTrigger className="h-9 text-sm">
@@ -1118,6 +1326,105 @@ export default function Products() {
                     onTagsChange={(newTags) => setFormData({ ...formData, tags: newTags })}
                     disabled={isSubmitting}
                   />
+                </div>
+              </div>
+
+              {/* NEW: Special Categories Section */}
+              <div className="space-y-4 pt-4 border-t">
+                <Label className="text-sm font-medium">Special Categories</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Featured */}
+                  <div className="space-y-3 p-3 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="isFeatured" className="flex items-center gap-2 text-sm">
+                        <Star className="h-4 w-4 text-yellow-500" />
+                        Featured
+                      </Label>
+                      <Switch
+                        id="isFeatured"
+                        checked={formData.isFeatured}
+                        onCheckedChange={(checked) => setFormData({ ...formData, isFeatured: checked })}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    {formData.isFeatured && (
+                      <div className="grid gap-2">
+                        <Label htmlFor="featuredOrder" className="text-xs">Display Order</Label>
+                        <Input
+                          id="featuredOrder"
+                          type="number"
+                          min="0"
+                          value={formData.featuredOrder}
+                          onChange={(e) => setFormData({ ...formData, featuredOrder: e.target.value })}
+                          placeholder="0"
+                          className="h-8 text-sm"
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Trending */}
+                  <div className="space-y-3 p-3 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="isTrending" className="flex items-center gap-2 text-sm">
+                        <Zap className="h-4 w-4 text-orange-500" />
+                        Trending
+                      </Label>
+                      <Switch
+                        id="isTrending"
+                        checked={formData.isTrending}
+                        onCheckedChange={(checked) => setFormData({ ...formData, isTrending: checked })}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    {formData.isTrending && (
+                      <div className="grid gap-2">
+                        <Label htmlFor="trendingOrder" className="text-xs">Display Order</Label>
+                        <Input
+                          id="trendingOrder"
+                          type="number"
+                          min="0"
+                          value={formData.trendingOrder}
+                          onChange={(e) => setFormData({ ...formData, trendingOrder: e.target.value })}
+                          placeholder="0"
+                          className="h-8 text-sm"
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* New Arrival */}
+                  <div className="space-y-3 p-3 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="isNewArrival" className="flex items-center gap-2 text-sm">
+                        <Clock className="h-4 w-4 text-blue-500" />
+                        New Arrival
+                      </Label>
+                      <Switch
+                        id="isNewArrival"
+                        checked={formData.isNewArrival}
+                        onCheckedChange={(checked) => setFormData({ ...formData, isNewArrival: checked })}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    {formData.isNewArrival && (
+                      <div className="grid gap-2">
+                        <Label htmlFor="newArrivalOrder" className="text-xs">Display Order</Label>
+                        <Input
+                          id="newArrivalOrder"
+                          type="number"
+                          min="0"
+                          value={formData.newArrivalOrder}
+                          onChange={(e) => setFormData({ ...formData, newArrivalOrder: e.target.value })}
+                          placeholder="0"
+                          className="h-8 text-sm"
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
