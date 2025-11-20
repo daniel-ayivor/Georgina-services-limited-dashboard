@@ -190,72 +190,73 @@ export default function Bookings() {
 
 
 // Replace the handleStatusChange function with this updated version:
-const handleStatusChange = async (
-  status: "pending" | "confirmed" | "completed" | "cancelled"
-) => {
-  if (!selectedBooking) return;
 
-  console.log('🔄 Starting status change to:', status);
-  setUpdatingStatus(true);
+  // Replace the original handleStatusChange function with this updated version:
+  const handleStatusChange = async (
+    status: "pending" | "confirmed" | "completed" | "cancelled"
+  ) => {
+    if (!selectedBooking) return;
 
-  const prevStatus = selectedBooking.status;
-  const updatedAt = new Date().toISOString();
+    console.log('🔄 Starting status change to:', status);
+    setUpdatingStatus(true);
 
-  // ✅ Optimistic UI update
-  setBookings((prev) =>
-    prev.map((b) =>
-      b.id === selectedBooking.id ? { ...b, status, updatedAt } : b
-    )
-  );
-  setSelectedBooking((prev) =>
-    prev ? { ...prev, status, updatedAt } : null
-  );
+    const prevStatus = selectedBooking.status;
+    const updatedAt = new Date().toISOString();
 
-  try {
-    console.log('📡 Making API call with ID:', {
-      id: selectedBooking.id,
-      type: typeof selectedBooking.id
-    });
-
-    // ✅ Ensure ID is properly handled
-    const bookingId = selectedBooking.id; // This should be a number from your data
-    
-    const response = await adminApiService.updateAdminCleaningBooking(bookingId, {
-      status,
-      notes: selectedBooking.notes,
-    });
-    
-    console.log('✅ API call successful:', response);
-    
-    toast({
-      title: "Status updated",
-      description: `Booking ${selectedBooking.id} is now ${status}.`,
-    });
-
-  } catch (err: any) {
-    console.error('❌ API call failed:', err);
-    
-    // ❌ Rollback on failure
+    // ✅ Optimistic UI update: Update local state immediately
     setBookings((prev) =>
       prev.map((b) =>
-        b.id === selectedBooking.id ? { ...b, status: prevStatus } : b
+        b.id === selectedBooking.id ? { ...b, status, updatedAt } : b
       )
     );
     setSelectedBooking((prev) =>
-      prev ? { ...prev, status: prevStatus } : null
+      prev ? { ...prev, status, updatedAt } : null
     );
 
-    toast({
-      variant: "destructive",
-      title: "Update failed",
-      description: err.message || "Could not update booking status. Please try again.",
-    });
-  } finally {
-    console.log('🏁 Clearing updatingStatus');
-    setUpdatingStatus(false);
-  }
-};
+    try {
+      // ✅ Ensure ID is properly handled
+      // Convert ID to a number if your backend expects a number, 
+      // otherwise keep it as a string. Check your adminApiService.
+      const bookingId = selectedBooking.id; 
+      
+      const response = await adminApiService.updateAdminCleaningBooking(bookingId, {
+        status,
+        notes: selectedBooking.notes, // include other necessary data
+      });
+      
+      console.log('✅ API call successful:', response);
+      
+      // ✅ Success feedback shown only after API confirms success
+      toast({
+        title: "Status updated",
+        description: `Booking ${selectedBooking.id} is now ${status}.`,
+      });
 
+    } catch (err: any) {
+      console.error('❌ API call failed:', err);
+      
+      // ❌ Rollback on failure: Revert local state to previous status
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.id === selectedBooking.id ? { ...b, status: prevStatus } : b
+        )
+      );
+      setSelectedBooking((prev) =>
+        prev ? { ...prev, status: prevStatus } : null
+      );
+
+      // ❌ Error feedback
+      toast({
+        variant: "destructive",
+        title: "Update failed",
+        description: err.message || "Could not update booking status. Please try again.",
+      });
+    } finally {
+      // 🏁 Re-enable the UI elements
+      console.log('🏁 Clearing updatingStatus');
+      setUpdatingStatus(false);
+    }
+  };
 // Add this to monitor the updatingStatus state
 useEffect(() => {
   console.log('🔄 updatingStatus changed to:', updatingStatus);

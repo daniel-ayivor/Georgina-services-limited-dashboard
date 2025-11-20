@@ -116,27 +116,27 @@ export default function ProductDetails() {
     }
   };
 
-  const handleToggleStatus = async () => {
-    if (!product) return;
+  // const handleToggleStatus = async () => {
+  //   if (!product) return;
 
-    try {
-      const updatedProduct = await adminApiService.updateProduct(product.id, {
-        isActive: !product.isActive
-      });
-      setProduct(updatedProduct);
-      toast({
-        title: `Product ${!product.isActive ? 'activated' : 'deactivated'}`,
-        description: `Product has been ${!product.isActive ? 'activated' : 'deactivated'} successfully`
-      });
-    } catch (err) {
-      console.error('Failed to toggle product status:', err);
-      toast({
-        variant: "destructive",
-        title: "Error updating product",
-        description: "Could not update product status. Please try again.",
-      });
-    }
-  };
+  //   try {
+  //     const updatedProduct = await adminApiService.updateProduct(product.id, {
+  //       isActive: !product.isActive
+  //     });
+  //     setProduct(updatedProduct);
+  //     toast({
+  //       title: `Product ${!product.isActive ? 'activated' : 'deactivated'}`,
+  //       description: `Product has been ${!product.isActive ? 'activated' : 'deactivated'} successfully`
+  //     });
+  //   } catch (err) {
+  //     console.error('Failed to toggle product status:', err);
+  //     toast({
+  //       variant: "destructive",
+  //       title: "Error updating product",
+  //       description: "Could not update product status. Please try again.",
+  //     });
+  //   }
+  // };
 
   if (isLoading) {
     return (
@@ -211,7 +211,7 @@ export default function ProductDetails() {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={handleToggleStatus}
+            // onClick={handleToggleStatus}
           >
             {product.isActive ? 'Deactivate' : 'Activate'}
           </Button>
