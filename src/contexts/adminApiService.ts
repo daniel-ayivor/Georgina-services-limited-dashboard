@@ -576,6 +576,80 @@ async bulkUpdateSpecialCategories(
     });
   }
 
+
+
+  
+  // Add to your existing adminApiService class - CORRECTED ENDPOINTS
+
+// Enhanced category deletion with options
+async deleteCategory(id: string, options?: { 
+  deleteSubcategories?: boolean;
+  moveToParent?: boolean | 'root';
+}): Promise<{ 
+  message: string; 
+  deletedCategory?: any;
+  deletedSubcategories?: number;
+  totalDeleted?: number;
+  movedSubcategories?: number;
+  newParent?: any;
+  promotedToLevel?: number;
+}> {
+  const queryParams = new URLSearchParams();
+  
+  if (options?.deleteSubcategories) {
+    queryParams.append('deleteSubcategories', 'true');
+  }
+  
+  if (options?.moveToParent === true) {
+    queryParams.append('moveToParent', 'true');
+  } else if (options?.moveToParent === 'root') {
+    queryParams.append('moveToParent', 'root');
+  }
+  
+  const queryString = queryParams.toString();
+  const endpoint = `/api/admin/categories/${id}${queryString ? `?${queryString}` : ''}`;
+  
+  console.log('🗑️ Delete category API call:', endpoint);
+  return this.request(endpoint, {
+    method: 'DELETE',
+  });
+}
+
+// Bulk delete subcategories
+async deleteSubcategories(parentId: string): Promise<{
+  message: string;
+  deletedCount: number;
+  parentCategory: any;
+}> {
+  return this.request(`/api/admin/categories/${parentId}/subcategories`, {
+    method: 'DELETE',
+  });
+}
+
+// Delete specific subcategory
+async deleteSubcategory(parentId: string, subcategoryId: string): Promise<{
+  message: string;
+  deletedSubcategory: any;
+  parentCategory: any;
+}> {
+  return this.request(`/api/admin/categories/${parentId}/subcategories/${subcategoryId}`, {
+    method: 'DELETE',
+  });
+}
+
+// Safe delete with archive option
+async safeDeleteCategory(id: string, permanent: boolean = false): Promise<{
+  message: string;
+  archived?: boolean;
+  permanentlyDeleted?: boolean;
+  category?: any;
+}> {
+  const endpoint = `/api/admin/categories/${id}/safe${permanent ? '?permanent=true' : ''}`;
+  return this.request(endpoint, {
+    method: 'DELETE',
+  });
+}
+
   // 📦 CATEGORY MANAGEMENT
   async getCategories() {
     return this.request('/api/categories');
@@ -603,11 +677,6 @@ async bulkUpdateSpecialCategories(
     });
   }
 
-  async deleteCategory(id: string) {
-    return this.request(`/api/admin/categories/${id}`, {
-      method: 'DELETE',
-    });
-  }
 
   async getCategoriesByLevel(level: number) {
     return this.request(`/api/categories/level/${level}`);
@@ -910,7 +979,10 @@ async bulkUpdateSpecialCategories(
     });
   }
 
-  // Fallback data methods
+  
+
+ 
+
   private getFallbackOrders(): Order[] {
     return [
       {
