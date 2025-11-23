@@ -2724,8 +2724,6 @@
 // };
 
 // export default Categories;
-
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -2848,16 +2846,6 @@ const Categories = () => {
     fetchData();
   }, []);
 
-  // Filter categories and their subcategories
-  const filteredCategories = categories.filter(cat =>
-    cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cat.slug?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (cat.children && cat.children.some(child => 
-      child.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      child.slug?.toLowerCase().includes(searchTerm.toLowerCase())
-    ))
-  );
-
   // Get categories by level
   const getCategoriesByLevel = (level: number) => {
     return categories.filter(cat => cat.level === level);
@@ -2877,6 +2865,16 @@ const Categories = () => {
     return categories.filter(cat => cat.parentId === categoryId);
   };
 
+  // Filter categories and their subcategories
+  const filteredCategories = categories.filter(cat =>
+    cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cat.slug?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (getSubcategories(cat.id).some(child => 
+      child.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      child.slug?.toLowerCase().includes(searchTerm.toLowerCase())
+    ))
+  );
+
   // Toggle category expansion
   const toggleCategory = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -2893,147 +2891,7 @@ const Categories = () => {
   const totalLevel2 = level2Categories.length;
   const totalLevel3 = level3Categories.length;
 
-  // Enhanced Delete Functions
-  const openDeleteDialog = (category: Category) => {
-    setCategoryToDelete(category);
-    setDeleteDialogOpen(true);
-  };
-// Enhanced handleConfirmDelete function with better error handling
-const handleConfirmDelete = async () => {
-  if (!categoryToDelete) return;
-  
-  try {
-    setIsLoading(true);
-    const relatedSubs = getSubcategories(categoryToDelete.id);
-    
-    let response;
-    
-    if (relatedSubs.length > 0) {
-      // Category has subcategories - delete everything
-      response = await adminApiService.deleteCategory(categoryToDelete.id, { 
-        deleteSubcategories: true 
-      });
-      
-      toast({ 
-        title: "Category deleted", 
-        description: `"${categoryToDelete.name}" and ${relatedSubs.length} subcategor${relatedSubs.length === 1 ? 'y' : 'ies'} have been removed successfully` 
-      });
-    } else {
-      // No subcategories - simple delete
-      response = await adminApiService.deleteCategory(categoryToDelete.id);
-      
-      toast({ 
-        title: `${getLevelDisplayName(categoryToDelete.level)} deleted`, 
-        description: `"${categoryToDelete.name}" has been removed successfully` 
-      });
-    }
-    
-    console.log('✅ Delete response:', response);
-    
-    // Remove from state
-    setCategories(prev => prev.filter(cat => cat.id !== categoryToDelete.id));
-    
-    // Collapse if this category was expanded
-    if (expandedCategories.has(categoryToDelete.id)) {
-      const newExpanded = new Set(expandedCategories);
-      newExpanded.delete(categoryToDelete.id);
-      setExpandedCategories(newExpanded);
-    }
-    
-  } catch (err: any) {
-    console.error('❌ Failed to delete category:', err);
-    
-    // Handle specific error cases
-    if (err.response?.status === 400) {
-      const errorData = err.response.data;
-      if (errorData.error?.includes('has subcategories')) {
-        toast({
-          variant: "destructive",
-          title: "Cannot delete category",
-          description: errorData.message || "This category contains subcategories. Please delete them first or use the bulk delete option.",
-          action: categoryToDelete.level === 1 ? (
-            <Button 
-              variant="outline" 
-              onClick={() => handleBulkDeleteSubcategories(categoryToDelete)}
-            >
-              Delete All Subcategories
-            </Button>
-          ) : undefined,
-        });
-        return;
-      }
-    }
-    
-    toast({
-      variant: "destructive",
-      title: "Error deleting category",
-      description: err.message || "Could not delete the category. Please try again.",
-    });
-  } finally {
-    setIsLoading(false);
-    setDeleteDialogOpen(false);
-    setCategoryToDelete(null);
-  }
-};
-
-// Enhanced bulk delete with error handling
-const handleBulkDeleteSubcategories = async (parentCategory: Category) => {
-  const subcategories = getSubcategories(parentCategory.id);
-  
-  if (subcategories.length === 0) {
-    toast({
-      variant: "destructive",
-      title: "No subcategories",
-      description: "This category doesn't have any subcategories to delete."
-    });
-    return;
-  }
-
-  const confirmMessage = `Are you sure you want to delete all ${subcategories.length} subcategor${subcategories.length === 1 ? 'y' : 'ies'} under "${parentCategory.name}"?`;
-  
-  if (!confirm(confirmMessage)) {
-    return;
-  }
-
-  try {
-    setIsLoading(true);
-    
-    const response = await adminApiService.deleteSubcategories(parentCategory.id);
-    console.log('✅ Bulk delete response:', response);
-    
-    // Update state by keeping only the parent category
-    setCategories(prev => prev.filter(cat => 
-      cat.id === parentCategory.id || !subcategories.find(sub => sub.id === cat.id)
-    ));
-    
-    toast({ 
-      title: "Subcategories deleted", 
-      description: `All ${subcategories.length} subcategor${subcategories.length === 1 ? 'y' : 'ies'} under "${parentCategory.name}" have been removed` 
-    });
-    
-  } catch (err: any) {
-    console.error('❌ Failed to bulk delete subcategories:', err);
-    
-    if (err.response?.status === 404) {
-      toast({
-        variant: "destructive",
-        title: "Not found",
-        description: "The category or subcategories were not found.",
-      });
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Error deleting subcategories",
-        description: err.message || "Could not delete some subcategories. Please try again.",
-      });
-    }
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-
-  // Rest of your existing functions (handleAddCategory, handleEditCategory, handleCategorySubmit, etc.)
+  // Category Management Functions
   const handleAddCategory = () => {
     setEditingCategory(null);
     setCategoryForm({ 
@@ -3056,6 +2914,31 @@ const handleBulkDeleteSubcategories = async (parentCategory: Category) => {
     setCategoryDialogOpen(true);
   };
 
+  const handleAddSubcategory = () => {
+    setEditingSubcategory(null);
+    setSubcategoryForm({ 
+      name: "", 
+      parentId: "", 
+      slug: "", 
+      description: "", 
+      level: 2 
+    });
+    setSubcategoryDialogOpen(true);
+  };
+
+  const handleEditSubcategory = (subcategory: Category) => {
+    setEditingSubcategory(subcategory);
+    setSubcategoryForm({
+      name: subcategory.name,
+      parentId: subcategory.parentId || "",
+      slug: subcategory.slug || "",
+      description: subcategory.description || "",
+      level: subcategory.level
+    });
+    setSubcategoryDialogOpen(true);
+  };
+
+  // Form Submission Handlers
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -3108,30 +2991,6 @@ const handleBulkDeleteSubcategories = async (parentCategory: Category) => {
     }
   };
 
-  const handleAddSubcategory = () => {
-    setEditingSubcategory(null);
-    setSubcategoryForm({ 
-      name: "", 
-      parentId: "", 
-      slug: "", 
-      description: "", 
-      level: 2 
-    });
-    setSubcategoryDialogOpen(true);
-  };
-
-  const handleEditSubcategory = (subcategory: Category) => {
-    setEditingSubcategory(subcategory);
-    setSubcategoryForm({
-      name: subcategory.name,
-      parentId: subcategory.parentId || "",
-      slug: subcategory.slug || "",
-      description: subcategory.description || "",
-      level: subcategory.level
-    });
-    setSubcategoryDialogOpen(true);
-  };
-
   const handleSubcategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -3151,20 +3010,18 @@ const handleBulkDeleteSubcategories = async (parentCategory: Category) => {
       const selectedParent = categories.find(cat => cat.id === subcategoryForm.parentId);
       const level = selectedParent?.level === 1 ? 2 : 3;
 
-      // Send as JSON, not FormData
       const subcategoryData = {
         name: subcategoryForm.name,
         parentId: subcategoryForm.parentId,
         slug: subcategoryForm.slug,
         description: subcategoryForm.description,
         level: level,
-        sortOrder: 1 // Add default sortOrder
+        sortOrder: 1
       };
 
       console.log('📤 Creating subcategory with data:', subcategoryData);
 
       if (editingSubcategory) {
-        // Use updateCategory with JSON data
         const updatedSubcategory = await adminApiService.updateCategory(
           editingSubcategory.id, 
           subcategoryData
@@ -3177,7 +3034,6 @@ const handleBulkDeleteSubcategories = async (parentCategory: Category) => {
           description: "Subcategory has been updated successfully" 
         });
       } else {
-        // Use createCategory with JSON data
         const newSubcategory = await adminApiService.createCategory(subcategoryData);
         setCategories([...categories, newSubcategory]);
         toast({ 
@@ -3198,7 +3054,101 @@ const handleBulkDeleteSubcategories = async (parentCategory: Category) => {
     }
   };
 
-  // Get display name for category level
+  // Delete Functions
+  const openDeleteDialog = (category: Category) => {
+    setCategoryToDelete(category);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!categoryToDelete) return;
+    
+    try {
+      setIsLoading(true);
+      const relatedSubs = getSubcategories(categoryToDelete.id);
+      
+      if (relatedSubs.length > 0) {
+        await adminApiService.deleteCategory(categoryToDelete.id, { 
+          deleteSubcategories: true 
+        });
+        toast({ 
+          title: "Category deleted", 
+          description: `"${categoryToDelete.name}" and ${relatedSubs.length} subcategor${relatedSubs.length === 1 ? 'y' : 'ies'} have been removed successfully` 
+        });
+      } else {
+        await adminApiService.deleteCategory(categoryToDelete.id);
+        toast({ 
+          title: `${getLevelDisplayName(categoryToDelete.level)} deleted`, 
+          description: `"${categoryToDelete.name}" has been removed successfully` 
+        });
+      }
+      
+      setCategories(prev => prev.filter(cat => cat.id !== categoryToDelete.id));
+      
+      if (expandedCategories.has(categoryToDelete.id)) {
+        const newExpanded = new Set(expandedCategories);
+        newExpanded.delete(categoryToDelete.id);
+        setExpandedCategories(newExpanded);
+      }
+      
+    } catch (err: any) {
+      console.error('❌ Failed to delete category:', err);
+      toast({
+        variant: "destructive",
+        title: "Error deleting category",
+        description: err.message || "Could not delete the category. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+      setDeleteDialogOpen(false);
+      setCategoryToDelete(null);
+    }
+  };
+
+  const handleBulkDeleteSubcategories = async (parentCategory: Category) => {
+    const subcategories = getSubcategories(parentCategory.id);
+    
+    if (subcategories.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No subcategories",
+        description: "This category doesn't have any subcategories to delete."
+      });
+      return;
+    }
+
+    const confirmMessage = `Are you sure you want to delete all ${subcategories.length} subcategor${subcategories.length === 1 ? 'y' : 'ies'} under "${parentCategory.name}"?`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      // Remove subcategories from state
+      setCategories(prev => prev.filter(cat => 
+        cat.id === parentCategory.id || !subcategories.find(sub => sub.id === cat.id)
+      ));
+      
+      toast({ 
+        title: "Subcategories deleted", 
+        description: `All ${subcategories.length} subcategor${subcategories.length === 1 ? 'y' : 'ies'} under "${parentCategory.name}" have been removed` 
+      });
+      
+    } catch (err: any) {
+      console.error('❌ Failed to bulk delete subcategories:', err);
+      toast({
+        variant: "destructive",
+        title: "Error deleting subcategories",
+        description: err.message || "Could not delete some subcategories. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Helper Functions
   const getLevelDisplayName = (level: number): string => {
     switch (level) {
       case 1: return 'Main Category';
@@ -3208,7 +3158,6 @@ const handleBulkDeleteSubcategories = async (parentCategory: Category) => {
     }
   };
 
-  // Get icon for category level
   const getLevelIcon = (level: number) => {
     switch (level) {
       case 1: return <Folder className="h-4 w-4 text-blue-500" />;
@@ -3248,7 +3197,33 @@ const handleBulkDeleteSubcategories = async (parentCategory: Category) => {
     </tr>
   );
 
-  // ... rest of your component (stats cards, search, table, dialogs) remains the same
+  if (error && categories.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Product Categories</h1>
+            <p className="text-muted-foreground">Manage categories and subcategories for your products</p>
+          </div>
+          <Button onClick={fetchData} variant="outline">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Retry
+          </Button>
+        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-lg font-medium mb-2">Failed to load categories</p>
+            <p className="text-muted-foreground text-center mb-4">{error}</p>
+            <Button onClick={fetchData}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -3274,11 +3249,99 @@ const handleBulkDeleteSubcategories = async (parentCategory: Category) => {
         </div>
       </div>
 
-      {/* Stats Cards - Your existing stats cards */}
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Main Categories</CardTitle>
+            <Folder className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{totalLevel1}</div>
+                <p className="text-xs text-muted-foreground">Level 1 categories</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Subcategories</CardTitle>
+            <FolderTree className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{totalLevel2}</div>
+                <p className="text-xs text-muted-foreground">Level 2 subcategories</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Items</CardTitle>
+            <Tag className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{totalLevel3}</div>
+                <p className="text-xs text-muted-foreground">Level 3 items</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total</CardTitle>
+            <Folder className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{categories.length}</div>
+                <p className="text-xs text-muted-foreground">All categories</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Search - Your existing search */}
+      {/* Search */}
+      <div className="relative w-full md:w-96">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search categories..."
+          className="pl-8"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          disabled={isLoading}
+        />
+      </div>
 
-      {/* Categories Table - Update the delete buttons */}
+      {/* Categories Table */}
       <Card>
         <CardHeader>
           <CardTitle>Categories Hierarchy</CardTitle>
@@ -3462,9 +3525,224 @@ const handleBulkDeleteSubcategories = async (parentCategory: Category) => {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Category Dialog - Your existing dialog */}
+      {/* Add/Edit Category Dialog */}
+      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingCategory ? "Edit Main Category" : "Add New Main Category"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingCategory ? "Update main category details" : "Add a new main product category (Level 1)"}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCategorySubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="cat-name">Category Name *</Label>
+                <Input
+                  id="cat-name"
+                  placeholder="e.g., Clothes"
+                  value={categoryForm.name}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="cat-slug">Slug *</Label>
+                <Input
+                  id="cat-slug"
+                  placeholder="e.g., clothes"
+                  value={categoryForm.slug}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, slug: e.target.value })}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="cat-description">Description</Label>
+                <Textarea
+                  id="cat-description"
+                  placeholder="Category description"
+                  value={categoryForm.description}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setCategoryDialogOpen(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    {editingCategory ? "Updating..." : "Adding..."}
+                  </>
+                ) : (
+                  editingCategory ? "Update Category" : "Add Category"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-      {/* Add/Edit Subcategory Dialog - Your existing dialog */}
+      {/* Add/Edit Subcategory Dialog */}
+      <Dialog open={subcategoryDialogOpen} onOpenChange={setSubcategoryDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingSubcategory 
+                ? `Edit ${getLevelDisplayName(editingSubcategory.level)}` 
+                : 'Add New Subcategory/Item'
+              }
+            </DialogTitle>
+            <DialogDescription>
+              {editingSubcategory 
+                ? `Update ${getLevelDisplayName(editingSubcategory.level).toLowerCase()} details`
+                : 'Add a new subcategory (Level 2) or item (Level 3) under a parent category'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubcategorySubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="parent">Parent Category *</Label>
+                <Select
+                  value={subcategoryForm.parentId}
+                  onValueChange={(value) => {
+                    const selectedParent = categories.find(cat => cat.id === value);
+                    const newLevel = selectedParent?.level === 1 ? 2 : 3;
+                    setSubcategoryForm({ 
+                      ...subcategoryForm, 
+                      parentId: value,
+                      level: newLevel
+                    });
+                  }}
+                  disabled={isSubmitting || categories.length === 0}
+                >
+                  <SelectTrigger id="parent">
+                    <SelectValue placeholder={categories.length === 0 ? "No categories available" : "Select parent category"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {/* Level 1 Categories */}
+                    {topLevelCategories.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
+                          📁 Main Categories (Creates Level 2)
+                        </div>
+                        {topLevelCategories.map(cat => (
+                          <SelectItem key={cat.id} value={cat.id} className="pl-6">
+                            <div className="flex items-center gap-2">
+                              <Folder className="h-3 w-3 text-blue-500" />
+                              {cat.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                    
+                    {/* Level 2 Categories */}
+                    {level2Categories.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 mt-2">
+                          📂 Subcategories (Creates Level 3)
+                        </div>
+                        {level2Categories.map(cat => (
+                          <SelectItem key={cat.id} value={cat.id} className="pl-6">
+                            <div className="flex items-center gap-2">
+                              <FolderTree className="h-3 w-3 text-green-500" />
+                              {cat.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+                {subcategoryForm.parentId && (
+                  <p className="text-xs text-muted-foreground">
+                    This will create a {getLevelDisplayName(subcategoryForm.level).toLowerCase()} under the selected parent
+                  </p>
+                )}
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="sub-name">
+                  {getLevelDisplayName(subcategoryForm.level)} Name *
+                </Label>
+                <Input
+                  id="sub-name"
+                  placeholder={
+                    subcategoryForm.level === 2 
+                      ? "e.g., Men's Clothing" 
+                      : "e.g., African Wear"
+                  }
+                  value={subcategoryForm.name}
+                  onChange={(e) => setSubcategoryForm({ ...subcategoryForm, name: e.target.value })}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="sub-slug">Slug *</Label>
+                <Input
+                  id="sub-slug"
+                  placeholder={
+                    subcategoryForm.level === 2 
+                      ? "e.g., mens-clothing" 
+                      : "e.g., african-wear"
+                  }
+                  value={subcategoryForm.slug}
+                  onChange={(e) => setSubcategoryForm({ ...subcategoryForm, slug: e.target.value })}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="sub-description">Description</Label>
+                <Textarea
+                  id="sub-description"
+                  placeholder={
+                    subcategoryForm.level === 2 
+                      ? "Subcategory description" 
+                      : "Item description"
+                  }
+                  value={subcategoryForm.description}
+                  onChange={(e) => setSubcategoryForm({ ...subcategoryForm, description: e.target.value })}
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setSubcategoryDialogOpen(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting || !subcategoryForm.parentId}>
+                {isSubmitting ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    {editingSubcategory ? "Updating..." : "Adding..."}
+                  </>
+                ) : (
+                  editingSubcategory 
+                    ? `Update ${getLevelDisplayName(editingSubcategory.level)}`
+                    : `Add ${getLevelDisplayName(subcategoryForm.level)}`
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

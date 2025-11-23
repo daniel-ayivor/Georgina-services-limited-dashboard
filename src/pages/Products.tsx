@@ -1,5 +1,3 @@
-
-
 // import { useState, useEffect } from "react";
 // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 // import { Input } from "@/components/ui/input";
@@ -326,127 +324,127 @@
 //               </div>
 //             </div>
 
-//      {/* Additional Details */}
-// <div className="space-y-4">
-//   <div className="space-y-3">
-//     <h4 className="font-semibold">Category Information</h4>
-//     <div className="space-y-3">
-//       <div className="flex justify-between items-center py-2 border-b">
-//         <span className="font-medium">Main Category</span>
-//         <Badge variant="outline" className="text-sm">
-//           {product.categoryLevel1}
-//         </Badge>
-//       </div>
-      
-//       {product.categoryLevel2 && (
-//         <div className="flex justify-between items-center py-2 border-b">
-//           <span className="font-medium">Subcategory</span>
-//           <div className="flex items-center gap-2">
-//             <Badge variant="secondary" className="text-sm">
-//               {product.categoryLevel2}
-//             </Badge>
-//             {/* Show category icon based on level 2 */}
-//             {product.categoryLevel2 === 'Women' && (
-//               <span className="text-pink-500">♀</span>
-//             )}
-//             {product.categoryLevel2 === 'Men' && (
-//               <span className="text-blue-500">♂</span>
-//             )}
-//             {product.categoryLevel2 === 'Kids' && (
-//               <span className="text-green-500">👶</span>
-//             )}
-//             {product.categoryLevel2 === 'Pantry' && (
-//               <Package className="h-4 w-4 text-orange-500" />
-//             )}
-//             {product.categoryLevel2 === 'Prepared Mixes' && (
-//               <span className="text-yellow-500">🥣</span>
-//             )}
-//             {product.categoryLevel2 === 'Soup Base' && (
-//               <span className="text-red-500">🍲</span>
-//             )}
-//           </div>
-//         </div>
-//       )}
-      
-//       {product.categoryLevel3 && (
-//         <div className="flex justify-between items-center py-2 border-b">
-//           <span className="font-medium">Sub-subcategory</span>
-//           <Badge variant="outline" className="text-sm bg-muted/50">
-//             {product.categoryLevel3}
-//           </Badge>
-//         </div>
-//       )}
+//             {/* Additional Details */}
+//             <div className="space-y-4">
+//               <div className="space-y-3">
+//                 <h4 className="font-semibold">Category Information</h4>
+//                 <div className="space-y-3">
+//                   <div className="flex justify-between items-center py-2 border-b">
+//                     <span className="font-medium">Main Category</span>
+//                     <Badge variant="outline" className="text-sm">
+//                       {product.categoryLevel1}
+//                     </Badge>
+//                   </div>
+                  
+//                   {product.categoryLevel2 && (
+//                     <div className="flex justify-between items-center py-2 border-b">
+//                       <span className="font-medium">Subcategory</span>
+//                       <div className="flex items-center gap-2">
+//                         <Badge variant="secondary" className="text-sm">
+//                           {product.categoryLevel2}
+//                         </Badge>
+//                         {/* Show category icon based on level 2 */}
+//                         {product.categoryLevel2 === 'Women' && (
+//                           <span className="text-pink-500">♀</span>
+//                         )}
+//                         {product.categoryLevel2 === 'Men' && (
+//                           <span className="text-blue-500">♂</span>
+//                         )}
+//                         {product.categoryLevel2 === 'Kids' && (
+//                           <span className="text-green-500">👶</span>
+//                         )}
+//                         {product.categoryLevel2 === 'Pantry' && (
+//                           <Package className="h-4 w-4 text-orange-500" />
+//                         )}
+//                         {product.categoryLevel2 === 'Prepared Mixes' && (
+//                           <span className="text-yellow-500">🥣</span>
+//                         )}
+//                         {product.categoryLevel2 === 'Soup Base' && (
+//                           <span className="text-red-500">🍲</span>
+//                         )}
+//                       </div>
+//                     </div>
+//                   )}
+                  
+//                   {product.categoryLevel3 && (
+//                     <div className="flex justify-between items-center py-2 border-b">
+//                       <span className="font-medium">Sub-subcategory</span>
+//                       <Badge variant="outline" className="text-sm bg-muted/50">
+//                         {product.categoryLevel3}
+//                       </Badge>
+//                     </div>
+//                   )}
 
-//       {/* Show the full category path */}
-//       <div className="p-3 bg-muted/30 rounded-lg">
-//         <div className="text-xs text-muted-foreground mb-1">Full Category Path</div>
-//         <div className="text-sm font-medium">
-//           {[
-//             product.categoryLevel1,
-//             product.categoryLevel2,
-//             product.categoryLevel3
-//           ]
-//             .filter(Boolean)
-//             .join(' → ')}
-//         </div>
-//       </div>
-//     </div>
-//   </div>
+//                   {/* Show the full category path */}
+//                   <div className="p-3 bg-muted/30 rounded-lg">
+//                     <div className="text-xs text-muted-foreground mb-1">Full Category Path</div>
+//                     <div className="text-sm font-medium">
+//                       {[
+//                         product.categoryLevel1,
+//                         product.categoryLevel2,
+//                         product.categoryLevel3
+//                       ]
+//                         .filter(Boolean)
+//                         .join(' → ')}
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
 
-//   {product.brand && (
-//     <div className="space-y-2">
-//       <h4 className="font-semibold">Brand</h4>
-//       <Badge variant="secondary" className="text-sm py-1 px-3">
-//         {product.brand}
-//       </Badge>
-//     </div>
-//   )}
+//               {product.brand && (
+//                 <div className="space-y-2">
+//                   <h4 className="font-semibold">Brand</h4>
+//                   <Badge variant="secondary" className="text-sm py-1 px-3">
+//                     {product.brand}
+//                   </Badge>
+//                 </div>
+//               )}
 
-//   {product.serviceDuration && (
-//     <div className="space-y-2">
-//       <h4 className="font-semibold">Service Duration</h4>
-//       <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-//         <Clock className="h-4 w-4 text-muted-foreground" />
-//         <p className="text-muted-foreground">{product.serviceDuration}</p>
-//       </div>
-//     </div>
-//   )}
+//               {product.serviceDuration && (
+//                 <div className="space-y-2">
+//                   <h4 className="font-semibold">Service Duration</h4>
+//                   <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
+//                     <Clock className="h-4 w-4 text-muted-foreground" />
+//                     <p className="text-muted-foreground">{product.serviceDuration}</p>
+//                   </div>
+//                 </div>
+//               )}
 
-//   {/* Tags */}
-//   {displayTags.length > 0 && (
-//     <div className="space-y-2">
-//       <h4 className="font-semibold">Tags</h4>
-//       <div className="flex flex-wrap gap-1">
-//         {displayTags.map((tag, index) => (
-//           <Badge key={index} variant="outline" className="text-xs py-1">
-//             {tag}
-//           </Badge>
-//         ))}
-//       </div>
-//     </div>
-//   )}
+//               {/* Tags */}
+//               {displayTags.length > 0 && (
+//                 <div className="space-y-2">
+//                   <h4 className="font-semibold">Tags</h4>
+//                   <div className="flex flex-wrap gap-1">
+//                     {displayTags.map((tag, index) => (
+//                       <Badge key={index} variant="outline" className="text-xs py-1">
+//                         {tag}
+//                       </Badge>
+//                     ))}
+//                   </div>
+//                 </div>
+//               )}
 
-//   {/* Timestamps */}
-//   <div className="space-y-2 pt-4 border-t">
-//     <h4 className="font-semibold">Timestamps</h4>
-//     <div className="space-y-2 text-sm">
-//       <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-//         <Calendar className="h-4 w-4 text-muted-foreground" />
-//         <div>
-//           <div className="font-medium">Created</div>
-//           <div className="text-muted-foreground">{formatDate(product.createdAt)}</div>
-//         </div>
-//       </div>
-//       <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-//         <Calendar className="h-4 w-4 text-muted-foreground" />
-//         <div>
-//           <div className="font-medium">Updated</div>
-//           <div className="text-muted-foreground">{formatDate(product.updatedAt)}</div>
-//         </div>
-//       </div>
-//     </div>
-//   </div>
-// </div>
+//               {/* Timestamps */}
+//               <div className="space-y-2 pt-4 border-t">
+//                 <h4 className="font-semibold">Timestamps</h4>
+//                 <div className="space-y-2 text-sm">
+//                   <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
+//                     <Calendar className="h-4 w-4 text-muted-foreground" />
+//                     <div>
+//                       <div className="font-medium">Created</div>
+//                       <div className="text-muted-foreground">{formatDate(product.createdAt)}</div>
+//                     </div>
+//                   </div>
+//                   <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
+//                     <Calendar className="h-4 w-4 text-muted-foreground" />
+//                     <div>
+//                       <div className="font-medium">Updated</div>
+//                       <div className="text-muted-foreground">{formatDate(product.updatedAt)}</div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
 //           </div>
 //         </div>
 
@@ -1276,21 +1274,6 @@
 //   const unitOptions = ['piece', 'kg', 'hour', 'day', 'month', 'set'];
 
 //   // Helper function to convert file path to URL
-//   // const getImageUrl = (imagePath: string | undefined) => {
-//   //   if (!imagePath) {
-//   //     return "/placeholder.svg";
-//   //   }
-
-//   //   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-//   //     return imagePath;
-//   //   }
-
-//   //   const filename = imagePath.split(/[\\/]/).pop();
-//   //   const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8003';
-//   //   return `${BACKEND_URL}/uploads/products/${filename}`;
-//   // };
-
-//   // utils/getImageUrl.ts
 //   const getImageUrl = (image?: string): string => {
 //     if (!image || !image.trim()) {
 //       return "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&h=500&fit=crop";
@@ -1309,7 +1292,7 @@
 //       return `https://res.cloudinary.com/dy0lpwemp/image/upload/v1762654150/georgina-products/${filename}`;
 //     }
 
-//     // ✅ If it’s a relative upload (no host yet)
+//     // ✅ If it's a relative upload (no host yet)
 //     if (clean.startsWith("uploads/products/")) {
 //       const filename = clean.split("/").pop();
 //       return `https://res.cloudinary.com/dy0lpwemp/image/upload/v1762654150/georgina-products/${filename}`;
@@ -1318,6 +1301,7 @@
 //     // ✅ Otherwise, return as-is
 //     return clean;
 //   };
+
 //   // Fetch products and categories from API
 //   const fetchData = async () => {
 //     try {
@@ -2355,10 +2339,11 @@
 //                 </div>
 //               </div>
 
-//               {/* Category Selection */}
+//               {/* Category Selection - UPDATED WITH DROPDOWNS */}
 //               <div className="grid gap-3">
 //                 <Label className="text-xs">Category *</Label>
 //                 <div className="grid gap-3">
+//                   {/* Level 1 Dropdown */}
 //                   <div className="grid gap-2">
 //                     <Label htmlFor="categoryLevel1" className="text-xs">Level 1 *</Label>
 //                     <Select
@@ -2384,29 +2369,92 @@
 //                     </Select>
 //                   </div>
 
-//                   <div className="grid gap-2">
-//                     <Label htmlFor="categoryLevel2" className="text-xs">Level 2</Label>
-//                     <Input
-//                       id="categoryLevel2"
-//                       value={formData.categoryLevel2}
-//                       onChange={(e) => setFormData({ ...formData, categoryLevel2: e.target.value })}
-//                       placeholder="Subcategory"
-//                       className="h-9 text-sm"
-//                       disabled={isSubmitting}
-//                     />
-//                   </div>
+//                   {/* Level 2 Dropdown - Conditionally shown */}
+//                   {formData.categoryLevel1 && Object.keys(categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy] || {}).length > 0 && (
+//                     <div className="grid gap-2">
+//                       <Label htmlFor="categoryLevel2" className="text-xs">Level 2</Label>
+//                       <Select
+//                         value={formData.categoryLevel2}
+//                         onValueChange={(value) => setFormData({
+//                           ...formData,
+//                           categoryLevel2: value,
+//                           categoryLevel3: ""
+//                         })}
+//                         disabled={isSubmitting}
+//                       >
+//                         <SelectTrigger className="h-9 text-sm">
+//                           <SelectValue placeholder="Select category level 2" />
+//                         </SelectTrigger>
+//                         <SelectContent>
+//                           {Object.keys(categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy] || {}).map((subcategory) => (
+//                             <SelectItem key={subcategory} value={subcategory}>
+//                               {subcategory}
+//                             </SelectItem>
+//                           ))}
+//                         </SelectContent>
+//                       </Select>
+//                     </div>
+//                   )}
 
-//                   <div className="grid gap-2">
-//                     <Label htmlFor="categoryLevel3" className="text-xs">Level 3</Label>
-//                     <Input
-//                       id="categoryLevel3"
-//                       value={formData.categoryLevel3}
-//                       onChange={(e) => setFormData({ ...formData, categoryLevel3: e.target.value })}
-//                       placeholder="Sub-subcategory"
-//                       className="h-9 text-sm"
-//                       disabled={isSubmitting}
-//                     />
-//                   </div>
+//                   {/* Level 3 Dropdown - Conditionally shown */}
+//                   {formData.categoryLevel2 && categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy]?.[formData.categoryLevel2]?.length > 0 && (
+//                     <div className="grid gap-2">
+//                       <Label htmlFor="categoryLevel3" className="text-xs">Level 3</Label>
+//                       <Select
+//                         value={formData.categoryLevel3}
+//                         onValueChange={(value) => setFormData({
+//                           ...formData,
+//                           categoryLevel3: value
+//                         })}
+//                         disabled={isSubmitting}
+//                       >
+//                         <SelectTrigger className="h-9 text-sm">
+//                           <SelectValue placeholder="Select category level 3" />
+//                         </SelectTrigger>
+//                         <SelectContent>
+//                           {categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy]?.[formData.categoryLevel2]?.map((subsubcategory) => (
+//                             <SelectItem key={subsubcategory} value={subsubcategory}>
+//                               {subsubcategory}
+//                             </SelectItem>
+//                           ))}
+//                         </SelectContent>
+//                       </Select>
+//                     </div>
+//                   )}
+
+//                   {/* Fallback input fields for custom categories or when no dropdown options exist */}
+//                   {(!formData.categoryLevel1 || 
+//                     (formData.categoryLevel1 && Object.keys(categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy] || {}).length === 0) ||
+//                     (formData.categoryLevel2 && !categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy]?.[formData.categoryLevel2]?.length)) && (
+//                     <>
+//                       {!formData.categoryLevel2 && (
+//                         <div className="grid gap-2">
+//                           <Label htmlFor="categoryLevel2" className="text-xs">Level 2 (Custom)</Label>
+//                           <Input
+//                             id="categoryLevel2"
+//                             value={formData.categoryLevel2}
+//                             onChange={(e) => setFormData({ ...formData, categoryLevel2: e.target.value })}
+//                             placeholder="Subcategory"
+//                             className="h-9 text-sm"
+//                             disabled={isSubmitting}
+//                           />
+//                         </div>
+//                       )}
+//                       {!formData.categoryLevel3 && (
+//                         <div className="grid gap-2">
+//                           <Label htmlFor="categoryLevel3" className="text-xs">Level 3 (Custom)</Label>
+//                           <Input
+//                             id="categoryLevel3"
+//                             value={formData.categoryLevel3}
+//                             onChange={(e) => setFormData({ ...formData, categoryLevel3: e.target.value })}
+//                             placeholder="Sub-subcategory"
+//                             className="h-9 text-sm"
+//                             disabled={isSubmitting}
+//                           />
+//                         </div>
+//                       )}
+//                     </>
+//                   )}
 //                 </div>
 //               </div>
 
@@ -2459,6 +2507,8 @@
 // }
 
 
+
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -2506,6 +2556,7 @@ interface ProductWithSpecial extends Product {
   trendingOrder: number;
   newArrivalOrder: number;
 }
+
 interface ProductFormData {
   name: string;
   description: string;
@@ -2526,14 +2577,18 @@ interface ProductFormData {
   isFeatured: boolean;
   isTrending: boolean;
   isNewArrival: boolean;
-  featuredOrder: number;        // Changed from string to number
-  trendingOrder: number;        // Changed from string to number
-  newArrivalOrder: number;      // Changed from string to number
+  featuredOrder: number;
+  trendingOrder: number;
+  newArrivalOrder: number;
 }
+
 interface Category {
   id: string;
   name: string;
   slug?: string;
+  level: number;
+  parentId?: string | null;
+  children: Category[];
 }
 
 interface BulkUpdateItem {
@@ -2547,21 +2602,6 @@ interface BulkUpdateItem {
     newArrivalOrder?: number;
   };
 }
-
-// Add this category hierarchy object near the top of your component, after the imports
-const categoryHierarchy = {
-  Clothes: {
-    Women: ['African print', 'African wear', 'Ankara', 'Bonnet'],
-    Men: ['African wear', 'Trousers'],
-    Kids: ['African wear']
-  },
-  Foodstuffs: {
-    Pantry: ['Vegetable oils', 'Zomi', 'Gari', 'Spaghetti', 'Tomatoes paste'],
-    'Prepared Mixes': ['Fufu', 'Banku', 'Tom brown', 'Konkonte'],
-    'Soup Base': ['Palm nut soup']
-  },
-  Services: {} // Empty object for Services since no subcategories provided
-};
 
 // Tag Input Component
 const TagInput = ({
@@ -2919,7 +2959,8 @@ const ProductDetailsModal = ({
   );
 };
 
-// Special Products Manager Component
+// Special Products Manager Component (keep this component as is)
+// Special Products Manager Component (keep this component as is)
 const SpecialProductsManager = ({ products, onUpdateProduct }: { products: ProductWithSpecial[], onUpdateProduct: (productId: string, updates: any) => void }) => {
   const [allProducts, setAllProducts] = useState<ProductWithSpecial[]>(products);
   const [filteredProducts, setFilteredProducts] = useState<ProductWithSpecial[]>(products);
@@ -3700,6 +3741,7 @@ export default function Products() {
   const [selectedProduct, setSelectedProduct] = useState<ProductWithSpecial | null>(null);
   const [editingProduct, setEditingProduct] = useState<ProductWithSpecial | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("catalog");
@@ -3729,8 +3771,6 @@ export default function Products() {
   });
   const { toast } = useToast();
 
-  // Predefined categories based on your model
-  const categoryLevel1Options = ['Clothes', 'Foodstuffs', 'Services'];
   const serviceTypeOptions = ['physical', 'service'];
   const unitOptions = ['piece', 'kg', 'hour', 'day', 'month', 'set'];
 
@@ -3763,8 +3803,36 @@ export default function Products() {
     return clean;
   };
 
-  // Fetch products and categories from API
-  const fetchData = async () => {
+  // Fetch categories from your API
+  const fetchCategories = async () => {
+    try {
+      setIsCategoriesLoading(true);
+      console.log('🔄 Fetching categories from API...');
+      
+      const response = await fetch('https://georgina-server-code.onrender.com/api/categories-tree');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const categoriesData = await response.json();
+      console.log('✅ Categories response:', categoriesData);
+      
+      setCategories(categoriesData);
+    } catch (err: any) {
+      console.error('❌ Failed to fetch categories:', err);
+      toast({
+        variant: "destructive",
+        title: "Error loading categories",
+        description: "Could not fetch categories. Using fallback options.",
+      });
+    } finally {
+      setIsCategoriesLoading(false);
+    }
+  };
+
+  // Fetch products from API
+  const fetchProducts = async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -3798,9 +3866,48 @@ export default function Products() {
     }
   };
 
+  // Fetch both products and categories on component mount
   useEffect(() => {
-    fetchData();
+    fetchProducts();
+    fetchCategories();
   }, []);
+
+  // Helper function to flatten categories for easier processing
+  const flattenCategories = (categories: Category[]): Category[] => {
+    const flattened: Category[] = [];
+    
+    const flatten = (category: Category) => {
+      flattened.push(category);
+      if (category.children && category.children.length > 0) {
+        category.children.forEach(child => flatten(child));
+      }
+    };
+    
+    categories.forEach(category => flatten(category));
+    return flattened;
+  };
+
+  // Get all categories as a flat array
+  const allCategories = flattenCategories(categories);
+
+  // Get categories by level
+  const getCategoriesByLevel = (level: number) => {
+    return allCategories.filter(cat => cat.level === level);
+  };
+
+  // Get top-level categories (level 1)
+  const topLevelCategories = getCategoriesByLevel(1);
+
+  // Get level 2 categories
+  const level2Categories = getCategoriesByLevel(2);
+
+  // Get level 3 categories
+  const level3Categories = getCategoriesByLevel(3);
+
+  // Get subcategories for a specific parent
+  const getSubcategories = (parentId: string) => {
+    return allCategories.filter(cat => cat.parentId === parentId);
+  };
 
   // Handle product updates from SpecialProductsManager
   const handleProductUpdate = (productId: string, updates: any) => {
@@ -3828,10 +3935,6 @@ export default function Products() {
     return sum + (price * stock);
   }, 0);
   const lowStockCount = filteredProducts.filter(p => (p.stock || 0) < 10).length;
-  const avgPrice = totalProducts > 0 ? filteredProducts.reduce((sum, p) => {
-    const price = parseFloat(p.price?.toString() || '0');
-    return sum + price;
-  }, 0) / totalProducts : 0;
 
   // Count special category products
   const featuredCount = filteredProducts.filter(p => p.isFeatured).length;
@@ -4005,38 +4108,38 @@ export default function Products() {
   const handleEditProduct = (productToEdit: ProductWithSpecial) => {
     setEditingProduct(productToEdit);
 
-const convertTagsToArray = (tags: unknown): string[] => {
-  if (!tags) return [];
-  
-  if (Array.isArray(tags)) {
-    return tags.reduce<string[]>((acc, tag) => {
-      if (typeof tag === 'string' && tag.trim()) {
-        acc.push(tag.trim());
-      }
-      return acc;
-    }, []);
-  }
-  
-  if (typeof tags === 'string') {
-    try {
-      const parsed = JSON.parse(tags);
-      if (Array.isArray(parsed)) {
-        return parsed.reduce<string[]>((acc, tag) => {
+    const convertTagsToArray = (tags: unknown): string[] => {
+      if (!tags) return [];
+      
+      if (Array.isArray(tags)) {
+        return tags.reduce<string[]>((acc, tag) => {
           if (typeof tag === 'string' && tag.trim()) {
             acc.push(tag.trim());
           }
           return acc;
         }, []);
       }
-    } catch {
-      return tags.split(',')
-        .map(tag => tag.trim())
-        .filter(tag => tag !== '');
-    }
-  }
-  
-  return [];
-};
+      
+      if (typeof tags === 'string') {
+        try {
+          const parsed = JSON.parse(tags);
+          if (Array.isArray(parsed)) {
+            return parsed.reduce<string[]>((acc, tag) => {
+              if (typeof tag === 'string' && tag.trim()) {
+                acc.push(tag.trim());
+              }
+              return acc;
+            }, []);
+          }
+        } catch {
+          return tags.split(',')
+            .map(tag => tag.trim())
+            .filter(tag => tag !== '');
+        }
+      }
+      
+      return [];
+    };
 
     setFormData({
       name: productToEdit.name,
@@ -4058,12 +4161,13 @@ const convertTagsToArray = (tags: unknown): string[] => {
       isFeatured: productToEdit.isFeatured || false,
       isTrending: productToEdit.isTrending || false,
       isNewArrival: productToEdit.isNewArrival || false,
-      featuredOrder: productToEdit.featuredOrder || 0,        // Number
-      trendingOrder: productToEdit.trendingOrder || 0,        // Number
-      newArrivalOrder: productToEdit.newArrivalOrder || 0,    // Number
+      featuredOrder: productToEdit.featuredOrder || 0,
+      trendingOrder: productToEdit.trendingOrder || 0,
+      newArrivalOrder: productToEdit.newArrivalOrder || 0,
     });
     setDialogOpen(true);
   };
+
   const handleViewProduct = (product: ProductWithSpecial) => {
     setSelectedProduct(product);
     setDetailsDialogOpen(true);
@@ -4124,17 +4228,6 @@ const convertTagsToArray = (tags: unknown): string[] => {
   };
 
   // Loading and Skeleton Components
-  const LoadingRow = () => (
-    <TableRow>
-      <TableCell colSpan={8} className="text-center py-8">
-        <div className="flex items-center justify-center gap-2">
-          <RefreshCw className="h-4 w-4 animate-spin" />
-          <span>Loading products...</span>
-        </div>
-      </TableCell>
-    </TableRow>
-  );
-
   const SkeletonRow = () => (
     <TableRow>
       <TableCell>
@@ -4179,7 +4272,7 @@ const convertTagsToArray = (tags: unknown): string[] => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-          <Button onClick={fetchData} variant="outline">
+          <Button onClick={fetchProducts} variant="outline">
             <RefreshCw className="mr-2 h-4 w-4" />
             Retry
           </Button>
@@ -4189,7 +4282,7 @@ const convertTagsToArray = (tags: unknown): string[] => {
             <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-lg font-medium mb-2">Failed to load products</p>
             <p className="text-muted-foreground text-center mb-4">{error}</p>
-            <Button onClick={fetchData}>
+            <Button onClick={fetchProducts}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Try Again
             </Button>
@@ -4204,7 +4297,7 @@ const convertTagsToArray = (tags: unknown): string[] => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Products</h1>
         <div className="flex gap-2">
-          <Button onClick={fetchData} variant="outline" disabled={isLoading}>
+          <Button onClick={() => { fetchProducts(); fetchCategories(); }} variant="outline" disabled={isLoading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -4800,7 +4893,7 @@ const convertTagsToArray = (tags: unknown): string[] => {
                 </div>
               </div>
 
-              {/* Category Selection - UPDATED WITH DROPDOWNS */}
+              {/* Category Selection - UPDATED TO USE ACTUAL API DATA */}
               <div className="grid gap-3">
                 <Label className="text-xs">Category *</Label>
                 <div className="grid gap-3">
@@ -4815,15 +4908,17 @@ const convertTagsToArray = (tags: unknown): string[] => {
                         categoryLevel2: "",
                         categoryLevel3: ""
                       })}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || isCategoriesLoading}
                     >
                       <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Select category level 1" />
+                        <SelectValue placeholder={
+                          isCategoriesLoading ? "Loading categories..." : "Select category level 1"
+                        } />
                       </SelectTrigger>
                       <SelectContent>
-                        {categoryLevel1Options.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
+                        {topLevelCategories.map((category) => (
+                          <SelectItem key={category.id} value={category.name}>
+                            {category.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -4831,7 +4926,7 @@ const convertTagsToArray = (tags: unknown): string[] => {
                   </div>
 
                   {/* Level 2 Dropdown - Conditionally shown */}
-                  {formData.categoryLevel1 && Object.keys(categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy] || {}).length > 0 && (
+                  {formData.categoryLevel1 && (
                     <div className="grid gap-2">
                       <Label htmlFor="categoryLevel2" className="text-xs">Level 2</Label>
                       <Select
@@ -4847,9 +4942,11 @@ const convertTagsToArray = (tags: unknown): string[] => {
                           <SelectValue placeholder="Select category level 2" />
                         </SelectTrigger>
                         <SelectContent>
-                          {Object.keys(categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy] || {}).map((subcategory) => (
-                            <SelectItem key={subcategory} value={subcategory}>
-                              {subcategory}
+                          {getSubcategories(
+                            categories.find(cat => cat.name === formData.categoryLevel1)?.id || ''
+                          ).map((subcategory) => (
+                            <SelectItem key={subcategory.id} value={subcategory.name}>
+                              {subcategory.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -4858,7 +4955,7 @@ const convertTagsToArray = (tags: unknown): string[] => {
                   )}
 
                   {/* Level 3 Dropdown - Conditionally shown */}
-                  {formData.categoryLevel2 && categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy]?.[formData.categoryLevel2]?.length > 0 && (
+                  {formData.categoryLevel2 && (
                     <div className="grid gap-2">
                       <Label htmlFor="categoryLevel3" className="text-xs">Level 3</Label>
                       <Select
@@ -4873,48 +4970,16 @@ const convertTagsToArray = (tags: unknown): string[] => {
                           <SelectValue placeholder="Select category level 3" />
                         </SelectTrigger>
                         <SelectContent>
-                          {categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy]?.[formData.categoryLevel2]?.map((subsubcategory) => (
-                            <SelectItem key={subsubcategory} value={subsubcategory}>
-                              {subsubcategory}
+                          {getSubcategories(
+                            level2Categories.find(cat => cat.name === formData.categoryLevel2)?.id || ''
+                          ).map((subsubcategory) => (
+                            <SelectItem key={subsubcategory.id} value={subsubcategory.name}>
+                              {subsubcategory.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
-                  )}
-
-                  {/* Fallback input fields for custom categories or when no dropdown options exist */}
-                  {(!formData.categoryLevel1 || 
-                    (formData.categoryLevel1 && Object.keys(categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy] || {}).length === 0) ||
-                    (formData.categoryLevel2 && !categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy]?.[formData.categoryLevel2]?.length)) && (
-                    <>
-                      {!formData.categoryLevel2 && (
-                        <div className="grid gap-2">
-                          <Label htmlFor="categoryLevel2" className="text-xs">Level 2 (Custom)</Label>
-                          <Input
-                            id="categoryLevel2"
-                            value={formData.categoryLevel2}
-                            onChange={(e) => setFormData({ ...formData, categoryLevel2: e.target.value })}
-                            placeholder="Subcategory"
-                            className="h-9 text-sm"
-                            disabled={isSubmitting}
-                          />
-                        </div>
-                      )}
-                      {!formData.categoryLevel3 && (
-                        <div className="grid gap-2">
-                          <Label htmlFor="categoryLevel3" className="text-xs">Level 3 (Custom)</Label>
-                          <Input
-                            id="categoryLevel3"
-                            value={formData.categoryLevel3}
-                            onChange={(e) => setFormData({ ...formData, categoryLevel3: e.target.value })}
-                            placeholder="Sub-subcategory"
-                            className="h-9 text-sm"
-                            disabled={isSubmitting}
-                          />
-                        </div>
-                      )}
-                    </>
                   )}
                 </div>
               </div>
