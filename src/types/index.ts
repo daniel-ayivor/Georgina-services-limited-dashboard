@@ -18,6 +18,7 @@ serviceType: 'physical' | 'service';
   brand: string | null;
   createdAt: string;
   updatedAt: string;
+  size?: string;
   
   // ADD THESE NEW FIELDS:
   isFeatured: boolean;
