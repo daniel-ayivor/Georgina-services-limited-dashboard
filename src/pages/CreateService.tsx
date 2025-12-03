@@ -614,7 +614,7 @@ const CreateServices = () => {
               </>
             ) : (
               <>
-                <div className="text-2xl font-bold">${totalRevenuePotential.toFixed(2)}</div>
+                <div className="text-2xl font-bold">${(totalRevenuePotential ?? 0).toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground">Total service value</p>
               </>
             )}
@@ -674,7 +674,7 @@ const CreateServices = () => {
                         {service.category}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-medium">${service.price.toFixed(2)}</TableCell>
+                    <TableCell className="font-medium">${(service.price ?? 0).toFixed(2)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3 text-muted-foreground" />

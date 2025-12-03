@@ -447,7 +447,7 @@ useEffect(() => {
               </>
             ) : (
               <>
-                <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+                <div className="text-2xl font-bold">${(totalRevenue ?? 0).toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground">
                   From all bookings
                 </p>
@@ -580,7 +580,7 @@ useEffect(() => {
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(booking.status)}</TableCell>
-                    <TableCell className="text-right">${booking.price.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">${(booking.price ?? 0).toFixed(2)}</TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -633,7 +633,7 @@ useEffect(() => {
               <div>
                 <p className="font-medium">Service & Price</p>
                 <p className="text-sm">{getServiceTypeName(currentBooking.serviceType)}</p>
-                <p className="text-xl font-bold">${currentBooking.price.toFixed(2)}</p>
+                <p className="text-xl font-bold">${(currentBooking.price ?? 0).toFixed(2)}</p>
               </div>
             </div>
             

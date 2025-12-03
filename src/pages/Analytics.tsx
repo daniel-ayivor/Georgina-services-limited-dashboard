@@ -441,7 +441,7 @@ export default function Analytics() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">${(totalRevenue ?? 0).toFixed(2)}</div>
             <p className="text-xs text-success flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
               +{revenueGrowth.toFixed(1)}% from last month
@@ -457,7 +457,7 @@ export default function Analytics() {
           <CardContent>
             <div className="text-2xl font-bold">{totalOrders}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {orderCompletionRate.toFixed(1)}% completion rate
+              {(orderCompletionRate ?? 0).toFixed(1)}% completion rate
             </p>
           </CardContent>
         </Card>
@@ -470,7 +470,7 @@ export default function Analytics() {
           <CardContent>
             <div className="text-2xl font-bold">{totalCustomers}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              ${avgCustomerValue.toFixed(2)} avg value
+              ${(avgCustomerValue ?? 0).toFixed(2)} avg value
             </p>
           </CardContent>
         </Card>
@@ -481,7 +481,7 @@ export default function Analytics() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalInventoryValue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">${(totalInventoryValue ?? 0).toFixed(2)}</div>
             <p className="text-xs text-warning mt-1">
               {lowStockProducts} low stock items
             </p>
@@ -624,7 +624,7 @@ export default function Analytics() {
               </div>
               <div className="flex justify-between text-sm font-bold pt-2 border-t">
                 <span>Success Rate</span>
-                <span className="text-success">{orderCompletionRate.toFixed(1)}%</span>
+                <span className="text-success">{(orderCompletionRate ?? 0).toFixed(1)}%</span>
               </div>
             </div>
           </CardContent>
@@ -646,7 +646,7 @@ export default function Analytics() {
               </div>
               <div className="flex justify-between text-sm">
                 <span>Inventory Value</span>
-                <span className="font-medium">${totalInventoryValue.toFixed(2)}</span>
+                <span className="font-medium">${(totalInventoryValue ?? 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm font-bold pt-2 border-t">
                 <span>Stock Health</span>
@@ -676,11 +676,11 @@ export default function Analytics() {
               </div>
               <div className="flex justify-between text-sm">
                 <span>Total Revenue</span>
-                <span className="font-medium">${totalRevenue.toFixed(2)}</span>
+                <span className="font-medium">${(totalRevenue ?? 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm font-bold pt-2 border-t">
                 <span>Customer LTV</span>
-                <span className="text-success">${avgCustomerValue.toFixed(2)}</span>
+                <span className="text-success">${(avgCustomerValue ?? 0).toFixed(2)}</span>
               </div>
             </div>
           </CardContent>
@@ -708,9 +708,9 @@ export default function Analytics() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold">${product.revenue.toFixed(2)}</p>
+                    <p className="font-bold">${(product.revenue ?? 0).toFixed(2)}</p>
                     <p className="text-sm text-muted-foreground">
-                      ${(product.revenue / product.sales).toFixed(2)} avg
+                      ${product.sales > 0 ? ((product.revenue ?? 0) / product.sales).toFixed(2) : '0.00'} avg
                     </p>
                   </div>
                 </div>
