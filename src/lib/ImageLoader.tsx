@@ -1,5 +1,5 @@
 // components/ImageUploadWithFile.tsx
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Upload } from "lucide-react";
 
@@ -16,6 +16,25 @@ export const ImageUploadWithFile: React.FC<ImageUploadWithFileProps> = ({
 }) => {
   const [previewUrl, setPreviewUrl] = useState(currentImage || "");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const prevCurrentImageRef = useRef(currentImage);
+
+  // Sync previewUrl when currentImage changes from parent (e.g., when editing different products)
+  useEffect(() => {
+    if (currentImage !== prevCurrentImageRef.current) {
+      // Only update if it's not a blob URL (user uploaded) and the prop changed
+      if (!previewUrl.startsWith('blob:')) {
+        setPreviewUrl(currentImage || "");
+      }
+      prevCurrentImageRef.current = currentImage;
+    }
+  }, [currentImage]);
+
+  // Reset preview when currentImage becomes empty (dialog reset)
+  useEffect(() => {
+    if (!currentImage && previewUrl && !previewUrl.startsWith('blob:')) {
+      setPreviewUrl("");
+    }
+  }, [currentImage]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -24,6 +43,11 @@ export const ImageUploadWithFile: React.FC<ImageUploadWithFileProps> = ({
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file');
         return;
+      }
+
+      // Revoke old blob URL to prevent memory leak
+      if (previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
       }
 
       // Create preview URL
@@ -49,6 +73,15 @@ export const ImageUploadWithFile: React.FC<ImageUploadWithFileProps> = ({
   const handleClick = () => {
     fileInputRef.current?.click();
   };
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, []);
 
   return (
     <div className={`border-2 border-dashed rounded-lg p-4 ${className}`}>
