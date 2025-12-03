@@ -23,6 +23,7 @@ import CreateServices from "./pages/CreateService";
 import ContactMessagesAdmin from "./pages/Contacts";
 import ProductDetails from "./pages/productDetails";
 import Customers from "./pages/Customer";
+import OrderDetailsPage from "./pages/OrderDeatils";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
                    <Route path="/products/:id" element={<ProductDetails />} />
                   <Route path="/categories" element={<Categories />} />
                   <Route path="/orders" element={<Orders />} />
+                  <Route path="/admin/orders/:orderId" element={<OrderDetailsPage />} />
                   <Route path="/bookings" element={<Bookings />} />
                   <Route path="/contacts" element={<ContactMessagesAdmin />} />
                   <Route path="/create-service" element={<CreateServices/>} />

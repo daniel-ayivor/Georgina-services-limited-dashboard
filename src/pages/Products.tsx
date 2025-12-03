@@ -1,5036 +1,3 @@
-// // import { useState, useEffect } from "react";
-// // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-// // import { Input } from "@/components/ui/input";
-// // import { Button } from "@/components/ui/button";
-// // import { Badge } from "@/components/ui/badge";
-// // import {
-// //   Table,
-// //   TableBody,
-// //   TableCell,
-// //   TableHead,
-// //   TableHeader,
-// //   TableRow,
-// // } from "@/components/ui/table";
-// // import {
-// //   Dialog,
-// //   DialogContent,
-// //   DialogDescription,
-// //   DialogFooter,
-// //   DialogHeader,
-// //   DialogTitle,
-// // } from "@/components/ui/dialog";
-// // import { Label } from "@/components/ui/label";
-// // import { Textarea } from "@/components/ui/textarea";
-// // import {
-// //   Select,
-// //   SelectContent,
-// //   SelectItem,
-// //   SelectTrigger,
-// //   SelectValue,
-// // } from "@/components/ui/select";
-// // import { Switch } from "@/components/ui/switch";
-// // import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-// // import { Search, Plus, Edit, Trash2, Package, DollarSign, TrendingUp, AlertTriangle, RefreshCw, AlertCircle, X, Eye, Calendar, Star, Zap, Clock, Filter, Check } from "lucide-react";
-// // import { Product } from "@/types";
-// // import { useToast } from "@/hooks/use-toast";
-// // import adminApiService from "@/contexts/adminApiService";
-// // import { ImageUploadWithFile } from "@/lib/ImageLoader";
-
-// // // Update the Product interface to include special category fields
-// // interface ProductWithSpecial extends Product {
-// //   isFeatured: boolean;
-// //   isTrending: boolean;
-// //   isNewArrival: boolean;
-// //   featuredOrder: number;
-// //   trendingOrder: number;
-// //   newArrivalOrder: number;
-// // }
-// // interface ProductFormData {
-// //   name: string;
-// //   description: string;
-// //   price: string;
-// //   categoryLevel1: string;
-// //   categoryLevel2: string;
-// //   categoryLevel3: string;
-// //   serviceType: 'physical' | 'service';
-// //   serviceDuration: string;
-// //   unit: string;
-// //   stock: string;
-// //   brand: string;
-// //   tags: string[];
-// //   isActive: boolean;
-// //   image: File | string | null;
-
-// //   // FIXED: Use proper types for special category fields
-// //   isFeatured: boolean;
-// //   isTrending: boolean;
-// //   isNewArrival: boolean;
-// //   featuredOrder: number;        // Changed from string to number
-// //   trendingOrder: number;        // Changed from string to number
-// //   newArrivalOrder: number;      // Changed from string to number
-// // }
-// // interface Category {
-// //   id: string;
-// //   name: string;
-// //   slug?: string;
-// // }
-
-// // interface BulkUpdateItem {
-// //   productId: string;
-// //   updates: {
-// //     isFeatured?: boolean;
-// //     isTrending?: boolean;
-// //     isNewArrival?: boolean;
-// //     featuredOrder?: number;
-// //     trendingOrder?: number;
-// //     newArrivalOrder?: number;
-// //   };
-// // }
-
-// // // Add this category hierarchy object near the top of your component, after the imports
-// // const categoryHierarchy = {
-// //   Clothes: {
-// //     Women: ['African print', 'African wear', 'Ankara', 'Bonnet'],
-// //     Men: ['African wear', 'Trousers'],
-// //     Kids: ['African wear']
-// //   },
-// //   Foodstuffs: {
-// //     Pantry: ['Vegetable oils', 'Zomi', 'Gari', 'Spaghetti', 'Tomatoes paste'],
-// //     'Prepared Mixes': ['Fufu', 'Banku', 'Tom brown', 'Konkonte'],
-// //     'Soup Base': ['Palm nut soup']
-// //   },
-// //   Services: {} // Empty object for Services since no subcategories provided
-// // };
-
-// // // Tag Input Component
-// // const TagInput = ({
-// //   tags,
-// //   onTagsChange,
-// //   disabled
-// // }: {
-// //   tags: string[];
-// //   onTagsChange: (tags: string[]) => void;
-// //   disabled?: boolean;
-// // }) => {
-// //   const [inputValue, setInputValue] = useState('');
-
-// //   const addTag = (tag: string) => {
-// //     const cleanTag = tag.trim();
-// //     if (cleanTag && !tags.includes(cleanTag)) {
-// //       onTagsChange([...tags, cleanTag]);
-// //     }
-// //     setInputValue('');
-// //   };
-
-// //   const removeTag = (index: number) => {
-// //     onTagsChange(tags.filter((_, i) => i !== index));
-// //   };
-
-// //   const handleKeyDown = (e: React.KeyboardEvent) => {
-// //     if (e.key === 'Enter' || e.key === ',') {
-// //       e.preventDefault();
-// //       addTag(inputValue);
-// //     }
-// //   };
-
-// //   return (
-// //     <div className="space-y-2">
-// //       <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-10 bg-background">
-// //         {tags.map((tag, index) => (
-// //           <Badge key={index} variant="secondary" className="flex items-center gap-1 text-xs py-1">
-// //             {tag}
-// //             <button
-// //               type="button"
-// //               onClick={() => removeTag(index)}
-// //               className="ml-1 hover:text-destructive text-xs"
-// //               disabled={disabled}
-// //             >
-// //               <X className="h-3 w-3" />
-// //             </button>
-// //           </Badge>
-// //         ))}
-// //         <input
-// //           value={inputValue}
-// //           onChange={(e) => setInputValue(e.target.value)}
-// //           onKeyDown={handleKeyDown}
-// //           onBlur={() => inputValue && addTag(inputValue)}
-// //           placeholder={tags.length === 0 ? "Add tags..." : "Add another tag..."}
-// //           className="flex-1 outline-none bg-transparent text-sm min-w-20 placeholder:text-muted-foreground"
-// //           disabled={disabled}
-// //         />
-// //       </div>
-// //       <p className="text-xs text-muted-foreground">Press Enter, comma, or click outside to add tags</p>
-// //     </div>
-// //   );
-// // };
-
-// // // Product Details Modal Component
-// // const ProductDetailsModal = ({
-// //   product,
-// //   open,
-// //   onOpenChange
-// // }: {
-// //   product: ProductWithSpecial | null;
-// //   open: boolean;
-// //   onOpenChange: (open: boolean) => void;
-// // }) => {
-// //   const getImageUrl = (imagePath: string | undefined) => {
-// //     if (!imagePath) return "/placeholder.svg";
-// //     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-// //       return imagePath;
-// //     }
-// //     const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8003';
-// //     const filename = imagePath.split(/[\\/]/).pop();
-// //     return `${BACKEND_URL}/uploads/products/${filename}`;
-// //   };
-
-// //   const formatDate = (dateString: string) => {
-// //     return new Date(dateString).toLocaleDateString('en-US', {
-// //       year: 'numeric',
-// //       month: 'long',
-// //       day: 'numeric',
-// //       hour: '2-digit',
-// //       minute: '2-digit'
-// //     });
-// //   };
-
-// //   // Safely convert tags to array for display
-// //   const getDisplayTags = (tags: any): string[] => {
-// //     if (!tags) return [];
-
-// //     if (Array.isArray(tags)) {
-// //       return tags.filter(tag => typeof tag === 'string');
-// //     }
-
-// //     if (typeof tags === 'string') {
-// //       try {
-// //         const parsed = JSON.parse(tags);
-// //         if (Array.isArray(parsed)) {
-// //           return parsed.filter(tag => typeof tag === 'string');
-// //         }
-// //       } catch {
-// //         return tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-// //       }
-// //     }
-
-// //     return [];
-// //   };
-
-// //   if (!product) return null;
-
-// //   const displayTags = getDisplayTags(product.tags);
-
-// //   return (
-// //     <Dialog open={open} onOpenChange={onOpenChange}>
-// //       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-// //         <DialogHeader>
-// //           <DialogTitle className="text-xl flex items-center gap-2">
-// //             <Package className="h-5 w-5" />
-// //             Product Details
-// //           </DialogTitle>
-// //           <DialogDescription>
-// //             Complete information about {product.name}
-// //           </DialogDescription>
-// //         </DialogHeader>
-
-// //         <div className="grid gap-6 py-4">
-// //           {/* Product Image */}
-// //           <div className="flex justify-center">
-// //             <img
-// //               src={getImageUrl(product.images?.[0])}
-// //               alt={product.name}
-// //               className="h-64 w-64 object-cover rounded-lg border shadow-sm"
-// //               onError={(e) => {
-// //                 (e.target as HTMLImageElement).src = "/placeholder.svg";
-// //               }}
-// //             />
-// //           </div>
-
-// //           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-// //             {/* Basic Information */}
-// //             <div className="space-y-4">
-// //               <div>
-// //                 <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-// //                 <p className="text-muted-foreground">{product.description || "No description available"}</p>
-// //               </div>
-
-// //               <div className="space-y-3">
-// //                 <div className="flex justify-between items-center py-2 border-b">
-// //                   <span className="font-medium">Price</span>
-// //                   <span className="text-lg font-bold text-green-600">
-// //                     ${parseFloat(product.price?.toString() || '0').toFixed(2)}
-// //                   </span>
-// //                 </div>
-
-// //                 <div className="flex justify-between items-center py-2 border-b">
-// //                   <span className="font-medium">Stock</span>
-// //                   <Badge variant={product.stock < 10 ? "destructive" : "default"}>
-// //                     {product.stock} units
-// //                   </Badge>
-// //                 </div>
-
-// //                 <div className="flex justify-between items-center py-2 border-b">
-// //                   <span className="font-medium">Status</span>
-// //                   <Badge variant={product.isActive ? "default" : "destructive"}>
-// //                     {product.isActive ? "Active" : "Inactive"}
-// //                   </Badge>
-// //                 </div>
-
-// //                 <div className="flex justify-between items-center py-2 border-b">
-// //                   <span className="font-medium">Type</span>
-// //                   <Badge variant={product.serviceType === 'service' ? "default" : "secondary"}>
-// //                     {product.serviceType}
-// //                   </Badge>
-// //                 </div>
-
-// //                 <div className="flex justify-between items-center py-2 border-b">
-// //                   <span className="font-medium">Unit</span>
-// //                   <span className="text-muted-foreground capitalize">{product.unit || 'piece'}</span>
-// //                 </div>
-// //               </div>
-
-// //               {/* Special Categories */}
-// //               <div className="space-y-3 pt-4 border-t">
-// //                 <h4 className="font-semibold">Special Categories</h4>
-// //                 <div className="space-y-2">
-// //                   <div className="flex justify-between items-center">
-// //                     <span className="flex items-center gap-2">
-// //                       <Star className="h-4 w-4 text-yellow-500" />
-// //                       Featured
-// //                     </span>
-// //                     <Badge variant={product.isFeatured ? "default" : "outline"}>
-// //                       {product.isFeatured ? `Yes (Order: ${product.featuredOrder || 0})` : "No"}
-// //                     </Badge>
-// //                   </div>
-// //                   <div className="flex justify-between items-center">
-// //                     <span className="flex items-center gap-2">
-// //                       <Zap className="h-4 w-4 text-orange-500" />
-// //                       Trending
-// //                     </span>
-// //                     <Badge variant={product.isTrending ? "default" : "outline"}>
-// //                       {product.isTrending ? `Yes (Order: ${product.trendingOrder || 0})` : "No"}
-// //                     </Badge>
-// //                   </div>
-// //                   <div className="flex justify-between items-center">
-// //                     <span className="flex items-center gap-2">
-// //                       <Clock className="h-4 w-4 text-blue-500" />
-// //                       New Arrival
-// //                     </span>
-// //                     <Badge variant={product.isNewArrival ? "default" : "outline"}>
-// //                       {product.isNewArrival ? `Yes (Order: ${product.newArrivalOrder || 0})` : "No"}
-// //                     </Badge>
-// //                   </div>
-// //                 </div>
-// //               </div>
-// //             </div>
-
-// //             {/* Additional Details */}
-// //             <div className="space-y-4">
-// //               <div className="space-y-3">
-// //                 <h4 className="font-semibold">Category Information</h4>
-// //                 <div className="space-y-3">
-// //                   <div className="flex justify-between items-center py-2 border-b">
-// //                     <span className="font-medium">Main Category</span>
-// //                     <Badge variant="outline" className="text-sm">
-// //                       {product.categoryLevel1}
-// //                     </Badge>
-// //                   </div>
-                  
-// //                   {product.categoryLevel2 && (
-// //                     <div className="flex justify-between items-center py-2 border-b">
-// //                       <span className="font-medium">Subcategory</span>
-// //                       <div className="flex items-center gap-2">
-// //                         <Badge variant="secondary" className="text-sm">
-// //                           {product.categoryLevel2}
-// //                         </Badge>
-// //                         {/* Show category icon based on level 2 */}
-// //                         {product.categoryLevel2 === 'Women' && (
-// //                           <span className="text-pink-500">♀</span>
-// //                         )}
-// //                         {product.categoryLevel2 === 'Men' && (
-// //                           <span className="text-blue-500">♂</span>
-// //                         )}
-// //                         {product.categoryLevel2 === 'Kids' && (
-// //                           <span className="text-green-500">👶</span>
-// //                         )}
-// //                         {product.categoryLevel2 === 'Pantry' && (
-// //                           <Package className="h-4 w-4 text-orange-500" />
-// //                         )}
-// //                         {product.categoryLevel2 === 'Prepared Mixes' && (
-// //                           <span className="text-yellow-500">🥣</span>
-// //                         )}
-// //                         {product.categoryLevel2 === 'Soup Base' && (
-// //                           <span className="text-red-500">🍲</span>
-// //                         )}
-// //                       </div>
-// //                     </div>
-// //                   )}
-                  
-// //                   {product.categoryLevel3 && (
-// //                     <div className="flex justify-between items-center py-2 border-b">
-// //                       <span className="font-medium">Sub-subcategory</span>
-// //                       <Badge variant="outline" className="text-sm bg-muted/50">
-// //                         {product.categoryLevel3}
-// //                       </Badge>
-// //                     </div>
-// //                   )}
-
-// //                   {/* Show the full category path */}
-// //                   <div className="p-3 bg-muted/30 rounded-lg">
-// //                     <div className="text-xs text-muted-foreground mb-1">Full Category Path</div>
-// //                     <div className="text-sm font-medium">
-// //                       {[
-// //                         product.categoryLevel1,
-// //                         product.categoryLevel2,
-// //                         product.categoryLevel3
-// //                       ]
-// //                         .filter(Boolean)
-// //                         .join(' → ')}
-// //                     </div>
-// //                   </div>
-// //                 </div>
-// //               </div>
-
-// //               {product.brand && (
-// //                 <div className="space-y-2">
-// //                   <h4 className="font-semibold">Brand</h4>
-// //                   <Badge variant="secondary" className="text-sm py-1 px-3">
-// //                     {product.brand}
-// //                   </Badge>
-// //                 </div>
-// //               )}
-
-// //               {product.serviceDuration && (
-// //                 <div className="space-y-2">
-// //                   <h4 className="font-semibold">Service Duration</h4>
-// //                   <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-// //                     <Clock className="h-4 w-4 text-muted-foreground" />
-// //                     <p className="text-muted-foreground">{product.serviceDuration}</p>
-// //                   </div>
-// //                 </div>
-// //               )}
-
-// //               {/* Tags */}
-// //               {displayTags.length > 0 && (
-// //                 <div className="space-y-2">
-// //                   <h4 className="font-semibold">Tags</h4>
-// //                   <div className="flex flex-wrap gap-1">
-// //                     {displayTags.map((tag, index) => (
-// //                       <Badge key={index} variant="outline" className="text-xs py-1">
-// //                         {tag}
-// //                       </Badge>
-// //                     ))}
-// //                   </div>
-// //                 </div>
-// //               )}
-
-// //               {/* Timestamps */}
-// //               <div className="space-y-2 pt-4 border-t">
-// //                 <h4 className="font-semibold">Timestamps</h4>
-// //                 <div className="space-y-2 text-sm">
-// //                   <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-// //                     <Calendar className="h-4 w-4 text-muted-foreground" />
-// //                     <div>
-// //                       <div className="font-medium">Created</div>
-// //                       <div className="text-muted-foreground">{formatDate(product.createdAt)}</div>
-// //                     </div>
-// //                   </div>
-// //                   <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-// //                     <Calendar className="h-4 w-4 text-muted-foreground" />
-// //                     <div>
-// //                       <div className="font-medium">Updated</div>
-// //                       <div className="text-muted-foreground">{formatDate(product.updatedAt)}</div>
-// //                     </div>
-// //                   </div>
-// //                 </div>
-// //               </div>
-// //             </div>
-// //           </div>
-// //         </div>
-
-// //         <DialogFooter>
-// //           <Button onClick={() => onOpenChange(false)}>
-// //             Close
-// //           </Button>
-// //         </DialogFooter>
-// //       </DialogContent>
-// //     </Dialog>
-// //   );
-// // };
-
-// // // Special Products Manager Component
-// // const SpecialProductsManager = ({ products, onUpdateProduct }: { products: ProductWithSpecial[], onUpdateProduct: (productId: string, updates: any) => void }) => {
-// //   const [allProducts, setAllProducts] = useState<ProductWithSpecial[]>(products);
-// //   const [filteredProducts, setFilteredProducts] = useState<ProductWithSpecial[]>(products);
-// //   const [selectedTab, setSelectedTab] = useState<'all' | 'featured' | 'trending' | 'new-arrivals'>('all');
-// //   const [searchTerm, setSearchTerm] = useState("");
-// //   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
-// //   const [quickEditDialogOpen, setQuickEditDialogOpen] = useState(false);
-// //   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-// //   const [editingProduct, setEditingProduct] = useState<ProductWithSpecial | null>(null);
-// //   const [bulkAction, setBulkAction] = useState<'add-featured' | 'add-trending' | 'add-new-arrival' | 'remove-all'>('add-featured');
-// //   const [quickEditData, setQuickEditData] = useState({
-// //     isFeatured: false,
-// //     isTrending: false,
-// //     isNewArrival: false,
-// //     featuredOrder: 0,
-// //     trendingOrder: 0,
-// //     newArrivalOrder: 0,
-// //   });
-
-// //   const { toast } = useToast();
-
-// //   // Helper function to convert file path to URL
-// //   const getImageUrl = (imagePath: string | undefined) => {
-// //     if (!imagePath) return "/placeholder.svg";
-// //     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-// //       return imagePath;
-// //     }
-// //     const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8003';
-// //     const filename = imagePath.split(/[\\/]/).pop();
-// //     return `${BACKEND_URL}/uploads/products/${filename}`;
-// //   };
-
-// //   // Update local products when props change
-// //   useEffect(() => {
-// //     setAllProducts(products);
-// //     setFilteredProducts(products);
-// //   }, [products]);
-
-// //   // Filter products based on search and selected tab
-// //   useEffect(() => {
-// //     let filtered = allProducts;
-
-// //     // Apply search filter
-// //     if (searchTerm) {
-// //       filtered = filtered.filter(product =>
-// //         product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-// //         product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-// //         product.description?.toLowerCase().includes(searchTerm.toLowerCase())
-// //       );
-// //     }
-
-// //     // Apply category filter
-// //     switch (selectedTab) {
-// //       case 'featured':
-// //         filtered = filtered.filter(product => product.isFeatured);
-// //         break;
-// //       case 'trending':
-// //         filtered = filtered.filter(product => product.isTrending);
-// //         break;
-// //       case 'new-arrivals':
-// //         filtered = filtered.filter(product => product.isNewArrival);
-// //         break;
-// //       case 'all':
-// //       default:
-// //         // Show all products
-// //         break;
-// //     }
-
-// //     setFilteredProducts(filtered);
-// //   }, [allProducts, searchTerm, selectedTab]);
-
-// //   // Calculate analytics
-// //   const analytics = {
-// //     totalProducts: allProducts.length,
-// //     featured: allProducts.filter(p => p.isFeatured).length,
-// //     trending: allProducts.filter(p => p.isTrending).length,
-// //     newArrivals: allProducts.filter(p => p.isNewArrival).length,
-// //     activeProducts: allProducts.filter(p => p.isActive).length,
-// //   };
-
-// //   const handleQuickEdit = (product: ProductWithSpecial) => {
-// //     setEditingProduct(product);
-// //     setQuickEditData({
-// //       isFeatured: product.isFeatured,
-// //       isTrending: product.isTrending,
-// //       isNewArrival: product.isNewArrival,
-// //       featuredOrder: product.featuredOrder,
-// //       trendingOrder: product.trendingOrder,
-// //       newArrivalOrder: product.newArrivalOrder,
-// //     });
-// //     setQuickEditDialogOpen(true);
-// //   };
-
-// //   const handleQuickUpdate = async () => {
-// //     if (!editingProduct) return;
-
-// //     try {
-// //       await adminApiService.updateProductSpecialCategories(editingProduct.id, quickEditData);
-
-// //       // Update local state
-// //       const updatedProducts = allProducts.map(p =>
-// //         p.id === editingProduct.id
-// //           ? { ...p, ...quickEditData }
-// //           : p
-// //       );
-// //       setAllProducts(updatedProducts);
-
-// //       // Notify parent component
-// //       onUpdateProduct(editingProduct.id, quickEditData);
-
-// //       toast({
-// //         title: "Product updated",
-// //         description: "Special categories updated successfully.",
-// //       });
-
-// //       setQuickEditDialogOpen(false);
-// //       setEditingProduct(null);
-// //     } catch (error) {
-// //       console.error('Failed to update product:', error);
-// //       toast({
-// //         variant: "destructive",
-// //         title: "Error updating product",
-// //         description: "Could not update special categories.",
-// //       });
-// //     }
-// //   };
-
-// //   const handleBulkAction = async () => {
-// //     if (selectedProducts.length === 0) {
-// //       toast({
-// //         variant: "destructive",
-// //         title: "No products selected",
-// //         description: "Please select at least one product.",
-// //       });
-// //       return;
-// //     }
-
-// //     try {
-// //       let updates: BulkUpdateItem[] = [];
-
-// //       switch (bulkAction) {
-// //         case 'add-featured':
-// //           updates = selectedProducts.map(productId => ({
-// //             productId,
-// //             updates: {
-// //               isFeatured: true,
-// //               featuredOrder: 0
-// //             }
-// //           }));
-// //           break;
-// //         case 'add-trending':
-// //           updates = selectedProducts.map(productId => ({
-// //             productId,
-// //             updates: {
-// //               isTrending: true,
-// //               trendingOrder: 0
-// //             }
-// //           }));
-// //           break;
-// //         case 'add-new-arrival':
-// //           updates = selectedProducts.map(productId => ({
-// //             productId,
-// //             updates: {
-// //               isNewArrival: true,
-// //               newArrivalOrder: 0
-// //             }
-// //           }));
-// //           break;
-// //         case 'remove-all':
-// //           updates = selectedProducts.map(productId => ({
-// //             productId,
-// //             updates: {
-// //               isFeatured: false,
-// //               isTrending: false,
-// //               isNewArrival: false,
-// //               featuredOrder: 0,
-// //               trendingOrder: 0,
-// //               newArrivalOrder: 0
-// //             }
-// //           }));
-// //           break;
-// //       }
-
-// //       const response = await adminApiService.bulkUpdateSpecialCategories({
-// //         products: updates
-// //       });
-
-// //       // Update local state for all affected products
-// //       const updatedProducts = allProducts.map(product => {
-// //         if (selectedProducts.includes(product.id)) {
-// //           const update = updates.find(u => u.productId === product.id);
-// //           if (update) {
-// //             const updatedProduct = { ...product, ...update.updates };
-// //             // Notify parent component for each updated product
-// //             onUpdateProduct(product.id, update.updates);
-// //             return updatedProduct;
-// //           }
-// //         }
-// //         return product;
-// //       });
-// //       setAllProducts(updatedProducts);
-
-// //       toast({
-// //         title: "Bulk update completed",
-// //         description: `${response.results.length} products updated successfully.`,
-// //       });
-
-// //       setSelectedProducts([]);
-// //       setBulkDialogOpen(false);
-// //     } catch (error) {
-// //       console.error('Failed to perform bulk action:', error);
-// //       toast({
-// //         variant: "destructive",
-// //         title: "Error performing bulk action",
-// //         description: "Could not update products.",
-// //       });
-// //     }
-// //   };
-
-// //   const handleProductSelect = (productId: string) => {
-// //     setSelectedProducts(prev =>
-// //       prev.includes(productId)
-// //         ? prev.filter(id => id !== productId)
-// //         : [...prev, productId]
-// //     );
-// //   };
-
-// //   const handleSelectAll = () => {
-// //     if (selectedProducts.length === filteredProducts.length) {
-// //       setSelectedProducts([]);
-// //     } else {
-// //       setSelectedProducts(filteredProducts.map(p => p.id));
-// //     }
-// //   };
-
-// //   const handleQuickToggle = async (productId: string, field: 'isFeatured' | 'isTrending' | 'isNewArrival') => {
-// //     try {
-// //       const product = allProducts.find(p => p.id === productId);
-// //       if (!product) return;
-
-// //       const updates = {
-// //         [field]: !product[field],
-// //         [`${field}Order`]: !product[field] ? 0 : product[`${field}Order`]
-// //       };
-
-// //       await adminApiService.updateProductSpecialCategories(productId, updates);
-
-// //       // Update local state
-// //       const updatedProducts = allProducts.map(p =>
-// //         p.id === productId
-// //           ? { ...p, ...updates }
-// //           : p
-// //       );
-// //       setAllProducts(updatedProducts);
-
-// //       // Notify parent component
-// //       onUpdateProduct(productId, updates);
-
-// //       toast({
-// //         title: "Product updated",
-// //         description: `${field.replace('is', '').replace(/([A-Z])/g, ' $1').trim()} status updated.`,
-// //       });
-// //     } catch (error) {
-// //       console.error('Failed to toggle product status:', error);
-// //       toast({
-// //         variant: "destructive",
-// //         title: "Error updating product",
-// //         description: "Could not update product status.",
-// //       });
-// //     }
-// //   };
-
-// //   const SpecialCategoryBadge = ({ product }: { product: ProductWithSpecial }) => (
-// //     <div className="flex gap-1">
-// //       {product.isFeatured && (
-// //         <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-xs">
-// //           <Star className="h-3 w-3 mr-1" />
-// //           Featured
-// //         </Badge>
-// //       )}
-// //       {product.isTrending && (
-// //         <Badge variant="default" className="bg-orange-500 hover:bg-orange-600 text-xs">
-// //           <Zap className="h-3 w-3 mr-1" />
-// //           Trending
-// //         </Badge>
-// //       )}
-// //       {product.isNewArrival && (
-// //         <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 text-xs">
-// //           <Clock className="h-3 w-3 mr-1" />
-// //           New
-// //         </Badge>
-// //       )}
-// //       {!product.isFeatured && !product.isTrending && !product.isNewArrival && (
-// //         <span className="text-xs text-muted-foreground">No special categories</span>
-// //       )}
-// //     </div>
-// //   );
-
-// //   return (
-// //     <div className="space-y-6">
-// //       <div className="flex items-center justify-between">
-// //         <h1 className="text-3xl font-bold tracking-tight">Product Special Categories</h1>
-// //         <div className="flex gap-2">
-// //           {selectedProducts.length > 0 && (
-// //             <Button onClick={() => setBulkDialogOpen(true)}>
-// //               <Edit className="mr-2 h-4 w-4" />
-// //               Bulk Action ({selectedProducts.length})
-// //             </Button>
-// //           )}
-// //         </div>
-// //       </div>
-
-// //       {/* Analytics Cards */}
-// //       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-// //         <Card>
-// //           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-// //             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-// //             <Package className="h-4 w-4 text-muted-foreground" />
-// //           </CardHeader>
-// //           <CardContent>
-// //             <div className="text-2xl font-bold">{analytics.totalProducts}</div>
-// //             <p className="text-xs text-muted-foreground">
-// //               {analytics.activeProducts} active
-// //             </p>
-// //           </CardContent>
-// //         </Card>
-// //         <Card>
-// //           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-// //             <CardTitle className="text-sm font-medium">Featured</CardTitle>
-// //             <Star className="h-4 w-4 text-yellow-500" />
-// //           </CardHeader>
-// //           <CardContent>
-// //             <div className="text-2xl font-bold">{analytics.featured}</div>
-// //             <p className="text-xs text-muted-foreground">
-// //               Featured products
-// //             </p>
-// //           </CardContent>
-// //         </Card>
-// //         <Card>
-// //           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-// //             <CardTitle className="text-sm font-medium">Trending</CardTitle>
-// //             <Zap className="h-4 w-4 text-orange-500" />
-// //           </CardHeader>
-// //           <CardContent>
-// //             <div className="text-2xl font-bold">{analytics.trending}</div>
-// //             <p className="text-xs text-muted-foreground">
-// //               Trending products
-// //             </p>
-// //           </CardContent>
-// //         </Card>
-// //         <Card>
-// //           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-// //             <CardTitle className="text-sm font-medium">New Arrivals</CardTitle>
-// //             <Clock className="h-4 w-4 text-blue-500" />
-// //           </CardHeader>
-// //           <CardContent>
-// //             <div className="text-2xl font-bold">{analytics.newArrivals}</div>
-// //             <p className="text-xs text-muted-foreground">
-// //               New arrivals
-// //             </p>
-// //           </CardContent>
-// //         </Card>
-// //         <Card>
-// //           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-// //             <CardTitle className="text-sm font-medium">Selected</CardTitle>
-// //             <Check className="h-4 w-4 text-green-500" />
-// //           </CardHeader>
-// //           <CardContent>
-// //             <div className="text-2xl font-bold">{selectedProducts.length}</div>
-// //             <p className="text-xs text-muted-foreground">
-// //               For bulk action
-// //             </p>
-// //           </CardContent>
-// //         </Card>
-// //       </div>
-
-// //       {/* Main Content */}
-// //       <Card>
-// //         <CardHeader>
-// //           <CardTitle>Manage Special Categories</CardTitle>
-// //           <CardDescription>
-// //             Feature products in special categories to highlight them on your store. All products are shown here.
-// //           </CardDescription>
-// //         </CardHeader>
-// //         <CardContent>
-// //           <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as any)}>
-// //             <TabsList className="grid w-full grid-cols-4">
-// //               <TabsTrigger value="all" className="flex items-center gap-2">
-// //                 <Package className="h-4 w-4" />
-// //                 All Products
-// //               </TabsTrigger>
-// //               <TabsTrigger value="featured" className="flex items-center gap-2">
-// //                 <Star className="h-4 w-4" />
-// //                 Featured
-// //               </TabsTrigger>
-// //               <TabsTrigger value="trending" className="flex items-center gap-2">
-// //                 <Zap className="h-4 w-4" />
-// //                 Trending
-// //               </TabsTrigger>
-// //               <TabsTrigger value="new-arrivals" className="flex items-center gap-2">
-// //                 <Clock className="h-4 w-4" />
-// //                 New Arrivals
-// //               </TabsTrigger>
-// //             </TabsList>
-
-// //             <TabsContent value={selectedTab} className="space-y-4">
-// //               {/* Search and Filters */}
-// //               <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-// //                 <div className="relative w-full sm:w-96">
-// //                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-// //                   <Input
-// //                     placeholder="Search products by name, brand, or description..."
-// //                     className="pl-8"
-// //                     value={searchTerm}
-// //                     onChange={(e) => setSearchTerm(e.target.value)}
-// //                   />
-// //                 </div>
-
-// //                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-// //                   <Filter className="h-4 w-4" />
-// //                   <span>{filteredProducts.length} products</span>
-// //                 </div>
-// //               </div>
-
-// //               {/* Products Table */}
-// //               <div className="rounded-md border">
-// //                 <Table>
-// //                   <TableHeader>
-// //                     <TableRow>
-// //                       <TableHead className="w-12">
-// //                         <input
-// //                           type="checkbox"
-// //                           checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
-// //                           onChange={handleSelectAll}
-// //                           className="rounded border-gray-300"
-// //                         />
-// //                       </TableHead>
-// //                       <TableHead>Product</TableHead>
-// //                       <TableHead>Price</TableHead>
-// //                       <TableHead>Stock</TableHead>
-// //                       <TableHead>Status</TableHead>
-// //                       <TableHead>Special Categories</TableHead>
-// //                       <TableHead className="text-center">Quick Toggles</TableHead>
-// //                       <TableHead className="text-right">Actions</TableHead>
-// //                     </TableRow>
-// //                   </TableHeader>
-// //                   <TableBody>
-// //                     {filteredProducts.length > 0 ? (
-// //                       filteredProducts.map((product) => (
-// //                         <TableRow key={product.id} className="hover:bg-muted/50">
-// //                           <TableCell>
-// //                             <input
-// //                               type="checkbox"
-// //                               checked={selectedProducts.includes(product.id)}
-// //                               onChange={() => handleProductSelect(product.id)}
-// //                               className="rounded border-gray-300"
-// //                             />
-// //                           </TableCell>
-// //                           <TableCell>
-// //                             <div className="flex items-center gap-3">
-// //                               <img
-// //                                 src={getImageUrl(product.images?.[0])}
-// //                                 alt={product.name}
-// //                                 className="h-10 w-10 rounded object-cover border"
-// //                                 onError={(e) => {
-// //                                   (e.target as HTMLImageElement).src = "/placeholder.svg";
-// //                                 }}
-// //                               />
-// //                               <div>
-// //                                 <div className="font-medium">{product.name}</div>
-// //                                 <div className="text-sm text-muted-foreground">
-// //                                   {product.brand && <span>{product.brand} • </span>}
-// //                                   {product.categoryLevel1}
-// //                                 </div>
-// //                               </div>
-// //                             </div>
-// //                           </TableCell>
-// //                           <TableCell className="font-medium">
-// //                             ${parseFloat(product.price?.toString() || '0').toFixed(2)}
-// //                           </TableCell>
-// //                           <TableCell>
-// //                             <Badge variant={product.stock < 10 ? "destructive" : "outline"}>
-// //                               {product.stock}
-// //                             </Badge>
-// //                           </TableCell>
-// //                           <TableCell>
-// //                             <Badge variant={product.isActive ? "default" : "destructive"}>
-// //                               {product.isActive ? 'Active' : 'Inactive'}
-// //                             </Badge>
-// //                           </TableCell>
-// //                           <TableCell>
-// //                             <SpecialCategoryBadge product={product} />
-// //                             {(product.isFeatured || product.isTrending || product.isNewArrival) && (
-// //                               <div className="text-xs text-muted-foreground mt-1">
-// //                                 {product.isFeatured && `Featured Order: ${product.featuredOrder} `}
-// //                                 {product.isTrending && `Trending Order: ${product.trendingOrder} `}
-// //                                 {product.isNewArrival && `New Arrival Order: ${product.newArrivalOrder}`}
-// //                               </div>
-// //                             )}
-// //                           </TableCell>
-// //                           <TableCell>
-// //                             <div className="flex justify-center gap-2">
-// //                               <Button
-// //                                 size="sm"
-// //                                 variant={product.isFeatured ? "default" : "outline"}
-// //                                 className={`h-8 w-8 p-0 ${product.isFeatured
-// //                                     ? "bg-yellow-500 hover:bg-yellow-600"
-// //                                     : ""
-// //                                   }`}
-// //                                 onClick={() => handleQuickToggle(product.id, 'isFeatured')}
-// //                                 title="Toggle Featured"
-// //                               >
-// //                                 <Star className="h-4 w-4" />
-// //                               </Button>
-// //                               <Button
-// //                                 size="sm"
-// //                                 variant={product.isTrending ? "default" : "outline"}
-// //                                 className={`h-8 w-8 p-0 ${product.isTrending
-// //                                     ? "bg-orange-500 hover:bg-orange-600"
-// //                                     : ""
-// //                                   }`}
-// //                                 onClick={() => handleQuickToggle(product.id, 'isTrending')}
-// //                                 title="Toggle Trending"
-// //                               >
-// //                                 <Zap className="h-4 w-4" />
-// //                               </Button>
-// //                               <Button
-// //                                 size="sm"
-// //                                 variant={product.isNewArrival ? "default" : "outline"}
-// //                                 className={`h-8 w-8 p-0 ${product.isNewArrival
-// //                                     ? "bg-blue-500 hover:bg-blue-600"
-// //                                     : ""
-// //                                   }`}
-// //                                 onClick={() => handleQuickToggle(product.id, 'isNewArrival')}
-// //                                 title="Toggle New Arrival"
-// //                               >
-// //                                 <Clock className="h-4 w-4" />
-// //                               </Button>
-// //                             </div>
-// //                           </TableCell>
-// //                           <TableCell className="text-right">
-// //                             <Button
-// //                               variant="ghost"
-// //                               size="sm"
-// //                               onClick={() => handleQuickEdit(product)}
-// //                             >
-// //                               <Edit className="h-4 w-4" />
-// //                             </Button>
-// //                           </TableCell>
-// //                         </TableRow>
-// //                       ))
-// //                     ) : (
-// //                       <TableRow>
-// //                         <TableCell colSpan={9} className="text-center py-10">
-// //                           <Package className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-// //                           <p className="text-lg font-medium">No products found</p>
-// //                           <p className="text-muted-foreground">
-// //                             {searchTerm ? "Try adjusting your search terms" : "No products available"}
-// //                           </p>
-// //                         </TableCell>
-// //                       </TableRow>
-// //                     )}
-// //                   </TableBody>
-// //                 </Table>
-// //               </div>
-// //             </TabsContent>
-// //           </Tabs>
-// //         </CardContent>
-// //       </Card>
-
-// //       {/* Quick Edit Dialog */}
-// //       <Dialog open={quickEditDialogOpen} onOpenChange={setQuickEditDialogOpen}>
-// //         <DialogContent className="sm:max-w-[500px]">
-// //           <DialogHeader>
-// //             <DialogTitle>Edit Special Categories</DialogTitle>
-// //             <DialogDescription>
-// //               Configure special categories for {editingProduct?.name}
-// //             </DialogDescription>
-// //           </DialogHeader>
-
-// //           <div className="space-y-4 py-4">
-// //             <div className="space-y-3">
-// //               <Label className="text-base font-medium">Special Categories</Label>
-
-// //               <div className="space-y-3">
-// //                 {/* Featured */}
-// //                 <div className="flex items-center justify-between p-3 border rounded-lg">
-// //                   <Label htmlFor="isFeatured" className="flex items-center gap-2 cursor-pointer">
-// //                     <Star className="h-5 w-5 text-yellow-500" />
-// //                     <div>
-// //                       <div className="font-medium">Featured</div>
-// //                       <div className="text-sm text-muted-foreground">Highlight on featured section</div>
-// //                     </div>
-// //                   </Label>
-// //                   <Switch
-// //                     id="isFeatured"
-// //                     checked={quickEditData.isFeatured}
-// //                     onCheckedChange={(checked) => setQuickEditData({ ...quickEditData, isFeatured: checked })}
-// //                   />
-// //                 </div>
-
-// //                 {/* Trending */}
-// //                 <div className="flex items-center justify-between p-3 border rounded-lg">
-// //                   <Label htmlFor="isTrending" className="flex items-center gap-2 cursor-pointer">
-// //                     <Zap className="h-5 w-5 text-orange-500" />
-// //                     <div>
-// //                       <div className="font-medium">Trending</div>
-// //                       <div className="text-sm text-muted-foreground">Show in trending products</div>
-// //                     </div>
-// //                   </Label>
-// //                   <Switch
-// //                     id="isTrending"
-// //                     checked={quickEditData.isTrending}
-// //                     onCheckedChange={(checked) => setQuickEditData({ ...quickEditData, isTrending: checked })}
-// //                   />
-// //                 </div>
-
-// //                 {/* New Arrival */}
-// //                 <div className="flex items-center justify-between p-3 border rounded-lg">
-// //                   <Label htmlFor="isNewArrival" className="flex items-center gap-2 cursor-pointer">
-// //                     <Clock className="h-5 w-5 text-blue-500" />
-// //                     <div>
-// //                       <div className="font-medium">New Arrival</div>
-// //                       <div className="text-sm text-muted-foreground">Mark as new arrival</div>
-// //                     </div>
-// //                   </Label>
-// //                   <Switch
-// //                     id="isNewArrival"
-// //                     checked={quickEditData.isNewArrival}
-// //                     onCheckedChange={(checked) => setQuickEditData({ ...quickEditData, isNewArrival: checked })}
-// //                   />
-// //                 </div>
-// //               </div>
-// //             </div>
-
-// //             {/* Display Orders */}
-// //             <div className="space-y-3">
-// //               <Label className="text-base font-medium">Display Orders</Label>
-
-// //               <div className="grid grid-cols-3 gap-3">
-// //                 <div className="space-y-2">
-// //                   <Label htmlFor="featuredOrder" className="text-xs">Featured Order</Label>
-// //                   <Input
-// //                     id="featuredOrder"
-// //                     type="number"
-// //                     min="0"
-// //                     value={quickEditData.featuredOrder}
-// //                     onChange={(e) => setQuickEditData({ ...quickEditData, featuredOrder: parseInt(e.target.value) || 0 })}
-// //                     disabled={!quickEditData.isFeatured}
-// //                   />
-// //                 </div>
-// //                 <div className="space-y-2">
-// //                   <Label htmlFor="trendingOrder" className="text-xs">Trending Order</Label>
-// //                   <Input
-// //                     id="trendingOrder"
-// //                     type="number"
-// //                     min="0"
-// //                     value={quickEditData.trendingOrder}
-// //                     onChange={(e) => setQuickEditData({ ...quickEditData, trendingOrder: parseInt(e.target.value) || 0 })}
-// //                     disabled={!quickEditData.isTrending}
-// //                   />
-// //                 </div>
-// //                 <div className="space-y-2">
-// //                   <Label htmlFor="newArrivalOrder" className="text-xs">New Arrival Order</Label>
-// //                   <Input
-// //                     id="newArrivalOrder"
-// //                     type="number"
-// //                     min="0"
-// //                     value={quickEditData.newArrivalOrder}
-// //                     onChange={(e) => setQuickEditData({ ...quickEditData, newArrivalOrder: parseInt(e.target.value) || 0 })}
-// //                     disabled={!quickEditData.isNewArrival}
-// //                   />
-// //                 </div>
-// //               </div>
-// //             </div>
-// //           </div>
-
-// //           <DialogFooter>
-// //             <Button variant="outline" onClick={() => setQuickEditDialogOpen(false)}>
-// //               Cancel
-// //             </Button>
-// //             <Button onClick={handleQuickUpdate}>
-// //               Save Changes
-// //             </Button>
-// //           </DialogFooter>
-// //         </DialogContent>
-// //       </Dialog>
-
-// //       {/* Bulk Action Dialog */}
-// //       <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
-// //         <DialogContent className="sm:max-w-[400px]">
-// //           <DialogHeader>
-// //             <DialogTitle>Bulk Action</DialogTitle>
-// //             <DialogDescription>
-// //               Apply action to {selectedProducts.length} selected products
-// //             </DialogDescription>
-// //           </DialogHeader>
-
-// //           <div className="space-y-4 py-4">
-// //             <div className="space-y-3">
-// //               <Label className="text-base font-medium">Select Action</Label>
-
-// //               <Select value={bulkAction} onValueChange={(value: any) => setBulkAction(value)}>
-// //                 <SelectTrigger>
-// //                   <SelectValue />
-// //                 </SelectTrigger>
-// //                 <SelectContent>
-// //                   <SelectItem value="add-featured">
-// //                     <div className="flex items-center gap-2">
-// //                       <Star className="h-4 w-4 text-yellow-500" />
-// //                       Add to Featured
-// //                     </div>
-// //                   </SelectItem>
-// //                   <SelectItem value="add-trending">
-// //                     <div className="flex items-center gap-2">
-// //                       <Zap className="h-4 w-4 text-orange-500" />
-// //                       Add to Trending
-// //                     </div>
-// //                   </SelectItem>
-// //                   <SelectItem value="add-new-arrival">
-// //                     <div className="flex items-center gap-2">
-// //                       <Clock className="h-4 w-4 text-blue-500" />
-// //                       Add to New Arrivals
-// //                     </div>
-// //                   </SelectItem>
-// //                   <SelectItem value="remove-all">
-// //                     <div className="flex items-center gap-2">
-// //                       <X className="h-4 w-4 text-destructive" />
-// //                       Remove from All Categories
-// //                     </div>
-// //                   </SelectItem>
-// //                 </SelectContent>
-// //               </Select>
-// //             </div>
-
-// //             {/* Selected Products Preview */}
-// //             <div className="space-y-2">
-// //               <Label className="text-sm font-medium">Selected Products ({selectedProducts.length})</Label>
-// //               <div className="max-h-32 overflow-y-auto border rounded-md p-2">
-// //                 {allProducts
-// //                   .filter(p => selectedProducts.includes(p.id))
-// //                   .slice(0, 5)
-// //                   .map(product => (
-// //                     <div key={product.id} className="text-sm py-1 truncate">
-// //                       {product.name}
-// //                     </div>
-// //                   ))}
-// //                 {selectedProducts.length > 5 && (
-// //                   <div className="text-sm text-muted-foreground py-1">
-// //                     +{selectedProducts.length - 5} more...
-// //                   </div>
-// //                 )}
-// //               </div>
-// //             </div>
-// //           </div>
-
-// //           <DialogFooter>
-// //             <Button variant="outline" onClick={() => setBulkDialogOpen(false)}>
-// //               Cancel
-// //             </Button>
-// //             <Button onClick={handleBulkAction}>
-// //               Apply to {selectedProducts.length} Products
-// //             </Button>
-// //           </DialogFooter>
-// //         </DialogContent>
-// //       </Dialog>
-// //     </div>
-// //   );
-// // };
-
-// // // Main Products Component
-// // export default function Products() {
-// //   const [products, setProducts] = useState<ProductWithSpecial[]>([]);
-// //   const [categories, setCategories] = useState<Category[]>([]);
-// //   const [searchTerm, setSearchTerm] = useState("");
-// //   const [dialogOpen, setDialogOpen] = useState(false);
-// //   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-// //   const [selectedProduct, setSelectedProduct] = useState<ProductWithSpecial | null>(null);
-// //   const [editingProduct, setEditingProduct] = useState<ProductWithSpecial | null>(null);
-// //   const [isLoading, setIsLoading] = useState(true);
-// //   const [isSubmitting, setIsSubmitting] = useState(false);
-// //   const [error, setError] = useState<string | null>(null);
-// //   const [activeTab, setActiveTab] = useState("catalog");
-// //   const [formData, setFormData] = useState<ProductFormData>({
-// //     name: "",
-// //     description: "",
-// //     price: "",
-// //     categoryLevel1: "",
-// //     categoryLevel2: "",
-// //     categoryLevel3: "",
-// //     serviceType: "physical",
-// //     serviceDuration: "",
-// //     unit: "piece",
-// //     stock: "0",
-// //     brand: "",
-// //     tags: [],
-// //     isActive: true,
-// //     image: "",
-
-// //     // NEW SPECIAL CATEGORY FIELDS
-// //     isFeatured: false,
-// //     isTrending: false,
-// //     isNewArrival: false,
-// //     featuredOrder: 0,
-// //     trendingOrder: 0,
-// //     newArrivalOrder: 0,
-// //   });
-// //   const { toast } = useToast();
-
-// //   // Predefined categories based on your model
-// //   const categoryLevel1Options = ['Clothes', 'Foodstuffs', 'Services'];
-// //   const serviceTypeOptions = ['physical', 'service'];
-// //   const unitOptions = ['piece', 'kg', 'hour', 'day', 'month', 'set'];
-
-// //   // Helper function to convert file path to URL
-// //   const getImageUrl = (image?: string): string => {
-// //     if (!image || !image.trim()) {
-// //       return "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&h=500&fit=crop";
-// //     }
-
-// //     const clean = image.trim();
-
-// //     // ✅ If it's already a Cloudinary URL — keep it
-// //     if (clean.includes("cloudinary.com")) {
-// //       return clean;
-// //     }
-
-// //     // ✅ If it's from your backend uploads but needs Cloudinary mapping
-// //     if (clean.includes("georgina-server-code.onrender.com/uploads/products/")) {
-// //       const filename = clean.split("/").pop();
-// //       return `https://res.cloudinary.com/dy0lpwemp/image/upload/v1762654150/georgina-products/${filename}`;
-// //     }
-
-// //     // ✅ If it's a relative upload (no host yet)
-// //     if (clean.startsWith("uploads/products/")) {
-// //       const filename = clean.split("/").pop();
-// //       return `https://res.cloudinary.com/dy0lpwemp/image/upload/v1762654150/georgina-products/${filename}`;
-// //     }
-
-// //     // ✅ Otherwise, return as-is
-// //     return clean;
-// //   };
-
-// //   // Fetch products and categories from API
-// //   const fetchData = async () => {
-// //     try {
-// //       setIsLoading(true);
-// //       setError(null);
-
-// //       const productsResponse = await adminApiService.getProducts();
-// //       const productsList = productsResponse.products || productsResponse.data?.products || productsResponse || [];
-
-// //       // Cast the products to include special fields with defaults
-// //       const productsWithDefaults = (Array.isArray(productsList) ? productsList : []).map(product => ({
-// //         ...product,
-// //         isFeatured: (product as any).isFeatured ?? false,
-// //         isTrending: (product as any).isTrending ?? false,
-// //         isNewArrival: (product as any).isNewArrival ?? false,
-// //         featuredOrder: (product as any).featuredOrder ?? 0,
-// //         trendingOrder: (product as any).trendingOrder ?? 0,
-// //         newArrivalOrder: (product as any).newArrivalOrder ?? 0,
-// //       })) as ProductWithSpecial[];
-
-// //       setProducts(productsWithDefaults);
-
-// //     } catch (err) {
-// //       console.error('Failed to fetch data:', err);
-// //       setError('Failed to load data. Please try again.');
-// //       toast({
-// //         variant: "destructive",
-// //         title: "Error loading data",
-// //         description: "Could not fetch products.",
-// //       });
-// //     } finally {
-// //       setIsLoading(false);
-// //     }
-// //   };
-
-// //   useEffect(() => {
-// //     fetchData();
-// //   }, []);
-
-// //   // Handle product updates from SpecialProductsManager
-// //   const handleProductUpdate = (productId: string, updates: any) => {
-// //     setProducts(prevProducts =>
-// //       prevProducts.map(product =>
-// //         product.id === productId
-// //           ? { ...product, ...updates }
-// //           : product
-// //       )
-// //     );
-// //   };
-
-// //   const filteredProducts = products.filter(
-// //     (product) =>
-// //       (product.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-// //       (product.categoryLevel1?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-// //       (product.brand?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-// //       (product.description?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-// //   );
-
-// //   const totalProducts = filteredProducts.length;
-// //   const totalValue = filteredProducts.reduce((sum, p) => {
-// //     const price = parseFloat(p.price?.toString() || '0');
-// //     const stock = parseInt(p.stock?.toString() || '0');
-// //     return sum + (price * stock);
-// //   }, 0);
-// //   const lowStockCount = filteredProducts.filter(p => (p.stock || 0) < 10).length;
-// //   const avgPrice = totalProducts > 0 ? filteredProducts.reduce((sum, p) => {
-// //     const price = parseFloat(p.price?.toString() || '0');
-// //     return sum + price;
-// //   }, 0) / totalProducts : 0;
-
-// //   // Count special category products
-// //   const featuredCount = filteredProducts.filter(p => p.isFeatured).length;
-// //   const trendingCount = filteredProducts.filter(p => p.isTrending).length;
-// //   const newArrivalsCount = filteredProducts.filter(p => p.isNewArrival).length;
-
-// //   const handleSubmit = async (e: React.FormEvent) => {
-// //     e.preventDefault();
-
-// //     if (!formData.name || !formData.price || !formData.categoryLevel1) {
-// //       toast({
-// //         variant: "destructive",
-// //         title: "Missing fields",
-// //         description: "Please fill in all required fields"
-// //       });
-// //       return;
-// //     }
-
-// //     setIsSubmitting(true);
-
-// //     try {
-// //       const formDataObj = new FormData();
-
-// //       // Append all product data
-// //       formDataObj.append('name', formData.name);
-// //       formDataObj.append('description', formData.description);
-// //       formDataObj.append('price', formData.price);
-// //       formDataObj.append('categoryLevel1', formData.categoryLevel1);
-// //       formDataObj.append('categoryLevel2', formData.categoryLevel2);
-// //       formDataObj.append('categoryLevel3', formData.categoryLevel3);
-// //       formDataObj.append('serviceType', formData.serviceType);
-// //       formDataObj.append('serviceDuration', formData.serviceDuration);
-// //       formDataObj.append('unit', formData.unit);
-// //       formDataObj.append('stock', formData.stock);
-// //       formDataObj.append('brand', formData.brand);
-
-// //       // Append tags as JSON string
-// //       formDataObj.append('tags', JSON.stringify(formData.tags));
-
-// //       formDataObj.append('isActive', formData.isActive.toString());
-
-// //       // NEW: Append special category fields
-// //       formDataObj.append('isFeatured', formData.isFeatured.toString());
-// //       formDataObj.append('isTrending', formData.isTrending.toString());
-// //       formDataObj.append('isNewArrival', formData.isNewArrival.toString());
-// //       formDataObj.append('featuredOrder', formData.featuredOrder.toString());
-// //       formDataObj.append('trendingOrder', formData.trendingOrder.toString());
-// //       formDataObj.append('newArrivalOrder', formData.newArrivalOrder.toString());
-
-// //       // Handle image upload
-// //       if (formData.image instanceof File) {
-// //         formDataObj.append('image', formData.image);
-// //       } else if (!formData.image && !editingProduct) {
-// //         toast({
-// //           variant: "destructive",
-// //           title: "Image required",
-// //           description: "Please select an image for the product"
-// //         });
-// //         setIsSubmitting(false);
-// //         return;
-// //       }
-
-// //       let result;
-// //       if (editingProduct) {
-// //         result = await adminApiService.updateProduct(editingProduct.id, formDataObj);
-// //         // Cast the result to include special fields
-// //         const resultWithSpecial = {
-// //           ...result,
-// //           isFeatured: (result as any).isFeatured ?? false,
-// //           isTrending: (result as any).isTrending ?? false,
-// //           isNewArrival: (result as any).isNewArrival ?? false,
-// //           featuredOrder: (result as any).featuredOrder ?? 0,
-// //           trendingOrder: (result as any).trendingOrder ?? 0,
-// //           newArrivalOrder: (result as any).newArrivalOrder ?? 0,
-// //         } as ProductWithSpecial;
-
-// //         setProducts(products.map((p) => p.id === editingProduct.id ? resultWithSpecial : p));
-// //         toast({
-// //           title: "Product updated",
-// //           description: "Product has been updated successfully"
-// //         });
-// //       } else {
-// //         result = await adminApiService.createProduct(formDataObj);
-// //         // Cast the result to include special fields
-// //         const resultWithSpecial = {
-// //           ...result,
-// //           isFeatured: (result as any).isFeatured ?? false,
-// //           isTrending: (result as any).isTrending ?? false,
-// //           isNewArrival: (result as any).isNewArrival ?? false,
-// //           featuredOrder: (result as any).featuredOrder ?? 0,
-// //           trendingOrder: (result as any).trendingOrder ?? 0,
-// //           newArrivalOrder: (result as any).newArrivalOrder ?? 0,
-// //         } as ProductWithSpecial;
-
-// //         setProducts(prev => [...prev, resultWithSpecial]);
-// //         toast({
-// //           title: "Product added",
-// //           description: "Product has been added successfully"
-// //         });
-// //       }
-
-// //       // Reset form and close dialog
-// //       setFormData({
-// //         name: "",
-// //         description: "",
-// //         price: "",
-// //         categoryLevel1: "",
-// //         categoryLevel2: "",
-// //         categoryLevel3: "",
-// //         serviceType: "physical",
-// //         serviceDuration: "",
-// //         unit: "piece",
-// //         stock: "0",
-// //         brand: "",
-// //         tags: [],
-// //         isActive: true,
-// //         image: null,
-
-// //         // NEW: Reset special category fields
-// //         isFeatured: false,
-// //         isTrending: false,
-// //         isNewArrival: false,
-// //         featuredOrder: 0,
-// //         trendingOrder: 0,
-// //         newArrivalOrder: 0,
-// //       });
-// //       setEditingProduct(null);
-// //       setDialogOpen(false);
-
-// //     } catch (err) {
-// //       console.error('Failed to save product:', err);
-// //       toast({
-// //         variant: "destructive",
-// //         title: "Error saving product",
-// //         description: "Could not save the product. Please try again.",
-// //       });
-// //     } finally {
-// //       setIsSubmitting(false);
-// //     }
-// //   };
-
-// //   const handleAddProduct = () => {
-// //     setEditingProduct(null);
-// //     setFormData({
-// //       name: "",
-// //       description: "",
-// //       price: "",
-// //       categoryLevel1: "",
-// //       categoryLevel2: "",
-// //       categoryLevel3: "",
-// //       serviceType: "physical",
-// //       serviceDuration: "",
-// //       unit: "piece",
-// //       stock: "0",
-// //       brand: "",
-// //       tags: [],
-// //       isActive: true,
-// //       image: null,
-
-// //       // NEW: Reset special category fields
-// //       isFeatured: false,
-// //       isTrending: false,
-// //       isNewArrival: false,
-// //       featuredOrder: 0,
-// //       trendingOrder: 0,
-// //       newArrivalOrder: 0,
-// //     });
-// //     setDialogOpen(true);
-// //   };
-
-// //   const handleEditProduct = (productToEdit: ProductWithSpecial) => {
-// //     setEditingProduct(productToEdit);
-
-// // const convertTagsToArray = (tags: unknown): string[] => {
-// //   if (!tags) return [];
-  
-// //   if (Array.isArray(tags)) {
-// //     return tags.reduce<string[]>((acc, tag) => {
-// //       if (typeof tag === 'string' && tag.trim()) {
-// //         acc.push(tag.trim());
-// //       }
-// //       return acc;
-// //     }, []);
-// //   }
-  
-// //   if (typeof tags === 'string') {
-// //     try {
-// //       const parsed = JSON.parse(tags);
-// //       if (Array.isArray(parsed)) {
-// //         return parsed.reduce<string[]>((acc, tag) => {
-// //           if (typeof tag === 'string' && tag.trim()) {
-// //             acc.push(tag.trim());
-// //           }
-// //           return acc;
-// //         }, []);
-// //       }
-// //     } catch {
-// //       return tags.split(',')
-// //         .map(tag => tag.trim())
-// //         .filter(tag => tag !== '');
-// //     }
-// //   }
-  
-// //   return [];
-// // };
-
-// //     setFormData({
-// //       name: productToEdit.name,
-// //       description: productToEdit.description || "",
-// //       price: productToEdit.price.toString(),
-// //       categoryLevel1: productToEdit.categoryLevel1 || "",
-// //       categoryLevel2: productToEdit.categoryLevel2 || "",
-// //       categoryLevel3: productToEdit.categoryLevel3 || "",
-// //       serviceType: productToEdit.serviceType || "physical",
-// //       serviceDuration: productToEdit.serviceDuration || "",
-// //       unit: productToEdit.unit || "piece",
-// //       stock: productToEdit.stock?.toString() || "0",
-// //       brand: productToEdit.brand || "",
-// //       tags: convertTagsToArray(productToEdit.tags),
-// //       isActive: productToEdit.isActive !== undefined ? productToEdit.isActive : true,
-// //       image: getImageUrl(productToEdit.images?.[0]) || "",
-
-// //       // FIXED: Use numbers directly from the product
-// //       isFeatured: productToEdit.isFeatured || false,
-// //       isTrending: productToEdit.isTrending || false,
-// //       isNewArrival: productToEdit.isNewArrival || false,
-// //       featuredOrder: productToEdit.featuredOrder || 0,        // Number
-// //       trendingOrder: productToEdit.trendingOrder || 0,        // Number
-// //       newArrivalOrder: productToEdit.newArrivalOrder || 0,    // Number
-// //     });
-// //     setDialogOpen(true);
-// //   };
-// //   const handleViewProduct = (product: ProductWithSpecial) => {
-// //     setSelectedProduct(product);
-// //     setDetailsDialogOpen(true);
-// //   };
-
-// //   const handleDeleteProduct = async (id: string) => {
-// //     if (!confirm('Are you sure you want to delete this product?')) {
-// //       return;
-// //     }
-
-// //     try {
-// //       await adminApiService.deleteProduct(id);
-// //       setProducts(products.filter((p) => p.id !== id));
-// //       toast({
-// //         title: "Product deleted",
-// //         description: "The product has been removed successfully"
-// //       });
-// //     } catch (err) {
-// //       console.error('Failed to delete product:', err);
-// //       toast({
-// //         variant: "destructive",
-// //         title: "Error deleting product",
-// //         description: "Could not delete the product. Please try again.",
-// //       });
-// //     }
-// //   };
-
-// //   const handleToggleStatus = async (productToToggle: ProductWithSpecial) => {
-// //     try {
-// //       const formData = new FormData();
-// //       formData.append('isActive', (!productToToggle.isActive).toString());
-
-// //       const updatedProduct = await adminApiService.updateProduct(productToToggle.id, formData);
-// //       // Cast the updated product to include special fields
-// //       const updatedProductWithSpecial = {
-// //         ...updatedProduct,
-// //         isFeatured: (updatedProduct as any).isFeatured ?? productToToggle.isFeatured,
-// //         isTrending: (updatedProduct as any).isTrending ?? productToToggle.isTrending,
-// //         isNewArrival: (updatedProduct as any).isNewArrival ?? productToToggle.isNewArrival,
-// //         featuredOrder: (updatedProduct as any).featuredOrder ?? productToToggle.featuredOrder,
-// //         trendingOrder: (updatedProduct as any).trendingOrder ?? productToToggle.trendingOrder,
-// //         newArrivalOrder: (updatedProduct as any).newArrivalOrder ?? productToToggle.newArrivalOrder,
-// //       } as ProductWithSpecial;
-
-// //       setProducts(products.map((p) => p.id === productToToggle.id ? updatedProductWithSpecial : p));
-// //       toast({
-// //         title: `Product ${!productToToggle.isActive ? 'activated' : 'deactivated'}`,
-// //         description: `Product has been ${!productToToggle.isActive ? 'activated' : 'deactivated'} successfully`
-// //       });
-// //     } catch (err) {
-// //       console.error('Failed to toggle product status:', err);
-// //       toast({
-// //         variant: "destructive",
-// //         title: "Error updating product",
-// //         description: "Could not update product status. Please try again.",
-// //       });
-// //     }
-// //   };
-
-// //   // Loading and Skeleton Components
-// //   const LoadingRow = () => (
-// //     <TableRow>
-// //       <TableCell colSpan={8} className="text-center py-8">
-// //         <div className="flex items-center justify-center gap-2">
-// //           <RefreshCw className="h-4 w-4 animate-spin" />
-// //           <span>Loading products...</span>
-// //         </div>
-// //       </TableCell>
-// //     </TableRow>
-// //   );
-
-// //   const SkeletonRow = () => (
-// //     <TableRow>
-// //       <TableCell>
-// //         <div className="flex items-center gap-3">
-// //           <div className="h-12 w-12 bg-muted rounded animate-pulse" />
-// //           <div className="space-y-2">
-// //             <div className="h-4 bg-muted rounded animate-pulse w-32" />
-// //             <div className="h-3 bg-muted rounded animate-pulse w-24" />
-// //           </div>
-// //         </div>
-// //       </TableCell>
-// //       <TableCell>
-// //         <div className="h-6 bg-muted rounded animate-pulse w-20" />
-// //       </TableCell>
-// //       <TableCell>
-// //         <div className="h-6 bg-muted rounded animate-pulse w-16" />
-// //       </TableCell>
-// //       <TableCell>
-// //         <div className="h-4 bg-muted rounded animate-pulse w-12" />
-// //       </TableCell>
-// //       <TableCell>
-// //         <div className="h-4 bg-muted rounded animate-pulse w-16" />
-// //       </TableCell>
-// //       <TableCell>
-// //         <div className="h-6 bg-muted rounded animate-pulse w-16" />
-// //       </TableCell>
-// //       <TableCell>
-// //         <div className="h-6 bg-muted rounded animate-pulse w-16" />
-// //       </TableCell>
-// //       <TableCell>
-// //         <div className="flex justify-end gap-2">
-// //           <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-// //           <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-// //           <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-// //         </div>
-// //       </TableCell>
-// //     </TableRow>
-// //   );
-
-// //   if (error && products.length === 0) {
-// //     return (
-// //       <div className="space-y-6">
-// //         <div className="flex items-center justify-between">
-// //           <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-// //           <Button onClick={fetchData} variant="outline">
-// //             <RefreshCw className="mr-2 h-4 w-4" />
-// //             Retry
-// //           </Button>
-// //         </div>
-// //         <Card>
-// //           <CardContent className="flex flex-col items-center justify-center py-12">
-// //             <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-// //             <p className="text-lg font-medium mb-2">Failed to load products</p>
-// //             <p className="text-muted-foreground text-center mb-4">{error}</p>
-// //             <Button onClick={fetchData}>
-// //               <RefreshCw className="mr-2 h-4 w-4" />
-// //               Try Again
-// //             </Button>
-// //           </CardContent>
-// //         </Card>
-// //       </div>
-// //     );
-// //   }
-
-// //   return (
-// //     <div className="space-y-6">
-// //       <div className="flex items-center justify-between">
-// //         <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-// //         <div className="flex gap-2">
-// //           <Button onClick={fetchData} variant="outline" disabled={isLoading}>
-// //             <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-// //             Refresh
-// //           </Button>
-// //           {activeTab === "catalog" && (
-// //             <Button onClick={handleAddProduct} disabled={isLoading}>
-// //               <Plus className="mr-2 h-4 w-4" />
-// //               Add Product
-// //             </Button>
-// //           )}
-// //         </div>
-// //       </div>
-
-// //       {/* Main Tabs */}
-// //       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-// //         <TabsList className="grid w-full grid-cols-2">
-// //           <TabsTrigger value="catalog" className="flex items-center gap-2">
-// //             <Package className="h-4 w-4" />
-// //             Product Catalog
-// //           </TabsTrigger>
-// //           <TabsTrigger value="special" className="flex items-center gap-2">
-// //             <Star className="h-4 w-4" />
-// //             Special Categories
-// //           </TabsTrigger>
-// //         </TabsList>
-
-// //         {/* Product Catalog Tab */}
-// //         <TabsContent value="catalog" className="space-y-6">
-// //           {/* Stats Cards - Updated with Special Categories */}
-// //           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-// //             <Card>
-// //               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-// //                 <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-// //                 <Package className="h-4 w-4 text-muted-foreground" />
-// //               </CardHeader>
-// //               <CardContent>
-// //                 {isLoading ? (
-// //                   <>
-// //                     <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-// //                     <div className="h-4 bg-muted rounded animate-pulse" />
-// //                   </>
-// //                 ) : (
-// //                   <>
-// //                     <div className="text-2xl font-bold">{totalProducts}</div>
-// //                     <p className="text-xs text-muted-foreground">Active in catalog</p>
-// //                   </>
-// //                 )}
-// //               </CardContent>
-// //             </Card>
-// //             <Card>
-// //               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-// //                 <CardTitle className="text-sm font-medium">Featured</CardTitle>
-// //                 <Star className="h-4 w-4 text-yellow-500" />
-// //               </CardHeader>
-// //               <CardContent>
-// //                 {isLoading ? (
-// //                   <>
-// //                     <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-// //                     <div className="h-4 bg-muted rounded animate-pulse" />
-// //                   </>
-// //                 ) : (
-// //                   <>
-// //                     <div className="text-2xl font-bold">{featuredCount}</div>
-// //                     <p className="text-xs text-muted-foreground">Featured products</p>
-// //                   </>
-// //                 )}
-// //               </CardContent>
-// //             </Card>
-// //             <Card>
-// //               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-// //                 <CardTitle className="text-sm font-medium">Trending</CardTitle>
-// //                 <Zap className="h-4 w-4 text-orange-500" />
-// //               </CardHeader>
-// //               <CardContent>
-// //                 {isLoading ? (
-// //                   <>
-// //                     <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-// //                     <div className="h-4 bg-muted rounded animate-pulse" />
-// //                   </>
-// //                 ) : (
-// //                   <>
-// //                     <div className="text-2xl font-bold">{trendingCount}</div>
-// //                     <p className="text-xs text-muted-foreground">Trending products</p>
-// //                   </>
-// //                 )}
-// //               </CardContent>
-// //             </Card>
-// //             <Card>
-// //               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-// //                 <CardTitle className="text-sm font-medium">New Arrivals</CardTitle>
-// //                 <Clock className="h-4 w-4 text-blue-500" />
-// //               </CardHeader>
-// //               <CardContent>
-// //                 {isLoading ? (
-// //                   <>
-// //                     <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-// //                     <div className="h-4 bg-muted rounded animate-pulse" />
-// //                   </>
-// //                 ) : (
-// //                   <>
-// //                     <div className="text-2xl font-bold">{newArrivalsCount}</div>
-// //                     <p className="text-xs text-muted-foreground">New arrivals</p>
-// //                   </>
-// //                 )}
-// //               </CardContent>
-// //             </Card>
-// //             <Card>
-// //               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-// //                 <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-// //                 <DollarSign className="h-4 w-4 text-muted-foreground" />
-// //               </CardHeader>
-// //               <CardContent>
-// //                 {isLoading ? (
-// //                   <>
-// //                     <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-// //                     <div className="h-4 bg-muted rounded animate-pulse" />
-// //                   </>
-// //                 ) : (
-// //                   <>
-// //                     <div className="text-2xl font-bold">${totalValue.toFixed(2)}</div>
-// //                     <p className="text-xs text-muted-foreground">Inventory worth</p>
-// //                   </>
-// //                 )}
-// //               </CardContent>
-// //             </Card>
-// //             <Card>
-// //               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-// //                 <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-// //                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-// //               </CardHeader>
-// //               <CardContent>
-// //                 {isLoading ? (
-// //                   <>
-// //                     <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-// //                     <div className="h-4 bg-muted rounded animate-pulse" />
-// //                   </>
-// //                 ) : (
-// //                   <>
-// //                     <div className="text-2xl font-bold">{lowStockCount}</div>
-// //                     <p className="text-xs text-muted-foreground">Items below 10 units</p>
-// //                   </>
-// //                 )}
-// //               </CardContent>
-// //             </Card>
-// //           </div>
-
-// //           {/* Products Table */}
-// //           <Card>
-// //             <CardHeader className="pb-3">
-// //               <CardTitle className="text-lg">Product Catalog</CardTitle>
-// //               <CardDescription>Manage your product inventory</CardDescription>
-// //             </CardHeader>
-// //             <CardContent>
-// //               <div className="mb-6">
-// //                 <div className="relative w-full md:w-96">
-// //                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-// //                   <Input
-// //                     placeholder="Search products..."
-// //                     className="pl-8"
-// //                     value={searchTerm}
-// //                     onChange={(e) => setSearchTerm(e.target.value)}
-// //                     disabled={isLoading}
-// //                   />
-// //                 </div>
-// //               </div>
-
-// //               <Table>
-// //                 <TableHeader>
-// //                   <TableRow>
-// //                     <TableHead>Product</TableHead>
-// //                     <TableHead>Category</TableHead>
-// //                     <TableHead>Price</TableHead>
-// //                     <TableHead>Stock</TableHead>
-// //                     <TableHead>Type</TableHead>
-// //                     <TableHead>Status</TableHead>
-// //                     <TableHead>Special</TableHead>
-// //                     <TableHead className="text-right">Actions</TableHead>
-// //                   </TableRow>
-// //                 </TableHeader>
-// //                 <TableBody>
-// //                   {isLoading ? (
-// //                     Array.from({ length: 5 }).map((_, index) => (
-// //                       <SkeletonRow key={index} />
-// //                     ))
-// //                   ) : filteredProducts.length > 0 ? (
-// //                     filteredProducts.map((product) => (
-// //                       <TableRow key={product.id} className="hover:bg-muted/50">
-// //                         <TableCell>
-// //                           <div className="flex items-center gap-3">
-// //                             <img
-// //                               src={getImageUrl(product.images?.[0])}
-// //                               alt={product.name}
-// //                               className="h-12 w-12 rounded object-cover border"
-// //                               onError={(e) => {
-// //                                 (e.target as HTMLImageElement).src = "/placeholder.svg";
-// //                               }}
-// //                             />
-// //                             <div>
-// //                               <div
-// //                                 className="font-medium cursor-pointer hover:text-blue-600 transition-colors"
-// //                                 onClick={() => handleViewProduct(product)}
-// //                               >
-// //                                 {product.name}
-// //                               </div>
-// //                               <div className="text-sm text-muted-foreground line-clamp-1">
-// //                                 {product.brand && <span>{product.brand} • </span>}
-// //                                 {product.description || "No description"}
-// //                               </div>
-// //                             </div>
-// //                           </div>
-// //                         </TableCell>
-// //                         <TableCell>
-// //                           <div className="space-y-1">
-// //                             <Badge variant="outline">{product.categoryLevel1}</Badge>
-// //                             {product.categoryLevel2 && (
-// //                               <div className="text-xs text-muted-foreground">{product.categoryLevel2}</div>
-// //                             )}
-// //                           </div>
-// //                         </TableCell>
-// //                         <TableCell className="font-medium">
-// //                           ${product.price != null ? parseFloat(product.price.toString()).toFixed(2) : '0.00'}
-// //                         </TableCell>
-// //                         <TableCell>
-// //                           <span className={product.stock < 10 ? "text-destructive font-medium" : ""}>
-// //                             {product.stock}
-// //                           </span>
-// //                         </TableCell>
-// //                         <TableCell>
-// //                           <Badge variant={product.serviceType === 'service' ? 'default' : 'secondary'}>
-// //                             {product.serviceType}
-// //                           </Badge>
-// //                         </TableCell>
-// //                         <TableCell>
-// //                           <Badge variant={product.isActive ? 'default' : 'destructive'}>
-// //                             {product.isActive ? 'Active' : 'Inactive'}
-// //                           </Badge>
-// //                         </TableCell>
-// //                         <TableCell>
-// //                           <div className="flex gap-1">
-// //                             {product.isFeatured && (
-// //                               <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-xs">
-// //                                 <Star className="h-3 w-3 mr-1" />
-// //                                 F
-// //                               </Badge>
-// //                             )}
-// //                             {product.isTrending && (
-// //                               <Badge variant="default" className="bg-orange-500 hover:bg-orange-600 text-xs">
-// //                                 <Zap className="h-3 w-3 mr-1" />
-// //                                 T
-// //                               </Badge>
-// //                             )}
-// //                             {product.isNewArrival && (
-// //                               <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 text-xs">
-// //                                 <Clock className="h-3 w-3 mr-1" />
-// //                                 N
-// //                               </Badge>
-// //                             )}
-// //                             {!product.isFeatured && !product.isTrending && !product.isNewArrival && (
-// //                               <span className="text-xs text-muted-foreground">-</span>
-// //                             )}
-// //                           </div>
-// //                         </TableCell>
-// //                         <TableCell className="text-right">
-// //                           <div className="flex justify-end gap-1">
-// //                             <Button
-// //                               variant="ghost"
-// //                               size="sm"
-// //                               onClick={() => handleViewProduct(product)}
-// //                               disabled={isLoading}
-// //                               title="View Details"
-// //                             >
-// //                               <Eye className="h-4 w-4" />
-// //                             </Button>
-// //                             <Button
-// //                               variant="ghost"
-// //                               size="sm"
-// //                               onClick={() => handleToggleStatus(product)}
-// //                               disabled={isLoading}
-// //                             >
-// //                               {product.isActive ? 'Deactivate' : 'Activate'}
-// //                             </Button>
-// //                             <Button
-// //                               variant="ghost"
-// //                               size="sm"
-// //                               onClick={() => handleEditProduct(product)}
-// //                               disabled={isLoading}
-// //                             >
-// //                               <Edit className="h-4 w-4" />
-// //                             </Button>
-// //                             <Button
-// //                               variant="ghost"
-// //                               size="sm"
-// //                               onClick={() => handleDeleteProduct(product.id)}
-// //                               disabled={isLoading}
-// //                             >
-// //                               <Trash2 className="h-4 w-4" />
-// //                             </Button>
-// //                           </div>
-// //                         </TableCell>
-// //                       </TableRow>
-// //                     ))
-// //                   ) : (
-// //                     <TableRow>
-// //                       <TableCell colSpan={8} className="text-center py-10">
-// //                         <Package className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-// //                         <p className="text-lg font-medium">No products found</p>
-// //                         <p className="text-muted-foreground">
-// //                           {searchTerm ? "Try adjusting your search terms" : "Get started by adding your first product"}
-// //                         </p>
-// //                       </TableCell>
-// //                     </TableRow>
-// //                   )}
-// //                 </TableBody>
-// //               </Table>
-// //             </CardContent>
-// //           </Card>
-// //         </TabsContent>
-
-// //         {/* Special Categories Tab */}
-// //         <TabsContent value="special">
-// //           <SpecialProductsManager
-// //             products={products}
-// //             onUpdateProduct={handleProductUpdate}
-// //           />
-// //         </TabsContent>
-// //       </Tabs>
-
-// //       {/* Add/Edit Product Dialog */}
-// //       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-// //         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-// //           <DialogHeader>
-// //             <DialogTitle className="text-base">
-// //               {editingProduct ? "Edit Product" : "Add New Product"}
-// //             </DialogTitle>
-// //             <DialogDescription className="text-xs">
-// //               {editingProduct
-// //                 ? "Update the product information"
-// //                 : "Add a new product to your catalog"}
-// //             </DialogDescription>
-// //           </DialogHeader>
-// //           <form onSubmit={handleSubmit}>
-// //             <div className="grid gap-4 py-1">
-// //               <ImageUploadWithFile
-// //                 onImageChange={(file, previewUrl) => {
-// //                   setFormData({ ...formData, image: file });
-// //                 }}
-// //                 currentImage={
-// //                   typeof formData.image === 'string' ? formData.image :
-// //                     formData.image instanceof File ? '' :
-// //                       formData.image || ''
-// //                 }
-// //                 className="h-40"
-// //               />
-
-// //               <div className="grid gap-2">
-// //                 <Label htmlFor="name" className="text-xs">Product Name *</Label>
-// //                 <Input
-// //                   id="name"
-// //                   value={formData.name}
-// //                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-// //                   placeholder="e.g., Wireless Headphones"
-// //                   className="h-9 text-sm"
-// //                   required
-// //                   disabled={isSubmitting}
-// //                 />
-// //               </div>
-
-// //               <div className="grid gap-2">
-// //                 <Label htmlFor="description" className="text-xs">Description</Label>
-// //                 <Textarea
-// //                   id="description"
-// //                   value={formData.description}
-// //                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-// //                   placeholder="Describe your product..."
-// //                   rows={3}
-// //                   className="min-h-[80px] text-sm"
-// //                   disabled={isSubmitting}
-// //                 />
-// //               </div>
-
-// //               <div className="grid grid-cols-2 gap-4">
-// //                 <div className="grid gap-2">
-// //                   <Label htmlFor="price" className="text-xs">Price *</Label>
-// //                   <Input
-// //                     id="price"
-// //                     type="number"
-// //                     step="0.01"
-// //                     min="0"
-// //                     value={formData.price}
-// //                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-// //                     placeholder="0.00"
-// //                     className="h-9 text-sm"
-// //                     required
-// //                     disabled={isSubmitting}
-// //                   />
-// //                 </div>
-// //                 <div className="grid gap-2">
-// //                   <Label htmlFor="stock" className="text-xs">Stock</Label>
-// //                   <Input
-// //                     id="stock"
-// //                     type="number"
-// //                     min="0"
-// //                     value={formData.stock}
-// //                     onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-// //                     placeholder="0"
-// //                     className="h-9 text-sm"
-// //                     disabled={isSubmitting}
-// //                   />
-// //                 </div>
-// //               </div>
-
-// //               <div className="grid grid-cols-2 gap-4">
-// //                 <div className="grid gap-2">
-// //                   <Label htmlFor="serviceType" className="text-xs">Service Type *</Label>
-// //                   <Select
-// //                     value={formData.serviceType}
-// //                     onValueChange={(value: 'physical' | 'service') => setFormData({ ...formData, serviceType: value })}
-// //                     disabled={isSubmitting}
-// //                   >
-// //                     <SelectTrigger className="h-9 text-sm">
-// //                       <SelectValue placeholder="Select service type" />
-// //                     </SelectTrigger>
-// //                     <SelectContent>
-// //                       {serviceTypeOptions.map((type) => (
-// //                         <SelectItem key={type} value={type}>
-// //                           {type.charAt(0).toUpperCase() + type.slice(1)}
-// //                         </SelectItem>
-// //                       ))}
-// //                     </SelectContent>
-// //                   </Select>
-// //                 </div>
-// //                 <div className="grid gap-2">
-// //                   <Label htmlFor="unit" className="text-xs">Unit</Label>
-// //                   <Select
-// //                     value={formData.unit}
-// //                     onValueChange={(value) => setFormData({ ...formData, unit: value })}
-// //                     disabled={isSubmitting}
-// //                   >
-// //                     <SelectTrigger className="h-9 text-sm">
-// //                       <SelectValue placeholder="Select unit" />
-// //                     </SelectTrigger>
-// //                     <SelectContent>
-// //                       {unitOptions.map((unit) => (
-// //                         <SelectItem key={unit} value={unit}>
-// //                           {unit.charAt(0).toUpperCase() + unit.slice(1)}
-// //                         </SelectItem>
-// //                       ))}
-// //                     </SelectContent>
-// //                   </Select>
-// //                 </div>
-// //               </div>
-
-// //               {formData.serviceType === 'service' && (
-// //                 <div className="grid gap-2">
-// //                   <Label htmlFor="serviceDuration" className="text-xs">Service Duration</Label>
-// //                   <Input
-// //                     id="serviceDuration"
-// //                     value={formData.serviceDuration}
-// //                     onChange={(e) => setFormData({ ...formData, serviceDuration: e.target.value })}
-// //                     placeholder="e.g., 2 hours, 1 day"
-// //                     className="h-9 text-sm"
-// //                     disabled={isSubmitting}
-// //                   />
-// //                 </div>
-// //               )}
-
-// //               <div className="grid grid-cols-2 gap-4">
-// //                 <div className="grid gap-2">
-// //                   <Label htmlFor="brand" className="text-xs">Brand</Label>
-// //                   <Input
-// //                     id="brand"
-// //                     value={formData.brand}
-// //                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-// //                     placeholder="Brand name"
-// //                     className="h-9 text-sm"
-// //                     disabled={isSubmitting}
-// //                   />
-// //                 </div>
-// //                 <div className="grid gap-2">
-// //                   <Label htmlFor="tags" className="text-xs">Tags</Label>
-// //                   <TagInput
-// //                     tags={formData.tags}
-// //                     onTagsChange={(newTags) => setFormData({ ...formData, tags: newTags })}
-// //                     disabled={isSubmitting}
-// //                   />
-// //                 </div>
-// //               </div>
-
-// //               {/* NEW: Special Categories Section */}
-// //               <div className="space-y-4 pt-4 border-t">
-// //                 <Label className="text-sm font-medium">Special Categories</Label>
-// //                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-// //                   {/* Featured */}
-// //                   <div className="space-y-3 p-3 border rounded-lg">
-// //                     <div className="flex items-center justify-between">
-// //                       <Label htmlFor="isFeatured" className="flex items-center gap-2 text-sm">
-// //                         <Star className="h-4 w-4 text-yellow-500" />
-// //                         Featured
-// //                       </Label>
-// //                       <Switch
-// //                         id="isFeatured"
-// //                         checked={formData.isFeatured}
-// //                         onCheckedChange={(checked) => setFormData({ ...formData, isFeatured: checked })}
-// //                         disabled={isSubmitting}
-// //                       />
-// //                     </div>
-// //                     {formData.isFeatured && (
-// //                       <div className="grid gap-2">
-// //                         <Label htmlFor="featuredOrder" className="text-xs">Display Order</Label>
-// //                         <Input
-// //                           id="featuredOrder"
-// //                           type="number"
-// //                           min="0"
-// //                           value={formData.featuredOrder}
-// //                           onChange={(e) => setFormData({
-// //                             ...formData,
-// //                             featuredOrder: parseInt(e.target.value) || 0
-// //                           })}
-// //                           placeholder="0"
-// //                           className="h-8 text-sm"
-// //                           disabled={isSubmitting}
-// //                         />
-// //                       </div>
-// //                     )}
-// //                   </div>
-
-// //                   {/* Trending */}
-// //                   <div className="space-y-3 p-3 border rounded-lg">
-// //                     <div className="flex items-center justify-between">
-// //                       <Label htmlFor="isTrending" className="flex items-center gap-2 text-sm">
-// //                         <Zap className="h-4 w-4 text-orange-500" />
-// //                         Trending
-// //                       </Label>
-// //                       <Switch
-// //                         id="isTrending"
-// //                         checked={formData.isTrending}
-// //                         onCheckedChange={(checked) => setFormData({ ...formData, isTrending: checked })}
-// //                         disabled={isSubmitting}
-// //                       />
-// //                     </div>
-// //                     {formData.isTrending && (
-// //                       <div className="grid gap-2">
-// //                         <Label htmlFor="trendingOrder" className="text-xs">Display Order</Label>
-// //                         <Input
-// //                           id="trendingOrder"
-// //                           type="number"
-// //                           min="0"
-// //                           value={formData.trendingOrder}
-// //                           onChange={(e) => setFormData({
-// //                             ...formData,
-// //                             trendingOrder: parseInt(e.target.value) || 0
-// //                           })}
-// //                           placeholder="0"
-// //                           className="h-8 text-sm"
-// //                           disabled={isSubmitting}
-// //                         />
-// //                       </div>
-// //                     )}
-// //                   </div>
-
-// //                   {/* New Arrival */}
-// //                   <div className="space-y-3 p-3 border rounded-lg">
-// //                     <div className="flex items-center justify-between">
-// //                       <Label htmlFor="isNewArrival" className="flex items-center gap-2 text-sm">
-// //                         <Clock className="h-4 w-4 text-blue-500" />
-// //                         New Arrival
-// //                       </Label>
-// //                       <Switch
-// //                         id="isNewArrival"
-// //                         checked={formData.isNewArrival}
-// //                         onCheckedChange={(checked) => setFormData({ ...formData, isNewArrival: checked })}
-// //                         disabled={isSubmitting}
-// //                       />
-// //                     </div>
-// //                     {formData.isNewArrival && (
-// //                       <div className="grid gap-2">
-// //                         <Label htmlFor="newArrivalOrder" className="text-xs">Display Order</Label>
-// //                         <Input
-// //                           id="newArrivalOrder"
-// //                           type="number"
-// //                           min="0"
-// //                           value={formData.newArrivalOrder}
-// //                           onChange={(e) => setFormData({
-// //                             ...formData,
-// //                             newArrivalOrder: parseInt(e.target.value) || 0
-// //                           })}
-// //                           placeholder="0"
-// //                           className="h-8 text-sm"
-// //                           disabled={isSubmitting}
-// //                         />
-// //                       </div>
-// //                     )}
-// //                   </div>
-// //                 </div>
-// //               </div>
-
-// //               {/* Category Selection - UPDATED WITH DROPDOWNS */}
-// //               <div className="grid gap-3">
-// //                 <Label className="text-xs">Category *</Label>
-// //                 <div className="grid gap-3">
-// //                   {/* Level 1 Dropdown */}
-// //                   <div className="grid gap-2">
-// //                     <Label htmlFor="categoryLevel1" className="text-xs">Level 1 *</Label>
-// //                     <Select
-// //                       value={formData.categoryLevel1}
-// //                       onValueChange={(value) => setFormData({
-// //                         ...formData,
-// //                         categoryLevel1: value,
-// //                         categoryLevel2: "",
-// //                         categoryLevel3: ""
-// //                       })}
-// //                       disabled={isSubmitting}
-// //                     >
-// //                       <SelectTrigger className="h-9 text-sm">
-// //                         <SelectValue placeholder="Select category level 1" />
-// //                       </SelectTrigger>
-// //                       <SelectContent>
-// //                         {categoryLevel1Options.map((category) => (
-// //                           <SelectItem key={category} value={category}>
-// //                             {category}
-// //                           </SelectItem>
-// //                         ))}
-// //                       </SelectContent>
-// //                     </Select>
-// //                   </div>
-
-// //                   {/* Level 2 Dropdown - Conditionally shown */}
-// //                   {formData.categoryLevel1 && Object.keys(categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy] || {}).length > 0 && (
-// //                     <div className="grid gap-2">
-// //                       <Label htmlFor="categoryLevel2" className="text-xs">Level 2</Label>
-// //                       <Select
-// //                         value={formData.categoryLevel2}
-// //                         onValueChange={(value) => setFormData({
-// //                           ...formData,
-// //                           categoryLevel2: value,
-// //                           categoryLevel3: ""
-// //                         })}
-// //                         disabled={isSubmitting}
-// //                       >
-// //                         <SelectTrigger className="h-9 text-sm">
-// //                           <SelectValue placeholder="Select category level 2" />
-// //                         </SelectTrigger>
-// //                         <SelectContent>
-// //                           {Object.keys(categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy] || {}).map((subcategory) => (
-// //                             <SelectItem key={subcategory} value={subcategory}>
-// //                               {subcategory}
-// //                             </SelectItem>
-// //                           ))}
-// //                         </SelectContent>
-// //                       </Select>
-// //                     </div>
-// //                   )}
-
-// //                   {/* Level 3 Dropdown - Conditionally shown */}
-// //                   {formData.categoryLevel2 && categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy]?.[formData.categoryLevel2]?.length > 0 && (
-// //                     <div className="grid gap-2">
-// //                       <Label htmlFor="categoryLevel3" className="text-xs">Level 3</Label>
-// //                       <Select
-// //                         value={formData.categoryLevel3}
-// //                         onValueChange={(value) => setFormData({
-// //                           ...formData,
-// //                           categoryLevel3: value
-// //                         })}
-// //                         disabled={isSubmitting}
-// //                       >
-// //                         <SelectTrigger className="h-9 text-sm">
-// //                           <SelectValue placeholder="Select category level 3" />
-// //                         </SelectTrigger>
-// //                         <SelectContent>
-// //                           {categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy]?.[formData.categoryLevel2]?.map((subsubcategory) => (
-// //                             <SelectItem key={subsubcategory} value={subsubcategory}>
-// //                               {subsubcategory}
-// //                             </SelectItem>
-// //                           ))}
-// //                         </SelectContent>
-// //                       </Select>
-// //                     </div>
-// //                   )}
-
-// //                   {/* Fallback input fields for custom categories or when no dropdown options exist */}
-// //                   {(!formData.categoryLevel1 || 
-// //                     (formData.categoryLevel1 && Object.keys(categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy] || {}).length === 0) ||
-// //                     (formData.categoryLevel2 && !categoryHierarchy[formData.categoryLevel1 as keyof typeof categoryHierarchy]?.[formData.categoryLevel2]?.length)) && (
-// //                     <>
-// //                       {!formData.categoryLevel2 && (
-// //                         <div className="grid gap-2">
-// //                           <Label htmlFor="categoryLevel2" className="text-xs">Level 2 (Custom)</Label>
-// //                           <Input
-// //                             id="categoryLevel2"
-// //                             value={formData.categoryLevel2}
-// //                             onChange={(e) => setFormData({ ...formData, categoryLevel2: e.target.value })}
-// //                             placeholder="Subcategory"
-// //                             className="h-9 text-sm"
-// //                             disabled={isSubmitting}
-// //                           />
-// //                         </div>
-// //                       )}
-// //                       {!formData.categoryLevel3 && (
-// //                         <div className="grid gap-2">
-// //                           <Label htmlFor="categoryLevel3" className="text-xs">Level 3 (Custom)</Label>
-// //                           <Input
-// //                             id="categoryLevel3"
-// //                             value={formData.categoryLevel3}
-// //                             onChange={(e) => setFormData({ ...formData, categoryLevel3: e.target.value })}
-// //                             placeholder="Sub-subcategory"
-// //                             className="h-9 text-sm"
-// //                             disabled={isSubmitting}
-// //                           />
-// //                         </div>
-// //                       )}
-// //                     </>
-// //                   )}
-// //                 </div>
-// //               </div>
-
-// //               <div className="flex items-center gap-3 pt-2">
-// //                 <Switch
-// //                   checked={formData.isActive}
-// //                   onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-// //                   disabled={isSubmitting}
-// //                 />
-// //                 <Label htmlFor="isActive" className="text-sm">Active Product</Label>
-// //               </div>
-// //             </div>
-// //             <DialogFooter className="gap-2 mt-4">
-// //               <Button
-// //                 type="button"
-// //                 variant="outline"
-// //                 onClick={() => setDialogOpen(false)}
-// //                 className="h-9 text-sm px-4"
-// //                 disabled={isSubmitting}
-// //               >
-// //                 Cancel
-// //               </Button>
-// //               <Button
-// //                 type="submit"
-// //                 className="h-9 text-sm px-4"
-// //                 disabled={isSubmitting}
-// //               >
-// //                 {isSubmitting ? (
-// //                   <>
-// //                     <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-// //                     {editingProduct ? "Updating..." : "Adding..."}
-// //                   </>
-// //                 ) : (
-// //                   editingProduct ? "Update Product" : "Add Product"
-// //                 )}
-// //               </Button>
-// //             </DialogFooter>
-// //           </form>
-// //         </DialogContent>
-// //       </Dialog>
-
-// //       {/* Product Details Modal */}
-// //       <ProductDetailsModal
-// //         product={selectedProduct}
-// //         open={detailsDialogOpen}
-// //         onOpenChange={setDetailsDialogOpen}
-// //       />
-// //     </div>
-// //   );
-// // }
-
-
-
-
-// import { useState, useEffect } from "react";
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-// import { Input } from "@/components/ui/input";
-// import { Button } from "@/components/ui/button";
-// import { Badge } from "@/components/ui/badge";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogDescription,
-//   DialogFooter,
-//   DialogHeader,
-//   DialogTitle,
-// } from "@/components/ui/dialog";
-// import { Label } from "@/components/ui/label";
-// import { Textarea } from "@/components/ui/textarea";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select";
-// import { Switch } from "@/components/ui/switch";
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-// import { Search, Plus, Edit, Trash2, Package, DollarSign, TrendingUp, AlertTriangle, RefreshCw, AlertCircle, X, Eye, Calendar, Star, Zap, Clock, Filter, Check } from "lucide-react";
-// import { Product } from "@/types";
-// import { useToast } from "@/hooks/use-toast";
-// import adminApiService from "@/contexts/adminApiService";
-// import { ImageUploadWithFile } from "@/lib/ImageLoader";
-
-// // Update the Product interface to include special category fields
-// interface ProductWithSpecial extends Product {
-//   isFeatured: boolean;
-//   isTrending: boolean;
-//   isNewArrival: boolean;
-//   featuredOrder: number;
-//   trendingOrder: number;
-//   newArrivalOrder: number;
-// }
-
-// interface ProductFormData {
-//   name: string;
-//   description: string;
-//   price: string;
-//   categoryLevel1: string;
-//   categoryLevel2: string;
-//   categoryLevel3: string;
-//   serviceType: 'physical' | 'service';
-//   serviceDuration: string;
-//   unit: string;
-//   stock: string;
-//   brand: string;
-//   tags: string[];
-//   isActive: boolean;
-//   image: File | string | null;
-
-//   // FIXED: Use proper types for special category fields
-//   isFeatured: boolean;
-//   isTrending: boolean;
-//   isNewArrival: boolean;
-//   featuredOrder: number;
-//   trendingOrder: number;
-//   newArrivalOrder: number;
-// }
-
-// interface Category {
-//   id: string;
-//   name: string;
-//   slug?: string;
-//   level: number;
-//   parentId?: string | null;
-//   children: Category[];
-// }
-
-// interface BulkUpdateItem {
-//   productId: string;
-//   updates: {
-//     isFeatured?: boolean;
-//     isTrending?: boolean;
-//     isNewArrival?: boolean;
-//     featuredOrder?: number;
-//     trendingOrder?: number;
-//     newArrivalOrder?: number;
-//   };
-// }
-
-// // Tag Input Component
-// const TagInput = ({
-//   tags,
-//   onTagsChange,
-//   disabled
-// }: {
-//   tags: string[];
-//   onTagsChange: (tags: string[]) => void;
-//   disabled?: boolean;
-// }) => {
-//   const [inputValue, setInputValue] = useState('');
-
-//   const addTag = (tag: string) => {
-//     const cleanTag = tag.trim();
-//     if (cleanTag && !tags.includes(cleanTag)) {
-//       onTagsChange([...tags, cleanTag]);
-//     }
-//     setInputValue('');
-//   };
-
-//   const removeTag = (index: number) => {
-//     onTagsChange(tags.filter((_, i) => i !== index));
-//   };
-
-//   const handleKeyDown = (e: React.KeyboardEvent) => {
-//     if (e.key === 'Enter' || e.key === ',') {
-//       e.preventDefault();
-//       addTag(inputValue);
-//     }
-//   };
-
-//   return (
-//     <div className="space-y-2">
-//       <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-10 bg-background">
-//         {tags.map((tag, index) => (
-//           <Badge key={index} variant="secondary" className="flex items-center gap-1 text-xs py-1">
-//             {tag}
-//             <button
-//               type="button"
-//               onClick={() => removeTag(index)}
-//               className="ml-1 hover:text-destructive text-xs"
-//               disabled={disabled}
-//             >
-//               <X className="h-3 w-3" />
-//             </button>
-//           </Badge>
-//         ))}
-//         <input
-//           value={inputValue}
-//           onChange={(e) => setInputValue(e.target.value)}
-//           onKeyDown={handleKeyDown}
-//           onBlur={() => inputValue && addTag(inputValue)}
-//           placeholder={tags.length === 0 ? "Add tags..." : "Add another tag..."}
-//           className="flex-1 outline-none bg-transparent text-sm min-w-20 placeholder:text-muted-foreground"
-//           disabled={disabled}
-//         />
-//       </div>
-//       <p className="text-xs text-muted-foreground">Press Enter, comma, or click outside to add tags</p>
-//     </div>
-//   );
-// };
-
-// // Product Details Modal Component
-// const ProductDetailsModal = ({
-//   product,
-//   open,
-//   onOpenChange
-// }: {
-//   product: ProductWithSpecial | null;
-//   open: boolean;
-//   onOpenChange: (open: boolean) => void;
-// }) => {
-//   const getImageUrl = (imagePath: string | undefined) => {
-//     if (!imagePath) return "/placeholder.svg";
-//     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-//       return imagePath;
-//     }
-//     const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8003';
-//     const filename = imagePath.split(/[\\/]/).pop();
-//     return `${BACKEND_URL}/uploads/products/${filename}`;
-//   };
-
-//   const formatDate = (dateString: string) => {
-//     return new Date(dateString).toLocaleDateString('en-US', {
-//       year: 'numeric',
-//       month: 'long',
-//       day: 'numeric',
-//       hour: '2-digit',
-//       minute: '2-digit'
-//     });
-//   };
-
-//   // Safely convert tags to array for display
-//   const getDisplayTags = (tags: any): string[] => {
-//     if (!tags) return [];
-
-//     if (Array.isArray(tags)) {
-//       return tags.filter(tag => typeof tag === 'string');
-//     }
-
-//     if (typeof tags === 'string') {
-//       try {
-//         const parsed = JSON.parse(tags);
-//         if (Array.isArray(parsed)) {
-//           return parsed.filter(tag => typeof tag === 'string');
-//         }
-//       } catch {
-//         return tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-//       }
-//     }
-
-//     return [];
-//   };
-
-//   if (!product) return null;
-
-//   const displayTags = getDisplayTags(product.tags);
-
-//   return (
-//     <Dialog open={open} onOpenChange={onOpenChange}>
-//       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-//         <DialogHeader>
-//           <DialogTitle className="text-xl flex items-center gap-2">
-//             <Package className="h-5 w-5" />
-//             Product Details
-//           </DialogTitle>
-//           <DialogDescription>
-//             Complete information about {product.name}
-//           </DialogDescription>
-//         </DialogHeader>
-
-//         <div className="grid gap-6 py-4">
-//           {/* Product Image */}
-//           <div className="flex justify-center">
-//             <img
-//               src={getImageUrl(product.images?.[0])}
-//               alt={product.name}
-//               className="h-64 w-64 object-cover rounded-lg border shadow-sm"
-//               onError={(e) => {
-//                 (e.target as HTMLImageElement).src = "/placeholder.svg";
-//               }}
-//             />
-//           </div>
-
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//             {/* Basic Information */}
-//             <div className="space-y-4">
-//               <div>
-//                 <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-//                 <p className="text-muted-foreground">{product.description || "No description available"}</p>
-//               </div>
-
-//               <div className="space-y-3">
-//                 <div className="flex justify-between items-center py-2 border-b">
-//                   <span className="font-medium">Price</span>
-//                   <span className="text-lg font-bold text-green-600">
-//                     ${parseFloat(product.price?.toString() || '0').toFixed(2)}
-//                   </span>
-//                 </div>
-
-//                 <div className="flex justify-between items-center py-2 border-b">
-//                   <span className="font-medium">Stock</span>
-//                   <Badge variant={product.stock < 10 ? "destructive" : "default"}>
-//                     {product.stock} units
-//                   </Badge>
-//                 </div>
-
-//                 <div className="flex justify-between items-center py-2 border-b">
-//                   <span className="font-medium">Status</span>
-//                   <Badge variant={product.isActive ? "default" : "destructive"}>
-//                     {product.isActive ? "Active" : "Inactive"}
-//                   </Badge>
-//                 </div>
-
-//                 <div className="flex justify-between items-center py-2 border-b">
-//                   <span className="font-medium">Type</span>
-//                   <Badge variant={product.serviceType === 'service' ? "default" : "secondary"}>
-//                     {product.serviceType}
-//                   </Badge>
-//                 </div>
-
-//                 <div className="flex justify-between items-center py-2 border-b">
-//                   <span className="font-medium">Unit</span>
-//                   <span className="text-muted-foreground capitalize">{product.unit || 'piece'}</span>
-//                 </div>
-//               </div>
-
-//               {/* Special Categories */}
-//               <div className="space-y-3 pt-4 border-t">
-//                 <h4 className="font-semibold">Special Categories</h4>
-//                 <div className="space-y-2">
-//                   <div className="flex justify-between items-center">
-//                     <span className="flex items-center gap-2">
-//                       <Star className="h-4 w-4 text-yellow-500" />
-//                       Featured
-//                     </span>
-//                     <Badge variant={product.isFeatured ? "default" : "outline"}>
-//                       {product.isFeatured ? `Yes (Order: ${product.featuredOrder || 0})` : "No"}
-//                     </Badge>
-//                   </div>
-//                   <div className="flex justify-between items-center">
-//                     <span className="flex items-center gap-2">
-//                       <Zap className="h-4 w-4 text-orange-500" />
-//                       Trending
-//                     </span>
-//                     <Badge variant={product.isTrending ? "default" : "outline"}>
-//                       {product.isTrending ? `Yes (Order: ${product.trendingOrder || 0})` : "No"}
-//                     </Badge>
-//                   </div>
-//                   <div className="flex justify-between items-center">
-//                     <span className="flex items-center gap-2">
-//                       <Clock className="h-4 w-4 text-blue-500" />
-//                       New Arrival
-//                     </span>
-//                     <Badge variant={product.isNewArrival ? "default" : "outline"}>
-//                       {product.isNewArrival ? `Yes (Order: ${product.newArrivalOrder || 0})` : "No"}
-//                     </Badge>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* Additional Details */}
-//             <div className="space-y-4">
-//               <div className="space-y-3">
-//                 <h4 className="font-semibold">Category Information</h4>
-//                 <div className="space-y-3">
-//                   <div className="flex justify-between items-center py-2 border-b">
-//                     <span className="font-medium">Main Category</span>
-//                     <Badge variant="outline" className="text-sm">
-//                       {product.categoryLevel1}
-//                     </Badge>
-//                   </div>
-                  
-//                   {product.categoryLevel2 && (
-//                     <div className="flex justify-between items-center py-2 border-b">
-//                       <span className="font-medium">Subcategory</span>
-//                       <div className="flex items-center gap-2">
-//                         <Badge variant="secondary" className="text-sm">
-//                           {product.categoryLevel2}
-//                         </Badge>
-//                         {/* Show category icon based on level 2 */}
-//                         {product.categoryLevel2 === 'Women' && (
-//                           <span className="text-pink-500">♀</span>
-//                         )}
-//                         {product.categoryLevel2 === 'Men' && (
-//                           <span className="text-blue-500">♂</span>
-//                         )}
-//                         {product.categoryLevel2 === 'Kids' && (
-//                           <span className="text-green-500">👶</span>
-//                         )}
-//                         {product.categoryLevel2 === 'Pantry' && (
-//                           <Package className="h-4 w-4 text-orange-500" />
-//                         )}
-//                         {product.categoryLevel2 === 'Prepared Mixes' && (
-//                           <span className="text-yellow-500">🥣</span>
-//                         )}
-//                         {product.categoryLevel2 === 'Soup Base' && (
-//                           <span className="text-red-500">🍲</span>
-//                         )}
-//                       </div>
-//                     </div>
-//                   )}
-                  
-//                   {product.categoryLevel3 && (
-//                     <div className="flex justify-between items-center py-2 border-b">
-//                       <span className="font-medium">Sub-subcategory</span>
-//                       <Badge variant="outline" className="text-sm bg-muted/50">
-//                         {product.categoryLevel3}
-//                       </Badge>
-//                     </div>
-//                   )}
-
-//                   {/* Show the full category path */}
-//                   <div className="p-3 bg-muted/30 rounded-lg">
-//                     <div className="text-xs text-muted-foreground mb-1">Full Category Path</div>
-//                     <div className="text-sm font-medium">
-//                       {[
-//                         product.categoryLevel1,
-//                         product.categoryLevel2,
-//                         product.categoryLevel3
-//                       ]
-//                         .filter(Boolean)
-//                         .join(' → ')}
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-
-//               {product.brand && (
-//                 <div className="space-y-2">
-//                   <h4 className="font-semibold">Brand</h4>
-//                   <Badge variant="secondary" className="text-sm py-1 px-3">
-//                     {product.brand}
-//                   </Badge>
-//                 </div>
-//               )}
-
-//               {product.serviceDuration && (
-//                 <div className="space-y-2">
-//                   <h4 className="font-semibold">Service Duration</h4>
-//                   <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-//                     <Clock className="h-4 w-4 text-muted-foreground" />
-//                     <p className="text-muted-foreground">{product.serviceDuration}</p>
-//                   </div>
-//                 </div>
-//               )}
-
-//               {/* Tags */}
-//               {displayTags.length > 0 && (
-//                 <div className="space-y-2">
-//                   <h4 className="font-semibold">Tags</h4>
-//                   <div className="flex flex-wrap gap-1">
-//                     {displayTags.map((tag, index) => (
-//                       <Badge key={index} variant="outline" className="text-xs py-1">
-//                         {tag}
-//                       </Badge>
-//                     ))}
-//                   </div>
-//                 </div>
-//               )}
-
-//               {/* Timestamps */}
-//               <div className="space-y-2 pt-4 border-t">
-//                 <h4 className="font-semibold">Timestamps</h4>
-//                 <div className="space-y-2 text-sm">
-//                   <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-//                     <Calendar className="h-4 w-4 text-muted-foreground" />
-//                     <div>
-//                       <div className="font-medium">Created</div>
-//                       <div className="text-muted-foreground">{formatDate(product.createdAt)}</div>
-//                     </div>
-//                   </div>
-//                   <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-//                     <Calendar className="h-4 w-4 text-muted-foreground" />
-//                     <div>
-//                       <div className="font-medium">Updated</div>
-//                       <div className="text-muted-foreground">{formatDate(product.updatedAt)}</div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-
-//         <DialogFooter>
-//           <Button onClick={() => onOpenChange(false)}>
-//             Close
-//           </Button>
-//         </DialogFooter>
-//       </DialogContent>
-//     </Dialog>
-//   );
-// };
-
-// // Special Products Manager Component (keep this component as is)
-// // Special Products Manager Component (keep this component as is)
-// const SpecialProductsManager = ({ products, onUpdateProduct }: { products: ProductWithSpecial[], onUpdateProduct: (productId: string, updates: any) => void }) => {
-//   const [allProducts, setAllProducts] = useState<ProductWithSpecial[]>(products);
-//   const [filteredProducts, setFilteredProducts] = useState<ProductWithSpecial[]>(products);
-//   const [selectedTab, setSelectedTab] = useState<'all' | 'featured' | 'trending' | 'new-arrivals'>('all');
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
-//   const [quickEditDialogOpen, setQuickEditDialogOpen] = useState(false);
-//   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-//   const [editingProduct, setEditingProduct] = useState<ProductWithSpecial | null>(null);
-//   const [bulkAction, setBulkAction] = useState<'add-featured' | 'add-trending' | 'add-new-arrival' | 'remove-all'>('add-featured');
-//   const [quickEditData, setQuickEditData] = useState({
-//     isFeatured: false,
-//     isTrending: false,
-//     isNewArrival: false,
-//     featuredOrder: 0,
-//     trendingOrder: 0,
-//     newArrivalOrder: 0,
-//   });
-
-//   const { toast } = useToast();
-
-//   // Helper function to convert file path to URL
-//   const getImageUrl = (imagePath: string | undefined) => {
-//     if (!imagePath) return "/placeholder.svg";
-//     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-//       return imagePath;
-//     }
-//     const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8003';
-//     const filename = imagePath.split(/[\\/]/).pop();
-//     return `${BACKEND_URL}/uploads/products/${filename}`;
-//   };
-
-//   // Update local products when props change
-//   useEffect(() => {
-//     setAllProducts(products);
-//     setFilteredProducts(products);
-//   }, [products]);
-
-//   // Filter products based on search and selected tab
-//   useEffect(() => {
-//     let filtered = allProducts;
-
-//     // Apply search filter
-//     if (searchTerm) {
-//       filtered = filtered.filter(product =>
-//         product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//         product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//         product.description?.toLowerCase().includes(searchTerm.toLowerCase())
-//       );
-//     }
-
-//     // Apply category filter
-//     switch (selectedTab) {
-//       case 'featured':
-//         filtered = filtered.filter(product => product.isFeatured);
-//         break;
-//       case 'trending':
-//         filtered = filtered.filter(product => product.isTrending);
-//         break;
-//       case 'new-arrivals':
-//         filtered = filtered.filter(product => product.isNewArrival);
-//         break;
-//       case 'all':
-//       default:
-//         // Show all products
-//         break;
-//     }
-
-//     setFilteredProducts(filtered);
-//   }, [allProducts, searchTerm, selectedTab]);
-
-//   // Calculate analytics
-//   const analytics = {
-//     totalProducts: allProducts.length,
-//     featured: allProducts.filter(p => p.isFeatured).length,
-//     trending: allProducts.filter(p => p.isTrending).length,
-//     newArrivals: allProducts.filter(p => p.isNewArrival).length,
-//     activeProducts: allProducts.filter(p => p.isActive).length,
-//   };
-
-//   const handleQuickEdit = (product: ProductWithSpecial) => {
-//     setEditingProduct(product);
-//     setQuickEditData({
-//       isFeatured: product.isFeatured,
-//       isTrending: product.isTrending,
-//       isNewArrival: product.isNewArrival,
-//       featuredOrder: product.featuredOrder,
-//       trendingOrder: product.trendingOrder,
-//       newArrivalOrder: product.newArrivalOrder,
-//     });
-//     setQuickEditDialogOpen(true);
-//   };
-
-//   const handleQuickUpdate = async () => {
-//     if (!editingProduct) return;
-
-//     try {
-//       await adminApiService.updateProductSpecialCategories(editingProduct.id, quickEditData);
-
-//       // Update local state
-//       const updatedProducts = allProducts.map(p =>
-//         p.id === editingProduct.id
-//           ? { ...p, ...quickEditData }
-//           : p
-//       );
-//       setAllProducts(updatedProducts);
-
-//       // Notify parent component
-//       onUpdateProduct(editingProduct.id, quickEditData);
-
-//       toast({
-//         title: "Product updated",
-//         description: "Special categories updated successfully.",
-//       });
-
-//       setQuickEditDialogOpen(false);
-//       setEditingProduct(null);
-//     } catch (error) {
-//       console.error('Failed to update product:', error);
-//       toast({
-//         variant: "destructive",
-//         title: "Error updating product",
-//         description: "Could not update special categories.",
-//       });
-//     }
-//   };
-
-//   const handleBulkAction = async () => {
-//     if (selectedProducts.length === 0) {
-//       toast({
-//         variant: "destructive",
-//         title: "No products selected",
-//         description: "Please select at least one product.",
-//       });
-//       return;
-//     }
-
-//     try {
-//       let updates: BulkUpdateItem[] = [];
-
-//       switch (bulkAction) {
-//         case 'add-featured':
-//           updates = selectedProducts.map(productId => ({
-//             productId,
-//             updates: {
-//               isFeatured: true,
-//               featuredOrder: 0
-//             }
-//           }));
-//           break;
-//         case 'add-trending':
-//           updates = selectedProducts.map(productId => ({
-//             productId,
-//             updates: {
-//               isTrending: true,
-//               trendingOrder: 0
-//             }
-//           }));
-//           break;
-//         case 'add-new-arrival':
-//           updates = selectedProducts.map(productId => ({
-//             productId,
-//             updates: {
-//               isNewArrival: true,
-//               newArrivalOrder: 0
-//             }
-//           }));
-//           break;
-//         case 'remove-all':
-//           updates = selectedProducts.map(productId => ({
-//             productId,
-//             updates: {
-//               isFeatured: false,
-//               isTrending: false,
-//               isNewArrival: false,
-//               featuredOrder: 0,
-//               trendingOrder: 0,
-//               newArrivalOrder: 0
-//             }
-//           }));
-//           break;
-//       }
-
-//       const response = await adminApiService.bulkUpdateSpecialCategories({
-//         products: updates
-//       });
-
-//       // Update local state for all affected products
-//       const updatedProducts = allProducts.map(product => {
-//         if (selectedProducts.includes(product.id)) {
-//           const update = updates.find(u => u.productId === product.id);
-//           if (update) {
-//             const updatedProduct = { ...product, ...update.updates };
-//             // Notify parent component for each updated product
-//             onUpdateProduct(product.id, update.updates);
-//             return updatedProduct;
-//           }
-//         }
-//         return product;
-//       });
-//       setAllProducts(updatedProducts);
-
-//       toast({
-//         title: "Bulk update completed",
-//         description: `${response.results.length} products updated successfully.`,
-//       });
-
-//       setSelectedProducts([]);
-//       setBulkDialogOpen(false);
-//     } catch (error) {
-//       console.error('Failed to perform bulk action:', error);
-//       toast({
-//         variant: "destructive",
-//         title: "Error performing bulk action",
-//         description: "Could not update products.",
-//       });
-//     }
-//   };
-
-//   const handleProductSelect = (productId: string) => {
-//     setSelectedProducts(prev =>
-//       prev.includes(productId)
-//         ? prev.filter(id => id !== productId)
-//         : [...prev, productId]
-//     );
-//   };
-
-//   const handleSelectAll = () => {
-//     if (selectedProducts.length === filteredProducts.length) {
-//       setSelectedProducts([]);
-//     } else {
-//       setSelectedProducts(filteredProducts.map(p => p.id));
-//     }
-//   };
-
-//   const handleQuickToggle = async (productId: string, field: 'isFeatured' | 'isTrending' | 'isNewArrival') => {
-//     try {
-//       const product = allProducts.find(p => p.id === productId);
-//       if (!product) return;
-
-//       const updates = {
-//         [field]: !product[field],
-//         [`${field}Order`]: !product[field] ? 0 : product[`${field}Order`]
-//       };
-
-//       await adminApiService.updateProductSpecialCategories(productId, updates);
-
-//       // Update local state
-//       const updatedProducts = allProducts.map(p =>
-//         p.id === productId
-//           ? { ...p, ...updates }
-//           : p
-//       );
-//       setAllProducts(updatedProducts);
-
-//       // Notify parent component
-//       onUpdateProduct(productId, updates);
-
-//       toast({
-//         title: "Product updated",
-//         description: `${field.replace('is', '').replace(/([A-Z])/g, ' $1').trim()} status updated.`,
-//       });
-//     } catch (error) {
-//       console.error('Failed to toggle product status:', error);
-//       toast({
-//         variant: "destructive",
-//         title: "Error updating product",
-//         description: "Could not update product status.",
-//       });
-//     }
-//   };
-
-//   const SpecialCategoryBadge = ({ product }: { product: ProductWithSpecial }) => (
-//     <div className="flex gap-1">
-//       {product.isFeatured && (
-//         <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-xs">
-//           <Star className="h-3 w-3 mr-1" />
-//           Featured
-//         </Badge>
-//       )}
-//       {product.isTrending && (
-//         <Badge variant="default" className="bg-orange-500 hover:bg-orange-600 text-xs">
-//           <Zap className="h-3 w-3 mr-1" />
-//           Trending
-//         </Badge>
-//       )}
-//       {product.isNewArrival && (
-//         <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 text-xs">
-//           <Clock className="h-3 w-3 mr-1" />
-//           New
-//         </Badge>
-//       )}
-//       {!product.isFeatured && !product.isTrending && !product.isNewArrival && (
-//         <span className="text-xs text-muted-foreground">No special categories</span>
-//       )}
-//     </div>
-//   );
-
-//   return (
-//     <div className="space-y-6">
-//       <div className="flex items-center justify-between">
-//         <h1 className="text-3xl font-bold tracking-tight">Product Special Categories</h1>
-//         <div className="flex gap-2">
-//           {selectedProducts.length > 0 && (
-//             <Button onClick={() => setBulkDialogOpen(true)}>
-//               <Edit className="mr-2 h-4 w-4" />
-//               Bulk Action ({selectedProducts.length})
-//             </Button>
-//           )}
-//         </div>
-//       </div>
-
-//       {/* Analytics Cards */}
-//       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-//         <Card>
-//           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-//             <Package className="h-4 w-4 text-muted-foreground" />
-//           </CardHeader>
-//           <CardContent>
-//             <div className="text-2xl font-bold">{analytics.totalProducts}</div>
-//             <p className="text-xs text-muted-foreground">
-//               {analytics.activeProducts} active
-//             </p>
-//           </CardContent>
-//         </Card>
-//         <Card>
-//           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//             <CardTitle className="text-sm font-medium">Featured</CardTitle>
-//             <Star className="h-4 w-4 text-yellow-500" />
-//           </CardHeader>
-//           <CardContent>
-//             <div className="text-2xl font-bold">{analytics.featured}</div>
-//             <p className="text-xs text-muted-foreground">
-//               Featured products
-//             </p>
-//           </CardContent>
-//         </Card>
-//         <Card>
-//           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//             <CardTitle className="text-sm font-medium">Trending</CardTitle>
-//             <Zap className="h-4 w-4 text-orange-500" />
-//           </CardHeader>
-//           <CardContent>
-//             <div className="text-2xl font-bold">{analytics.trending}</div>
-//             <p className="text-xs text-muted-foreground">
-//               Trending products
-//             </p>
-//           </CardContent>
-//         </Card>
-//         <Card>
-//           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//             <CardTitle className="text-sm font-medium">New Arrivals</CardTitle>
-//             <Clock className="h-4 w-4 text-blue-500" />
-//           </CardHeader>
-//           <CardContent>
-//             <div className="text-2xl font-bold">{analytics.newArrivals}</div>
-//             <p className="text-xs text-muted-foreground">
-//               New arrivals
-//             </p>
-//           </CardContent>
-//         </Card>
-//         <Card>
-//           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//             <CardTitle className="text-sm font-medium">Selected</CardTitle>
-//             <Check className="h-4 w-4 text-green-500" />
-//           </CardHeader>
-//           <CardContent>
-//             <div className="text-2xl font-bold">{selectedProducts.length}</div>
-//             <p className="text-xs text-muted-foreground">
-//               For bulk action
-//             </p>
-//           </CardContent>
-//         </Card>
-//       </div>
-
-//       {/* Main Content */}
-//       <Card>
-//         <CardHeader>
-//           <CardTitle>Manage Special Categories</CardTitle>
-//           <CardDescription>
-//             Feature products in special categories to highlight them on your store. All products are shown here.
-//           </CardDescription>
-//         </CardHeader>
-//         <CardContent>
-//           <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as any)}>
-//             <TabsList className="grid w-full grid-cols-4">
-//               <TabsTrigger value="all" className="flex items-center gap-2">
-//                 <Package className="h-4 w-4" />
-//                 All Products
-//               </TabsTrigger>
-//               <TabsTrigger value="featured" className="flex items-center gap-2">
-//                 <Star className="h-4 w-4" />
-//                 Featured
-//               </TabsTrigger>
-//               <TabsTrigger value="trending" className="flex items-center gap-2">
-//                 <Zap className="h-4 w-4" />
-//                 Trending
-//               </TabsTrigger>
-//               <TabsTrigger value="new-arrivals" className="flex items-center gap-2">
-//                 <Clock className="h-4 w-4" />
-//                 New Arrivals
-//               </TabsTrigger>
-//             </TabsList>
-
-//             <TabsContent value={selectedTab} className="space-y-4">
-//               {/* Search and Filters */}
-//               <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-//                 <div className="relative w-full sm:w-96">
-//                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-//                   <Input
-//                     placeholder="Search products by name, brand, or description..."
-//                     className="pl-8"
-//                     value={searchTerm}
-//                     onChange={(e) => setSearchTerm(e.target.value)}
-//                   />
-//                 </div>
-
-//                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-//                   <Filter className="h-4 w-4" />
-//                   <span>{filteredProducts.length} products</span>
-//                 </div>
-//               </div>
-
-//               {/* Products Table */}
-//               <div className="rounded-md border">
-//                 <Table>
-//                   <TableHeader>
-//                     <TableRow>
-//                       <TableHead className="w-12">
-//                         <input
-//                           type="checkbox"
-//                           checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
-//                           onChange={handleSelectAll}
-//                           className="rounded border-gray-300"
-//                         />
-//                       </TableHead>
-//                       <TableHead>Product</TableHead>
-//                       <TableHead>Price</TableHead>
-//                       <TableHead>Stock</TableHead>
-//                       <TableHead>Status</TableHead>
-//                       <TableHead>Special Categories</TableHead>
-//                       <TableHead className="text-center">Quick Toggles</TableHead>
-//                       <TableHead className="text-right">Actions</TableHead>
-//                     </TableRow>
-//                   </TableHeader>
-//                   <TableBody>
-//                     {filteredProducts.length > 0 ? (
-//                       filteredProducts.map((product) => (
-//                         <TableRow key={product.id} className="hover:bg-muted/50">
-//                           <TableCell>
-//                             <input
-//                               type="checkbox"
-//                               checked={selectedProducts.includes(product.id)}
-//                               onChange={() => handleProductSelect(product.id)}
-//                               className="rounded border-gray-300"
-//                             />
-//                           </TableCell>
-//                           <TableCell>
-//                             <div className="flex items-center gap-3">
-//                               <img
-//                                 src={getImageUrl(product.images?.[0])}
-//                                 alt={product.name}
-//                                 className="h-10 w-10 rounded object-cover border"
-//                                 onError={(e) => {
-//                                   (e.target as HTMLImageElement).src = "/placeholder.svg";
-//                                 }}
-//                               />
-//                               <div>
-//                                 <div className="font-medium">{product.name}</div>
-//                                 <div className="text-sm text-muted-foreground">
-//                                   {product.brand && <span>{product.brand} • </span>}
-//                                   {product.categoryLevel1}
-//                                 </div>
-//                               </div>
-//                             </div>
-//                           </TableCell>
-//                           <TableCell className="font-medium">
-//                             ${parseFloat(product.price?.toString() || '0').toFixed(2)}
-//                           </TableCell>
-//                           <TableCell>
-//                             <Badge variant={product.stock < 10 ? "destructive" : "outline"}>
-//                               {product.stock}
-//                             </Badge>
-//                           </TableCell>
-//                           <TableCell>
-//                             <Badge variant={product.isActive ? "default" : "destructive"}>
-//                               {product.isActive ? 'Active' : 'Inactive'}
-//                             </Badge>
-//                           </TableCell>
-//                           <TableCell>
-//                             <SpecialCategoryBadge product={product} />
-//                             {(product.isFeatured || product.isTrending || product.isNewArrival) && (
-//                               <div className="text-xs text-muted-foreground mt-1">
-//                                 {product.isFeatured && `Featured Order: ${product.featuredOrder} `}
-//                                 {product.isTrending && `Trending Order: ${product.trendingOrder} `}
-//                                 {product.isNewArrival && `New Arrival Order: ${product.newArrivalOrder}`}
-//                               </div>
-//                             )}
-//                           </TableCell>
-//                           <TableCell>
-//                             <div className="flex justify-center gap-2">
-//                               <Button
-//                                 size="sm"
-//                                 variant={product.isFeatured ? "default" : "outline"}
-//                                 className={`h-8 w-8 p-0 ${product.isFeatured
-//                                     ? "bg-yellow-500 hover:bg-yellow-600"
-//                                     : ""
-//                                   }`}
-//                                 onClick={() => handleQuickToggle(product.id, 'isFeatured')}
-//                                 title="Toggle Featured"
-//                               >
-//                                 <Star className="h-4 w-4" />
-//                               </Button>
-//                               <Button
-//                                 size="sm"
-//                                 variant={product.isTrending ? "default" : "outline"}
-//                                 className={`h-8 w-8 p-0 ${product.isTrending
-//                                     ? "bg-orange-500 hover:bg-orange-600"
-//                                     : ""
-//                                   }`}
-//                                 onClick={() => handleQuickToggle(product.id, 'isTrending')}
-//                                 title="Toggle Trending"
-//                               >
-//                                 <Zap className="h-4 w-4" />
-//                               </Button>
-//                               <Button
-//                                 size="sm"
-//                                 variant={product.isNewArrival ? "default" : "outline"}
-//                                 className={`h-8 w-8 p-0 ${product.isNewArrival
-//                                     ? "bg-blue-500 hover:bg-blue-600"
-//                                     : ""
-//                                   }`}
-//                                 onClick={() => handleQuickToggle(product.id, 'isNewArrival')}
-//                                 title="Toggle New Arrival"
-//                               >
-//                                 <Clock className="h-4 w-4" />
-//                               </Button>
-//                             </div>
-//                           </TableCell>
-//                           <TableCell className="text-right">
-//                             <Button
-//                               variant="ghost"
-//                               size="sm"
-//                               onClick={() => handleQuickEdit(product)}
-//                             >
-//                               <Edit className="h-4 w-4" />
-//                             </Button>
-//                           </TableCell>
-//                         </TableRow>
-//                       ))
-//                     ) : (
-//                       <TableRow>
-//                         <TableCell colSpan={9} className="text-center py-10">
-//                           <Package className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-//                           <p className="text-lg font-medium">No products found</p>
-//                           <p className="text-muted-foreground">
-//                             {searchTerm ? "Try adjusting your search terms" : "No products available"}
-//                           </p>
-//                         </TableCell>
-//                       </TableRow>
-//                     )}
-//                   </TableBody>
-//                 </Table>
-//               </div>
-//             </TabsContent>
-//           </Tabs>
-//         </CardContent>
-//       </Card>
-
-//       {/* Quick Edit Dialog */}
-//       <Dialog open={quickEditDialogOpen} onOpenChange={setQuickEditDialogOpen}>
-//         <DialogContent className="sm:max-w-[500px]">
-//           <DialogHeader>
-//             <DialogTitle>Edit Special Categories</DialogTitle>
-//             <DialogDescription>
-//               Configure special categories for {editingProduct?.name}
-//             </DialogDescription>
-//           </DialogHeader>
-
-//           <div className="space-y-4 py-4">
-//             <div className="space-y-3">
-//               <Label className="text-base font-medium">Special Categories</Label>
-
-//               <div className="space-y-3">
-//                 {/* Featured */}
-//                 <div className="flex items-center justify-between p-3 border rounded-lg">
-//                   <Label htmlFor="isFeatured" className="flex items-center gap-2 cursor-pointer">
-//                     <Star className="h-5 w-5 text-yellow-500" />
-//                     <div>
-//                       <div className="font-medium">Featured</div>
-//                       <div className="text-sm text-muted-foreground">Highlight on featured section</div>
-//                     </div>
-//                   </Label>
-//                   <Switch
-//                     id="isFeatured"
-//                     checked={quickEditData.isFeatured}
-//                     onCheckedChange={(checked) => setQuickEditData({ ...quickEditData, isFeatured: checked })}
-//                   />
-//                 </div>
-
-//                 {/* Trending */}
-//                 <div className="flex items-center justify-between p-3 border rounded-lg">
-//                   <Label htmlFor="isTrending" className="flex items-center gap-2 cursor-pointer">
-//                     <Zap className="h-5 w-5 text-orange-500" />
-//                     <div>
-//                       <div className="font-medium">Trending</div>
-//                       <div className="text-sm text-muted-foreground">Show in trending products</div>
-//                     </div>
-//                   </Label>
-//                   <Switch
-//                     id="isTrending"
-//                     checked={quickEditData.isTrending}
-//                     onCheckedChange={(checked) => setQuickEditData({ ...quickEditData, isTrending: checked })}
-//                   />
-//                 </div>
-
-//                 {/* New Arrival */}
-//                 <div className="flex items-center justify-between p-3 border rounded-lg">
-//                   <Label htmlFor="isNewArrival" className="flex items-center gap-2 cursor-pointer">
-//                     <Clock className="h-5 w-5 text-blue-500" />
-//                     <div>
-//                       <div className="font-medium">New Arrival</div>
-//                       <div className="text-sm text-muted-foreground">Mark as new arrival</div>
-//                     </div>
-//                   </Label>
-//                   <Switch
-//                     id="isNewArrival"
-//                     checked={quickEditData.isNewArrival}
-//                     onCheckedChange={(checked) => setQuickEditData({ ...quickEditData, isNewArrival: checked })}
-//                   />
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* Display Orders */}
-//             <div className="space-y-3">
-//               <Label className="text-base font-medium">Display Orders</Label>
-
-//               <div className="grid grid-cols-3 gap-3">
-//                 <div className="space-y-2">
-//                   <Label htmlFor="featuredOrder" className="text-xs">Featured Order</Label>
-//                   <Input
-//                     id="featuredOrder"
-//                     type="number"
-//                     min="0"
-//                     value={quickEditData.featuredOrder}
-//                     onChange={(e) => setQuickEditData({ ...quickEditData, featuredOrder: parseInt(e.target.value) || 0 })}
-//                     disabled={!quickEditData.isFeatured}
-//                   />
-//                 </div>
-//                 <div className="space-y-2">
-//                   <Label htmlFor="trendingOrder" className="text-xs">Trending Order</Label>
-//                   <Input
-//                     id="trendingOrder"
-//                     type="number"
-//                     min="0"
-//                     value={quickEditData.trendingOrder}
-//                     onChange={(e) => setQuickEditData({ ...quickEditData, trendingOrder: parseInt(e.target.value) || 0 })}
-//                     disabled={!quickEditData.isTrending}
-//                   />
-//                 </div>
-//                 <div className="space-y-2">
-//                   <Label htmlFor="newArrivalOrder" className="text-xs">New Arrival Order</Label>
-//                   <Input
-//                     id="newArrivalOrder"
-//                     type="number"
-//                     min="0"
-//                     value={quickEditData.newArrivalOrder}
-//                     onChange={(e) => setQuickEditData({ ...quickEditData, newArrivalOrder: parseInt(e.target.value) || 0 })}
-//                     disabled={!quickEditData.isNewArrival}
-//                   />
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-
-//           <DialogFooter>
-//             <Button variant="outline" onClick={() => setQuickEditDialogOpen(false)}>
-//               Cancel
-//             </Button>
-//             <Button onClick={handleQuickUpdate}>
-//               Save Changes
-//             </Button>
-//           </DialogFooter>
-//         </DialogContent>
-//       </Dialog>
-
-//       {/* Bulk Action Dialog */}
-//       <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
-//         <DialogContent className="sm:max-w-[400px]">
-//           <DialogHeader>
-//             <DialogTitle>Bulk Action</DialogTitle>
-//             <DialogDescription>
-//               Apply action to {selectedProducts.length} selected products
-//             </DialogDescription>
-//           </DialogHeader>
-
-//           <div className="space-y-4 py-4">
-//             <div className="space-y-3">
-//               <Label className="text-base font-medium">Select Action</Label>
-
-//               <Select value={bulkAction} onValueChange={(value: any) => setBulkAction(value)}>
-//                 <SelectTrigger>
-//                   <SelectValue />
-//                 </SelectTrigger>
-//                 <SelectContent>
-//                   <SelectItem value="add-featured">
-//                     <div className="flex items-center gap-2">
-//                       <Star className="h-4 w-4 text-yellow-500" />
-//                       Add to Featured
-//                     </div>
-//                   </SelectItem>
-//                   <SelectItem value="add-trending">
-//                     <div className="flex items-center gap-2">
-//                       <Zap className="h-4 w-4 text-orange-500" />
-//                       Add to Trending
-//                     </div>
-//                   </SelectItem>
-//                   <SelectItem value="add-new-arrival">
-//                     <div className="flex items-center gap-2">
-//                       <Clock className="h-4 w-4 text-blue-500" />
-//                       Add to New Arrivals
-//                     </div>
-//                   </SelectItem>
-//                   <SelectItem value="remove-all">
-//                     <div className="flex items-center gap-2">
-//                       <X className="h-4 w-4 text-destructive" />
-//                       Remove from All Categories
-//                     </div>
-//                   </SelectItem>
-//                 </SelectContent>
-//               </Select>
-//             </div>
-
-//             {/* Selected Products Preview */}
-//             <div className="space-y-2">
-//               <Label className="text-sm font-medium">Selected Products ({selectedProducts.length})</Label>
-//               <div className="max-h-32 overflow-y-auto border rounded-md p-2">
-//                 {allProducts
-//                   .filter(p => selectedProducts.includes(p.id))
-//                   .slice(0, 5)
-//                   .map(product => (
-//                     <div key={product.id} className="text-sm py-1 truncate">
-//                       {product.name}
-//                     </div>
-//                   ))}
-//                 {selectedProducts.length > 5 && (
-//                   <div className="text-sm text-muted-foreground py-1">
-//                     +{selectedProducts.length - 5} more...
-//                   </div>
-//                 )}
-//               </div>
-//             </div>
-//           </div>
-
-//           <DialogFooter>
-//             <Button variant="outline" onClick={() => setBulkDialogOpen(false)}>
-//               Cancel
-//             </Button>
-//             <Button onClick={handleBulkAction}>
-//               Apply to {selectedProducts.length} Products
-//             </Button>
-//           </DialogFooter>
-//         </DialogContent>
-//       </Dialog>
-//     </div>
-//   );
-// };
-
-// // Main Products Component
-// export default function Products() {
-//   const [products, setProducts] = useState<ProductWithSpecial[]>([]);
-//   const [categories, setCategories] = useState<Category[]>([]);
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [dialogOpen, setDialogOpen] = useState(false);
-//   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-//   const [selectedProduct, setSelectedProduct] = useState<ProductWithSpecial | null>(null);
-//   const [editingProduct, setEditingProduct] = useState<ProductWithSpecial | null>(null);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
-//   const [isSubmitting, setIsSubmitting] = useState(false);
-//   const [error, setError] = useState<string | null>(null);
-//   const [activeTab, setActiveTab] = useState("catalog");
-//   const [formData, setFormData] = useState<ProductFormData>({
-//     name: "",
-//     description: "",
-//     price: "",
-//     categoryLevel1: "",
-//     categoryLevel2: "",
-//     categoryLevel3: "",
-//     serviceType: "physical",
-//     serviceDuration: "",
-//     unit: "piece",
-//     stock: "0",
-//     brand: "",
-//     tags: [],
-//     isActive: true,
-//     image: "",
-
-//     // NEW SPECIAL CATEGORY FIELDS
-//     isFeatured: false,
-//     isTrending: false,
-//     isNewArrival: false,
-//     featuredOrder: 0,
-//     trendingOrder: 0,
-//     newArrivalOrder: 0,
-//   });
-//   const { toast } = useToast();
-
-//   const serviceTypeOptions = ['physical', 'service'];
-//   const unitOptions = ['piece', 'kg', 'hour', 'day', 'month', 'set'];
-
-//   // Helper function to convert file path to URL
-//   const getImageUrl = (image?: string): string => {
-//     if (!image || !image.trim()) {
-//       return "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&h=500&fit=crop";
-//     }
-
-//     const clean = image.trim();
-
-//     // ✅ If it's already a Cloudinary URL — keep it
-//     if (clean.includes("cloudinary.com")) {
-//       return clean;
-//     }
-
-//     // ✅ If it's from your backend uploads but needs Cloudinary mapping
-//     if (clean.includes("georgina-server-code.onrender.com/uploads/products/")) {
-//       const filename = clean.split("/").pop();
-//       return `https://res.cloudinary.com/dy0lpwemp/image/upload/v1762654150/georgina-products/${filename}`;
-//     }
-
-//     // ✅ If it's a relative upload (no host yet)
-//     if (clean.startsWith("uploads/products/")) {
-//       const filename = clean.split("/").pop();
-//       return `https://res.cloudinary.com/dy0lpwemp/image/upload/v1762654150/georgina-products/${filename}`;
-//     }
-
-//     // ✅ Otherwise, return as-is
-//     return clean;
-//   };
-
-//   // Fetch categories from your API
-//   const fetchCategories = async () => {
-//     try {
-//       setIsCategoriesLoading(true);
-//       console.log('🔄 Fetching categories from API...');
-      
-//       const response = await fetch('https://georgina-server-code.onrender.com/api/categories-tree');
-      
-//       if (!response.ok) {
-//         throw new Error(`HTTP error! status: ${response.status}`);
-//       }
-      
-//       const categoriesData = await response.json();
-//       console.log('✅ Categories response:', categoriesData);
-      
-//       setCategories(categoriesData);
-//     } catch (err: any) {
-//       console.error('❌ Failed to fetch categories:', err);
-//       toast({
-//         variant: "destructive",
-//         title: "Error loading categories",
-//         description: "Could not fetch categories. Using fallback options.",
-//       });
-//     } finally {
-//       setIsCategoriesLoading(false);
-//     }
-//   };
-
-//   // Fetch products from API
-//   const fetchProducts = async () => {
-//     try {
-//       setIsLoading(true);
-//       setError(null);
-
-//       const productsResponse = await adminApiService.getProducts();
-//       const productsList = productsResponse.products || productsResponse.data?.products || productsResponse || [];
-
-//       // Cast the products to include special fields with defaults
-//       const productsWithDefaults = (Array.isArray(productsList) ? productsList : []).map(product => ({
-//         ...product,
-//         isFeatured: (product as any).isFeatured ?? false,
-//         isTrending: (product as any).isTrending ?? false,
-//         isNewArrival: (product as any).isNewArrival ?? false,
-//         featuredOrder: (product as any).featuredOrder ?? 0,
-//         trendingOrder: (product as any).trendingOrder ?? 0,
-//         newArrivalOrder: (product as any).newArrivalOrder ?? 0,
-//       })) as ProductWithSpecial[];
-
-//       setProducts(productsWithDefaults);
-
-//     } catch (err) {
-//       console.error('Failed to fetch data:', err);
-//       setError('Failed to load data. Please try again.');
-//       toast({
-//         variant: "destructive",
-//         title: "Error loading data",
-//         description: "Could not fetch products.",
-//       });
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   // Fetch both products and categories on component mount
-//   useEffect(() => {
-//     fetchProducts();
-//     fetchCategories();
-//   }, []);
-
-//   // Helper function to flatten categories for easier processing
-//   const flattenCategories = (categories: Category[]): Category[] => {
-//     const flattened: Category[] = [];
-    
-//     const flatten = (category: Category) => {
-//       flattened.push(category);
-//       if (category.children && category.children.length > 0) {
-//         category.children.forEach(child => flatten(child));
-//       }
-//     };
-    
-//     categories.forEach(category => flatten(category));
-//     return flattened;
-//   };
-
-//   // Get all categories as a flat array
-//   const allCategories = flattenCategories(categories);
-
-//   // Get categories by level
-//   const getCategoriesByLevel = (level: number) => {
-//     return allCategories.filter(cat => cat.level === level);
-//   };
-
-//   // Get top-level categories (level 1)
-//   const topLevelCategories = getCategoriesByLevel(1);
-
-//   // Get level 2 categories
-//   const level2Categories = getCategoriesByLevel(2);
-
-//   // Get level 3 categories
-//   const level3Categories = getCategoriesByLevel(3);
-
-//   // Get subcategories for a specific parent
-//   const getSubcategories = (parentId: string) => {
-//     return allCategories.filter(cat => cat.parentId === parentId);
-//   };
-
-//   // Handle product updates from SpecialProductsManager
-//   const handleProductUpdate = (productId: string, updates: any) => {
-//     setProducts(prevProducts =>
-//       prevProducts.map(product =>
-//         product.id === productId
-//           ? { ...product, ...updates }
-//           : product
-//       )
-//     );
-//   };
-
-//   const filteredProducts = products.filter(
-//     (product) =>
-//       (product.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-//       (product.categoryLevel1?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-//       (product.brand?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-//       (product.description?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-//   );
-
-//   const totalProducts = filteredProducts.length;
-//   const totalValue = filteredProducts.reduce((sum, p) => {
-//     const price = parseFloat(p.price?.toString() || '0');
-//     const stock = parseInt(p.stock?.toString() || '0');
-//     return sum + (price * stock);
-//   }, 0);
-//   const lowStockCount = filteredProducts.filter(p => (p.stock || 0) < 10).length;
-
-//   // Count special category products
-//   const featuredCount = filteredProducts.filter(p => p.isFeatured).length;
-//   const trendingCount = filteredProducts.filter(p => p.isTrending).length;
-//   const newArrivalsCount = filteredProducts.filter(p => p.isNewArrival).length;
-
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-
-//     if (!formData.name || !formData.price || !formData.categoryLevel1) {
-//       toast({
-//         variant: "destructive",
-//         title: "Missing fields",
-//         description: "Please fill in all required fields"
-//       });
-//       return;
-//     }
-
-//     setIsSubmitting(true);
-
-//     try {
-//       const formDataObj = new FormData();
-
-//       // Append all product data
-//       formDataObj.append('name', formData.name);
-//       formDataObj.append('description', formData.description);
-//       formDataObj.append('price', formData.price);
-//       formDataObj.append('categoryLevel1', formData.categoryLevel1);
-//       formDataObj.append('categoryLevel2', formData.categoryLevel2);
-//       formDataObj.append('categoryLevel3', formData.categoryLevel3);
-//       formDataObj.append('serviceType', formData.serviceType);
-//       formDataObj.append('serviceDuration', formData.serviceDuration);
-//       formDataObj.append('unit', formData.unit);
-//       formDataObj.append('stock', formData.stock);
-//       formDataObj.append('brand', formData.brand);
-
-//       // Append tags as JSON string
-//       formDataObj.append('tags', JSON.stringify(formData.tags));
-
-//       formDataObj.append('isActive', formData.isActive.toString());
-
-//       // NEW: Append special category fields
-//       formDataObj.append('isFeatured', formData.isFeatured.toString());
-//       formDataObj.append('isTrending', formData.isTrending.toString());
-//       formDataObj.append('isNewArrival', formData.isNewArrival.toString());
-//       formDataObj.append('featuredOrder', formData.featuredOrder.toString());
-//       formDataObj.append('trendingOrder', formData.trendingOrder.toString());
-//       formDataObj.append('newArrivalOrder', formData.newArrivalOrder.toString());
-
-//       // Handle image upload
-//       if (formData.image instanceof File) {
-//         formDataObj.append('image', formData.image);
-//       } else if (!formData.image && !editingProduct) {
-//         toast({
-//           variant: "destructive",
-//           title: "Image required",
-//           description: "Please select an image for the product"
-//         });
-//         setIsSubmitting(false);
-//         return;
-//       }
-
-//       let result;
-//       if (editingProduct) {
-//         result = await adminApiService.updateProduct(editingProduct.id, formDataObj);
-//         // Cast the result to include special fields
-//         const resultWithSpecial = {
-//           ...result,
-//           isFeatured: (result as any).isFeatured ?? false,
-//           isTrending: (result as any).isTrending ?? false,
-//           isNewArrival: (result as any).isNewArrival ?? false,
-//           featuredOrder: (result as any).featuredOrder ?? 0,
-//           trendingOrder: (result as any).trendingOrder ?? 0,
-//           newArrivalOrder: (result as any).newArrivalOrder ?? 0,
-//         } as ProductWithSpecial;
-
-//         setProducts(products.map((p) => p.id === editingProduct.id ? resultWithSpecial : p));
-//         toast({
-//           title: "Product updated",
-//           description: "Product has been updated successfully"
-//         });
-//       } else {
-//         result = await adminApiService.createProduct(formDataObj);
-//         // Cast the result to include special fields
-//         const resultWithSpecial = {
-//           ...result,
-//           isFeatured: (result as any).isFeatured ?? false,
-//           isTrending: (result as any).isTrending ?? false,
-//           isNewArrival: (result as any).isNewArrival ?? false,
-//           featuredOrder: (result as any).featuredOrder ?? 0,
-//           trendingOrder: (result as any).trendingOrder ?? 0,
-//           newArrivalOrder: (result as any).newArrivalOrder ?? 0,
-//         } as ProductWithSpecial;
-
-//         setProducts(prev => [...prev, resultWithSpecial]);
-//         toast({
-//           title: "Product added",
-//           description: "Product has been added successfully"
-//         });
-//       }
-
-//       // Reset form and close dialog
-//       setFormData({
-//         name: "",
-//         description: "",
-//         price: "",
-//         categoryLevel1: "",
-//         categoryLevel2: "",
-//         categoryLevel3: "",
-//         serviceType: "physical",
-//         serviceDuration: "",
-//         unit: "piece",
-//         stock: "0",
-//         brand: "",
-//         tags: [],
-//         isActive: true,
-//         image: null,
-
-//         // NEW: Reset special category fields
-//         isFeatured: false,
-//         isTrending: false,
-//         isNewArrival: false,
-//         featuredOrder: 0,
-//         trendingOrder: 0,
-//         newArrivalOrder: 0,
-//       });
-//       setEditingProduct(null);
-//       setDialogOpen(false);
-
-//     } catch (err) {
-//       console.error('Failed to save product:', err);
-//       toast({
-//         variant: "destructive",
-//         title: "Error saving product",
-//         description: "Could not save the product. Please try again.",
-//       });
-//     } finally {
-//       setIsSubmitting(false);
-//     }
-//   };
-
-//   const handleAddProduct = () => {
-//     setEditingProduct(null);
-//     setFormData({
-//       name: "",
-//       description: "",
-//       price: "",
-//       categoryLevel1: "",
-//       categoryLevel2: "",
-//       categoryLevel3: "",
-//       serviceType: "physical",
-//       serviceDuration: "",
-//       unit: "piece",
-//       stock: "0",
-//       brand: "",
-//       tags: [],
-//       isActive: true,
-//       image: null,
-
-//       // NEW: Reset special category fields
-//       isFeatured: false,
-//       isTrending: false,
-//       isNewArrival: false,
-//       featuredOrder: 0,
-//       trendingOrder: 0,
-//       newArrivalOrder: 0,
-//     });
-//     setDialogOpen(true);
-//   };
-
-//   const handleEditProduct = (productToEdit: ProductWithSpecial) => {
-//     setEditingProduct(productToEdit);
-
-//     const convertTagsToArray = (tags: unknown): string[] => {
-//       if (!tags) return [];
-      
-//       if (Array.isArray(tags)) {
-//         return tags.reduce<string[]>((acc, tag) => {
-//           if (typeof tag === 'string' && tag.trim()) {
-//             acc.push(tag.trim());
-//           }
-//           return acc;
-//         }, []);
-//       }
-      
-//       if (typeof tags === 'string') {
-//         try {
-//           const parsed = JSON.parse(tags);
-//           if (Array.isArray(parsed)) {
-//             return parsed.reduce<string[]>((acc, tag) => {
-//               if (typeof tag === 'string' && tag.trim()) {
-//                 acc.push(tag.trim());
-//               }
-//               return acc;
-//             }, []);
-//           }
-//         } catch {
-//           return tags.split(',')
-//             .map(tag => tag.trim())
-//             .filter(tag => tag !== '');
-//         }
-//       }
-      
-//       return [];
-//     };
-
-//     setFormData({
-//       name: productToEdit.name,
-//       description: productToEdit.description || "",
-//       price: productToEdit.price.toString(),
-//       categoryLevel1: productToEdit.categoryLevel1 || "",
-//       categoryLevel2: productToEdit.categoryLevel2 || "",
-//       categoryLevel3: productToEdit.categoryLevel3 || "",
-//       serviceType: productToEdit.serviceType || "physical",
-//       serviceDuration: productToEdit.serviceDuration || "",
-//       unit: productToEdit.unit || "piece",
-//       stock: productToEdit.stock?.toString() || "0",
-//       brand: productToEdit.brand || "",
-//       tags: convertTagsToArray(productToEdit.tags),
-//       isActive: productToEdit.isActive !== undefined ? productToEdit.isActive : true,
-//       image: getImageUrl(productToEdit.images?.[0]) || "",
-
-//       // FIXED: Use numbers directly from the product
-//       isFeatured: productToEdit.isFeatured || false,
-//       isTrending: productToEdit.isTrending || false,
-//       isNewArrival: productToEdit.isNewArrival || false,
-//       featuredOrder: productToEdit.featuredOrder || 0,
-//       trendingOrder: productToEdit.trendingOrder || 0,
-//       newArrivalOrder: productToEdit.newArrivalOrder || 0,
-//     });
-//     setDialogOpen(true);
-//   };
-
-//   const handleViewProduct = (product: ProductWithSpecial) => {
-//     setSelectedProduct(product);
-//     setDetailsDialogOpen(true);
-//   };
-
-//   const handleDeleteProduct = async (id: string) => {
-//     if (!confirm('Are you sure you want to delete this product?')) {
-//       return;
-//     }
-
-//     try {
-//       await adminApiService.deleteProduct(id);
-//       setProducts(products.filter((p) => p.id !== id));
-//       toast({
-//         title: "Product deleted",
-//         description: "The product has been removed successfully"
-//       });
-//     } catch (err) {
-//       console.error('Failed to delete product:', err);
-//       toast({
-//         variant: "destructive",
-//         title: "Error deleting product",
-//         description: "Could not delete the product. Please try again.",
-//       });
-//     }
-//   };
-
-//   const handleToggleStatus = async (productToToggle: ProductWithSpecial) => {
-//     try {
-//       const formData = new FormData();
-//       formData.append('isActive', (!productToToggle.isActive).toString());
-
-//       const updatedProduct = await adminApiService.updateProduct(productToToggle.id, formData);
-//       // Cast the updated product to include special fields
-//       const updatedProductWithSpecial = {
-//         ...updatedProduct,
-//         isFeatured: (updatedProduct as any).isFeatured ?? productToToggle.isFeatured,
-//         isTrending: (updatedProduct as any).isTrending ?? productToToggle.isTrending,
-//         isNewArrival: (updatedProduct as any).isNewArrival ?? productToToggle.isNewArrival,
-//         featuredOrder: (updatedProduct as any).featuredOrder ?? productToToggle.featuredOrder,
-//         trendingOrder: (updatedProduct as any).trendingOrder ?? productToToggle.trendingOrder,
-//         newArrivalOrder: (updatedProduct as any).newArrivalOrder ?? productToToggle.newArrivalOrder,
-//       } as ProductWithSpecial;
-
-//       setProducts(products.map((p) => p.id === productToToggle.id ? updatedProductWithSpecial : p));
-//       toast({
-//         title: `Product ${!productToToggle.isActive ? 'activated' : 'deactivated'}`,
-//         description: `Product has been ${!productToToggle.isActive ? 'activated' : 'deactivated'} successfully`
-//       });
-//     } catch (err) {
-//       console.error('Failed to toggle product status:', err);
-//       toast({
-//         variant: "destructive",
-//         title: "Error updating product",
-//         description: "Could not update product status. Please try again.",
-//       });
-//     }
-//   };
-
-//   // Loading and Skeleton Components
-//   const SkeletonRow = () => (
-//     <TableRow>
-//       <TableCell>
-//         <div className="flex items-center gap-3">
-//           <div className="h-12 w-12 bg-muted rounded animate-pulse" />
-//           <div className="space-y-2">
-//             <div className="h-4 bg-muted rounded animate-pulse w-32" />
-//             <div className="h-3 bg-muted rounded animate-pulse w-24" />
-//           </div>
-//         </div>
-//       </TableCell>
-//       <TableCell>
-//         <div className="h-6 bg-muted rounded animate-pulse w-20" />
-//       </TableCell>
-//       <TableCell>
-//         <div className="h-6 bg-muted rounded animate-pulse w-16" />
-//       </TableCell>
-//       <TableCell>
-//         <div className="h-4 bg-muted rounded animate-pulse w-12" />
-//       </TableCell>
-//       <TableCell>
-//         <div className="h-4 bg-muted rounded animate-pulse w-16" />
-//       </TableCell>
-//       <TableCell>
-//         <div className="h-6 bg-muted rounded animate-pulse w-16" />
-//       </TableCell>
-//       <TableCell>
-//         <div className="h-6 bg-muted rounded animate-pulse w-16" />
-//       </TableCell>
-//       <TableCell>
-//         <div className="flex justify-end gap-2">
-//           <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-//           <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-//           <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-//         </div>
-//       </TableCell>
-//     </TableRow>
-//   );
-
-//   if (error && products.length === 0) {
-//     return (
-//       <div className="space-y-6">
-//         <div className="flex items-center justify-between">
-//           <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-//           <Button onClick={fetchProducts} variant="outline">
-//             <RefreshCw className="mr-2 h-4 w-4" />
-//             Retry
-//           </Button>
-//         </div>
-//         <Card>
-//           <CardContent className="flex flex-col items-center justify-center py-12">
-//             <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-//             <p className="text-lg font-medium mb-2">Failed to load products</p>
-//             <p className="text-muted-foreground text-center mb-4">{error}</p>
-//             <Button onClick={fetchProducts}>
-//               <RefreshCw className="mr-2 h-4 w-4" />
-//               Try Again
-//             </Button>
-//           </CardContent>
-//         </Card>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="space-y-6">
-//       <div className="flex items-center justify-between">
-//         <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-//         <div className="flex gap-2">
-//           <Button onClick={() => { fetchProducts(); fetchCategories(); }} variant="outline" disabled={isLoading}>
-//             <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-//             Refresh
-//           </Button>
-//           {activeTab === "catalog" && (
-//             <Button onClick={handleAddProduct} disabled={isLoading}>
-//               <Plus className="mr-2 h-4 w-4" />
-//               Add Product
-//             </Button>
-//           )}
-//         </div>
-//       </div>
-
-//       {/* Main Tabs */}
-//       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-//         <TabsList className="grid w-full grid-cols-2">
-//           <TabsTrigger value="catalog" className="flex items-center gap-2">
-//             <Package className="h-4 w-4" />
-//             Product Catalog
-//           </TabsTrigger>
-//           <TabsTrigger value="special" className="flex items-center gap-2">
-//             <Star className="h-4 w-4" />
-//             Special Categories
-//           </TabsTrigger>
-//         </TabsList>
-
-//         {/* Product Catalog Tab */}
-//         <TabsContent value="catalog" className="space-y-6">
-//           {/* Stats Cards - Updated with Special Categories */}
-//           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-//             <Card>
-//               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//                 <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-//                 <Package className="h-4 w-4 text-muted-foreground" />
-//               </CardHeader>
-//               <CardContent>
-//                 {isLoading ? (
-//                   <>
-//                     <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-//                     <div className="h-4 bg-muted rounded animate-pulse" />
-//                   </>
-//                 ) : (
-//                   <>
-//                     <div className="text-2xl font-bold">{totalProducts}</div>
-//                     <p className="text-xs text-muted-foreground">Active in catalog</p>
-//                   </>
-//                 )}
-//               </CardContent>
-//             </Card>
-//             <Card>
-//               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//                 <CardTitle className="text-sm font-medium">Featured</CardTitle>
-//                 <Star className="h-4 w-4 text-yellow-500" />
-//               </CardHeader>
-//               <CardContent>
-//                 {isLoading ? (
-//                   <>
-//                     <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-//                     <div className="h-4 bg-muted rounded animate-pulse" />
-//                   </>
-//                 ) : (
-//                   <>
-//                     <div className="text-2xl font-bold">{featuredCount}</div>
-//                     <p className="text-xs text-muted-foreground">Featured products</p>
-//                   </>
-//                 )}
-//               </CardContent>
-//             </Card>
-//             <Card>
-//               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//                 <CardTitle className="text-sm font-medium">Trending</CardTitle>
-//                 <Zap className="h-4 w-4 text-orange-500" />
-//               </CardHeader>
-//               <CardContent>
-//                 {isLoading ? (
-//                   <>
-//                     <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-//                     <div className="h-4 bg-muted rounded animate-pulse" />
-//                   </>
-//                 ) : (
-//                   <>
-//                     <div className="text-2xl font-bold">{trendingCount}</div>
-//                     <p className="text-xs text-muted-foreground">Trending products</p>
-//                   </>
-//                 )}
-//               </CardContent>
-//             </Card>
-//             <Card>
-//               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//                 <CardTitle className="text-sm font-medium">New Arrivals</CardTitle>
-//                 <Clock className="h-4 w-4 text-blue-500" />
-//               </CardHeader>
-//               <CardContent>
-//                 {isLoading ? (
-//                   <>
-//                     <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-//                     <div className="h-4 bg-muted rounded animate-pulse" />
-//                   </>
-//                 ) : (
-//                   <>
-//                     <div className="text-2xl font-bold">{newArrivalsCount}</div>
-//                     <p className="text-xs text-muted-foreground">New arrivals</p>
-//                   </>
-//                 )}
-//               </CardContent>
-//             </Card>
-//             <Card>
-//               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//                 <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-//                 <DollarSign className="h-4 w-4 text-muted-foreground" />
-//               </CardHeader>
-//               <CardContent>
-//                 {isLoading ? (
-//                   <>
-//                     <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-//                     <div className="h-4 bg-muted rounded animate-pulse" />
-//                   </>
-//                 ) : (
-//                   <>
-//                     <div className="text-2xl font-bold">${totalValue.toFixed(2)}</div>
-//                     <p className="text-xs text-muted-foreground">Inventory worth</p>
-//                   </>
-//                 )}
-//               </CardContent>
-//             </Card>
-//             <Card>
-//               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-//                 <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-//                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-//               </CardHeader>
-//               <CardContent>
-//                 {isLoading ? (
-//                   <>
-//                     <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-//                     <div className="h-4 bg-muted rounded animate-pulse" />
-//                   </>
-//                 ) : (
-//                   <>
-//                     <div className="text-2xl font-bold">{lowStockCount}</div>
-//                     <p className="text-xs text-muted-foreground">Items below 10 units</p>
-//                   </>
-//                 )}
-//               </CardContent>
-//             </Card>
-//           </div>
-
-//           {/* Products Table */}
-//           <Card>
-//             <CardHeader className="pb-3">
-//               <CardTitle className="text-lg">Product Catalog</CardTitle>
-//               <CardDescription>Manage your product inventory</CardDescription>
-//             </CardHeader>
-//             <CardContent>
-//               <div className="mb-6">
-//                 <div className="relative w-full md:w-96">
-//                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-//                   <Input
-//                     placeholder="Search products..."
-//                     className="pl-8"
-//                     value={searchTerm}
-//                     onChange={(e) => setSearchTerm(e.target.value)}
-//                     disabled={isLoading}
-//                   />
-//                 </div>
-//               </div>
-
-//               <Table>
-//                 <TableHeader>
-//                   <TableRow>
-//                     <TableHead>Product</TableHead>
-//                     <TableHead>Category</TableHead>
-//                     <TableHead>Price</TableHead>
-//                     <TableHead>Stock</TableHead>
-//                     <TableHead>Type</TableHead>
-//                     <TableHead>Status</TableHead>
-//                     <TableHead>Special</TableHead>
-//                     <TableHead className="text-right">Actions</TableHead>
-//                   </TableRow>
-//                 </TableHeader>
-//                 <TableBody>
-//                   {isLoading ? (
-//                     Array.from({ length: 5 }).map((_, index) => (
-//                       <SkeletonRow key={index} />
-//                     ))
-//                   ) : filteredProducts.length > 0 ? (
-//                     filteredProducts.map((product) => (
-//                       <TableRow key={product.id} className="hover:bg-muted/50">
-//                         <TableCell>
-//                           <div className="flex items-center gap-3">
-//                             <img
-//                               src={getImageUrl(product.images?.[0])}
-//                               alt={product.name}
-//                               className="h-12 w-12 rounded object-cover border"
-//                               onError={(e) => {
-//                                 (e.target as HTMLImageElement).src = "/placeholder.svg";
-//                               }}
-//                             />
-//                             <div>
-//                               <div
-//                                 className="font-medium cursor-pointer hover:text-blue-600 transition-colors"
-//                                 onClick={() => handleViewProduct(product)}
-//                               >
-//                                 {product.name}
-//                               </div>
-//                               <div className="text-sm text-muted-foreground line-clamp-1">
-//                                 {product.brand && <span>{product.brand} • </span>}
-//                                 {product.description || "No description"}
-//                               </div>
-//                             </div>
-//                           </div>
-//                         </TableCell>
-//                         <TableCell>
-//                           <div className="space-y-1">
-//                             <Badge variant="outline">{product.categoryLevel1}</Badge>
-//                             {product.categoryLevel2 && (
-//                               <div className="text-xs text-muted-foreground">{product.categoryLevel2}</div>
-//                             )}
-//                           </div>
-//                         </TableCell>
-//                         <TableCell className="font-medium">
-//                           ${product.price != null ? parseFloat(product.price.toString()).toFixed(2) : '0.00'}
-//                         </TableCell>
-//                         <TableCell>
-//                           <span className={product.stock < 10 ? "text-destructive font-medium" : ""}>
-//                             {product.stock}
-//                           </span>
-//                         </TableCell>
-//                         <TableCell>
-//                           <Badge variant={product.serviceType === 'service' ? 'default' : 'secondary'}>
-//                             {product.serviceType}
-//                           </Badge>
-//                         </TableCell>
-//                         <TableCell>
-//                           <Badge variant={product.isActive ? 'default' : 'destructive'}>
-//                             {product.isActive ? 'Active' : 'Inactive'}
-//                           </Badge>
-//                         </TableCell>
-//                         <TableCell>
-//                           <div className="flex gap-1">
-//                             {product.isFeatured && (
-//                               <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-xs">
-//                                 <Star className="h-3 w-3 mr-1" />
-//                                 F
-//                               </Badge>
-//                             )}
-//                             {product.isTrending && (
-//                               <Badge variant="default" className="bg-orange-500 hover:bg-orange-600 text-xs">
-//                                 <Zap className="h-3 w-3 mr-1" />
-//                                 T
-//                               </Badge>
-//                             )}
-//                             {product.isNewArrival && (
-//                               <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 text-xs">
-//                                 <Clock className="h-3 w-3 mr-1" />
-//                                 N
-//                               </Badge>
-//                             )}
-//                             {!product.isFeatured && !product.isTrending && !product.isNewArrival && (
-//                               <span className="text-xs text-muted-foreground">-</span>
-//                             )}
-//                           </div>
-//                         </TableCell>
-//                         <TableCell className="text-right">
-//                           <div className="flex justify-end gap-1">
-//                             <Button
-//                               variant="ghost"
-//                               size="sm"
-//                               onClick={() => handleViewProduct(product)}
-//                               disabled={isLoading}
-//                               title="View Details"
-//                             >
-//                               <Eye className="h-4 w-4" />
-//                             </Button>
-//                             <Button
-//                               variant="ghost"
-//                               size="sm"
-//                               onClick={() => handleToggleStatus(product)}
-//                               disabled={isLoading}
-//                             >
-//                               {product.isActive ? 'Deactivate' : 'Activate'}
-//                             </Button>
-//                             <Button
-//                               variant="ghost"
-//                               size="sm"
-//                               onClick={() => handleEditProduct(product)}
-//                               disabled={isLoading}
-//                             >
-//                               <Edit className="h-4 w-4" />
-//                             </Button>
-//                             <Button
-//                               variant="ghost"
-//                               size="sm"
-//                               onClick={() => handleDeleteProduct(product.id)}
-//                               disabled={isLoading}
-//                             >
-//                               <Trash2 className="h-4 w-4" />
-//                             </Button>
-//                           </div>
-//                         </TableCell>
-//                       </TableRow>
-//                     ))
-//                   ) : (
-//                     <TableRow>
-//                       <TableCell colSpan={8} className="text-center py-10">
-//                         <Package className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-//                         <p className="text-lg font-medium">No products found</p>
-//                         <p className="text-muted-foreground">
-//                           {searchTerm ? "Try adjusting your search terms" : "Get started by adding your first product"}
-//                         </p>
-//                       </TableCell>
-//                     </TableRow>
-//                   )}
-//                 </TableBody>
-//               </Table>
-//             </CardContent>
-//           </Card>
-//         </TabsContent>
-
-//         {/* Special Categories Tab */}
-//         <TabsContent value="special">
-//           <SpecialProductsManager
-//             products={products}
-//             onUpdateProduct={handleProductUpdate}
-//           />
-//         </TabsContent>
-//       </Tabs>
-
-//       {/* Add/Edit Product Dialog */}
-//       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-//         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-//           <DialogHeader>
-//             <DialogTitle className="text-base">
-//               {editingProduct ? "Edit Product" : "Add New Product"}
-//             </DialogTitle>
-//             <DialogDescription className="text-xs">
-//               {editingProduct
-//                 ? "Update the product information"
-//                 : "Add a new product to your catalog"}
-//             </DialogDescription>
-//           </DialogHeader>
-//           <form onSubmit={handleSubmit}>
-//             <div className="grid gap-4 py-1">
-//               <ImageUploadWithFile
-//                 onImageChange={(file, previewUrl) => {
-//                   setFormData({ ...formData, image: file });
-//                 }}
-//                 currentImage={
-//                   typeof formData.image === 'string' ? formData.image :
-//                     formData.image instanceof File ? '' :
-//                       formData.image || ''
-//                 }
-//                 className="h-40"
-//               />
-
-//               <div className="grid gap-2">
-//                 <Label htmlFor="name" className="text-xs">Product Name *</Label>
-//                 <Input
-//                   id="name"
-//                   value={formData.name}
-//                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-//                   placeholder="e.g., Wireless Headphones"
-//                   className="h-9 text-sm"
-//                   required
-//                   disabled={isSubmitting}
-//                 />
-//               </div>
-
-//               <div className="grid gap-2">
-//                 <Label htmlFor="description" className="text-xs">Description</Label>
-//                 <Textarea
-//                   id="description"
-//                   value={formData.description}
-//                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-//                   placeholder="Describe your product..."
-//                   rows={3}
-//                   className="min-h-[80px] text-sm"
-//                   disabled={isSubmitting}
-//                 />
-//               </div>
-
-//               <div className="grid grid-cols-2 gap-4">
-//                 <div className="grid gap-2">
-//                   <Label htmlFor="price" className="text-xs">Price *</Label>
-//                   <Input
-//                     id="price"
-//                     type="number"
-//                     step="0.01"
-//                     min="0"
-//                     value={formData.price}
-//                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-//                     placeholder="0.00"
-//                     className="h-9 text-sm"
-//                     required
-//                     disabled={isSubmitting}
-//                   />
-//                 </div>
-//                 <div className="grid gap-2">
-//                   <Label htmlFor="stock" className="text-xs">Stock</Label>
-//                   <Input
-//                     id="stock"
-//                     type="number"
-//                     min="0"
-//                     value={formData.stock}
-//                     onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-//                     placeholder="0"
-//                     className="h-9 text-sm"
-//                     disabled={isSubmitting}
-//                   />
-//                 </div>
-//               </div>
-
-//               <div className="grid grid-cols-2 gap-4">
-//                 <div className="grid gap-2">
-//                   <Label htmlFor="serviceType" className="text-xs">Service Type *</Label>
-//                   <Select
-//                     value={formData.serviceType}
-//                     onValueChange={(value: 'physical' | 'service') => setFormData({ ...formData, serviceType: value })}
-//                     disabled={isSubmitting}
-//                   >
-//                     <SelectTrigger className="h-9 text-sm">
-//                       <SelectValue placeholder="Select service type" />
-//                     </SelectTrigger>
-//                     <SelectContent>
-//                       {serviceTypeOptions.map((type) => (
-//                         <SelectItem key={type} value={type}>
-//                           {type.charAt(0).toUpperCase() + type.slice(1)}
-//                         </SelectItem>
-//                       ))}
-//                     </SelectContent>
-//                   </Select>
-//                 </div>
-//                 <div className="grid gap-2">
-//                   <Label htmlFor="unit" className="text-xs">Unit</Label>
-//                   <Select
-//                     value={formData.unit}
-//                     onValueChange={(value) => setFormData({ ...formData, unit: value })}
-//                     disabled={isSubmitting}
-//                   >
-//                     <SelectTrigger className="h-9 text-sm">
-//                       <SelectValue placeholder="Select unit" />
-//                     </SelectTrigger>
-//                     <SelectContent>
-//                       {unitOptions.map((unit) => (
-//                         <SelectItem key={unit} value={unit}>
-//                           {unit.charAt(0).toUpperCase() + unit.slice(1)}
-//                         </SelectItem>
-//                       ))}
-//                     </SelectContent>
-//                   </Select>
-//                 </div>
-//               </div>
-
-//               {formData.serviceType === 'service' && (
-//                 <div className="grid gap-2">
-//                   <Label htmlFor="serviceDuration" className="text-xs">Service Duration</Label>
-//                   <Input
-//                     id="serviceDuration"
-//                     value={formData.serviceDuration}
-//                     onChange={(e) => setFormData({ ...formData, serviceDuration: e.target.value })}
-//                     placeholder="e.g., 2 hours, 1 day"
-//                     className="h-9 text-sm"
-//                     disabled={isSubmitting}
-//                   />
-//                 </div>
-//               )}
-
-//               <div className="grid grid-cols-2 gap-4">
-//                 <div className="grid gap-2">
-//                   <Label htmlFor="brand" className="text-xs">Brand</Label>
-//                   <Input
-//                     id="brand"
-//                     value={formData.brand}
-//                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-//                     placeholder="Brand name"
-//                     className="h-9 text-sm"
-//                     disabled={isSubmitting}
-//                   />
-//                 </div>
-//                 <div className="grid gap-2">
-//                   <Label htmlFor="tags" className="text-xs">Tags</Label>
-//                   <TagInput
-//                     tags={formData.tags}
-//                     onTagsChange={(newTags) => setFormData({ ...formData, tags: newTags })}
-//                     disabled={isSubmitting}
-//                   />
-//                 </div>
-//               </div>
-
-//               {/* NEW: Special Categories Section */}
-//               <div className="space-y-4 pt-4 border-t">
-//                 <Label className="text-sm font-medium">Special Categories</Label>
-//                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-//                   {/* Featured */}
-//                   <div className="space-y-3 p-3 border rounded-lg">
-//                     <div className="flex items-center justify-between">
-//                       <Label htmlFor="isFeatured" className="flex items-center gap-2 text-sm">
-//                         <Star className="h-4 w-4 text-yellow-500" />
-//                         Featured
-//                       </Label>
-//                       <Switch
-//                         id="isFeatured"
-//                         checked={formData.isFeatured}
-//                         onCheckedChange={(checked) => setFormData({ ...formData, isFeatured: checked })}
-//                         disabled={isSubmitting}
-//                       />
-//                     </div>
-//                     {formData.isFeatured && (
-//                       <div className="grid gap-2">
-//                         <Label htmlFor="featuredOrder" className="text-xs">Display Order</Label>
-//                         <Input
-//                           id="featuredOrder"
-//                           type="number"
-//                           min="0"
-//                           value={formData.featuredOrder}
-//                           onChange={(e) => setFormData({
-//                             ...formData,
-//                             featuredOrder: parseInt(e.target.value) || 0
-//                           })}
-//                           placeholder="0"
-//                           className="h-8 text-sm"
-//                           disabled={isSubmitting}
-//                         />
-//                       </div>
-//                     )}
-//                   </div>
-
-//                   {/* Trending */}
-//                   <div className="space-y-3 p-3 border rounded-lg">
-//                     <div className="flex items-center justify-between">
-//                       <Label htmlFor="isTrending" className="flex items-center gap-2 text-sm">
-//                         <Zap className="h-4 w-4 text-orange-500" />
-//                         Trending
-//                       </Label>
-//                       <Switch
-//                         id="isTrending"
-//                         checked={formData.isTrending}
-//                         onCheckedChange={(checked) => setFormData({ ...formData, isTrending: checked })}
-//                         disabled={isSubmitting}
-//                       />
-//                     </div>
-//                     {formData.isTrending && (
-//                       <div className="grid gap-2">
-//                         <Label htmlFor="trendingOrder" className="text-xs">Display Order</Label>
-//                         <Input
-//                           id="trendingOrder"
-//                           type="number"
-//                           min="0"
-//                           value={formData.trendingOrder}
-//                           onChange={(e) => setFormData({
-//                             ...formData,
-//                             trendingOrder: parseInt(e.target.value) || 0
-//                           })}
-//                           placeholder="0"
-//                           className="h-8 text-sm"
-//                           disabled={isSubmitting}
-//                         />
-//                       </div>
-//                     )}
-//                   </div>
-
-//                   {/* New Arrival */}
-//                   <div className="space-y-3 p-3 border rounded-lg">
-//                     <div className="flex items-center justify-between">
-//                       <Label htmlFor="isNewArrival" className="flex items-center gap-2 text-sm">
-//                         <Clock className="h-4 w-4 text-blue-500" />
-//                         New Arrival
-//                       </Label>
-//                       <Switch
-//                         id="isNewArrival"
-//                         checked={formData.isNewArrival}
-//                         onCheckedChange={(checked) => setFormData({ ...formData, isNewArrival: checked })}
-//                         disabled={isSubmitting}
-//                       />
-//                     </div>
-//                     {formData.isNewArrival && (
-//                       <div className="grid gap-2">
-//                         <Label htmlFor="newArrivalOrder" className="text-xs">Display Order</Label>
-//                         <Input
-//                           id="newArrivalOrder"
-//                           type="number"
-//                           min="0"
-//                           value={formData.newArrivalOrder}
-//                           onChange={(e) => setFormData({
-//                             ...formData,
-//                             newArrivalOrder: parseInt(e.target.value) || 0
-//                           })}
-//                           placeholder="0"
-//                           className="h-8 text-sm"
-//                           disabled={isSubmitting}
-//                         />
-//                       </div>
-//                     )}
-//                   </div>
-//                 </div>
-//               </div>
-
-//               {/* Category Selection - UPDATED TO USE ACTUAL API DATA */}
-//               <div className="grid gap-3">
-//                 <Label className="text-xs">Category *</Label>
-//                 <div className="grid gap-3">
-//                   {/* Level 1 Dropdown */}
-//                   <div className="grid gap-2">
-//                     <Label htmlFor="categoryLevel1" className="text-xs">Level 1 *</Label>
-//                     <Select
-//                       value={formData.categoryLevel1}
-//                       onValueChange={(value) => setFormData({
-//                         ...formData,
-//                         categoryLevel1: value,
-//                         categoryLevel2: "",
-//                         categoryLevel3: ""
-//                       })}
-//                       disabled={isSubmitting || isCategoriesLoading}
-//                     >
-//                       <SelectTrigger className="h-9 text-sm">
-//                         <SelectValue placeholder={
-//                           isCategoriesLoading ? "Loading categories..." : "Select category level 1"
-//                         } />
-//                       </SelectTrigger>
-//                       <SelectContent>
-//                         {topLevelCategories.map((category) => (
-//                           <SelectItem key={category.id} value={category.name}>
-//                             {category.name}
-//                           </SelectItem>
-//                         ))}
-//                       </SelectContent>
-//                     </Select>
-//                   </div>
-
-//                   {/* Level 2 Dropdown - Conditionally shown */}
-//                   {formData.categoryLevel1 && (
-//                     <div className="grid gap-2">
-//                       <Label htmlFor="categoryLevel2" className="text-xs">Level 2</Label>
-//                       <Select
-//                         value={formData.categoryLevel2}
-//                         onValueChange={(value) => setFormData({
-//                           ...formData,
-//                           categoryLevel2: value,
-//                           categoryLevel3: ""
-//                         })}
-//                         disabled={isSubmitting}
-//                       >
-//                         <SelectTrigger className="h-9 text-sm">
-//                           <SelectValue placeholder="Select category level 2" />
-//                         </SelectTrigger>
-//                         <SelectContent>
-//                           {getSubcategories(
-//                             categories.find(cat => cat.name === formData.categoryLevel1)?.id || ''
-//                           ).map((subcategory) => (
-//                             <SelectItem key={subcategory.id} value={subcategory.name}>
-//                               {subcategory.name}
-//                             </SelectItem>
-//                           ))}
-//                         </SelectContent>
-//                       </Select>
-//                     </div>
-//                   )}
-
-//                   {/* Level 3 Dropdown - Conditionally shown */}
-//                   {formData.categoryLevel2 && (
-//                     <div className="grid gap-2">
-//                       <Label htmlFor="categoryLevel3" className="text-xs">Level 3</Label>
-//                       <Select
-//                         value={formData.categoryLevel3}
-//                         onValueChange={(value) => setFormData({
-//                           ...formData,
-//                           categoryLevel3: value
-//                         })}
-//                         disabled={isSubmitting}
-//                       >
-//                         <SelectTrigger className="h-9 text-sm">
-//                           <SelectValue placeholder="Select category level 3" />
-//                         </SelectTrigger>
-//                         <SelectContent>
-//                           {getSubcategories(
-//                             level2Categories.find(cat => cat.name === formData.categoryLevel2)?.id || ''
-//                           ).map((subsubcategory) => (
-//                             <SelectItem key={subsubcategory.id} value={subsubcategory.name}>
-//                               {subsubcategory.name}
-//                             </SelectItem>
-//                           ))}
-//                         </SelectContent>
-//                       </Select>
-//                     </div>
-//                   )}
-//                 </div>
-//               </div>
-
-//               <div className="flex items-center gap-3 pt-2">
-//                 <Switch
-//                   checked={formData.isActive}
-//                   onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-//                   disabled={isSubmitting}
-//                 />
-//                 <Label htmlFor="isActive" className="text-sm">Active Product</Label>
-//               </div>
-//             </div>
-//             <DialogFooter className="gap-2 mt-4">
-//               <Button
-//                 type="button"
-//                 variant="outline"
-//                 onClick={() => setDialogOpen(false)}
-//                 className="h-9 text-sm px-4"
-//                 disabled={isSubmitting}
-//               >
-//                 Cancel
-//               </Button>
-//               <Button
-//                 type="submit"
-//                 className="h-9 text-sm px-4"
-//                 disabled={isSubmitting}
-//               >
-//                 {isSubmitting ? (
-//                   <>
-//                     <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-//                     {editingProduct ? "Updating..." : "Adding..."}
-//                   </>
-//                 ) : (
-//                   editingProduct ? "Update Product" : "Add Product"
-//                 )}
-//               </Button>
-//             </DialogFooter>
-//           </form>
-//         </DialogContent>
-//       </Dialog>
-
-//       {/* Product Details Modal */}
-//       <ProductDetailsModal
-//         product={selectedProduct}
-//         open={detailsDialogOpen}
-//         onOpenChange={setDetailsDialogOpen}
-//       />
-//     </div>
-//   );
-// }
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5064,14 +31,27 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Edit, Trash2, Package, DollarSign, TrendingUp, AlertTriangle, RefreshCw, AlertCircle, X, Eye, Calendar, Star, Zap, Clock, Filter, Check } from "lucide-react";
+import {
+  Search, Plus, Edit, Trash2, Package, DollarSign, AlertTriangle,
+  RefreshCw, AlertCircle, X, Eye, Calendar, Star, Zap, Clock,
+  Filter, Check, Tag, Layers, Hash, Grid, List,
+  Download, Upload, Copy, MoreVertical, BarChart3,
+  TrendingUp, Users, ShoppingCart, Percent, Shield
+} from "lucide-react";
 import { Product } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import adminApiService from "@/contexts/adminApiService";
 import { ImageUploadWithFile } from "@/lib/ImageLoader";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 
 // Update the Product interface to include special category fields
-// Replace your ProductWithSpecial interface with this:
 interface ProductWithSpecial extends Omit<Product, 'size'> {
   isFeatured: boolean;
   isTrending: boolean;
@@ -5079,8 +59,15 @@ interface ProductWithSpecial extends Omit<Product, 'size'> {
   featuredOrder: number;
   trendingOrder: number;
   newArrivalOrder: number;
-  // Redefine size with the correct type
   size?: string | string[] | null;
+  // Additional fields for detailed view
+  sku?: string;
+  weight?: number;
+  dimensions?: string;
+  discountPrice?: number;
+  discountPercentage?: number;
+  rating?: number;
+  reviewsCount?: number;
 }
 
 interface ProductFormData {
@@ -5090,7 +77,7 @@ interface ProductFormData {
   categoryLevel1: string;
   categoryLevel2: string;
   categoryLevel3: string;
-  serviceType: 'physical' | 'service';
+  serviceType: 'physical' | 'digital' | 'service';
   serviceDuration: string;
   unit: string;
   stock: string;
@@ -5098,11 +85,17 @@ interface ProductFormData {
   tags: string[];
   isActive: boolean;
   image: File | string | null;
-  
-  // NEW: Size field
+
+  // Size field
   size: string;
 
-  // FIXED: Use proper types for special category fields
+  // Additional fields
+  sku: string;
+  weight: string;
+  dimensions: string;
+  discountPrice: string;
+
+  // Special category fields
   isFeatured: boolean;
   isTrending: boolean;
   isNewArrival: boolean;
@@ -5120,18 +113,6 @@ interface Category {
   children: Category[];
 }
 
-interface BulkUpdateItem {
-  productId: string;
-  updates: {
-    isFeatured?: boolean;
-    isTrending?: boolean;
-    isNewArrival?: boolean;
-    featuredOrder?: number;
-    trendingOrder?: number;
-    newArrivalOrder?: number;
-  };
-}
-
 // Size Input Component
 const SizeInput = ({
   sizes,
@@ -5143,11 +124,8 @@ const SizeInput = ({
   disabled?: boolean;
 }) => {
   const [inputValue, setInputValue] = useState('');
+  const commonSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '32', '34', '36', '38', '40', '42', '44'];
 
-  // Common size options for quick selection
-  const commonSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
-
-  // Convert current sizes string to array for display
   const currentSizes = sizes ? sizes.split(',').map(s => s.trim()).filter(s => s) : [];
 
   const addSize = (size: string) => {
@@ -5164,23 +142,10 @@ const SizeInput = ({
     onSizesChange(newSizes.join(','));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addSize(inputValue);
-    }
-  };
-
-  const handleCommonSizeClick = (size: string) => {
-    addSize(size);
-  };
-
   return (
     <div className="space-y-3">
       <div className="space-y-2">
-        <Label htmlFor="sizes" className="text-xs">Available Sizes</Label>
-        
-        {/* Common Size Buttons */}
+        <Label className="text-xs">Available Sizes</Label>
         <div className="flex flex-wrap gap-1">
           {commonSizes.map((size) => (
             <Button
@@ -5188,7 +153,7 @@ const SizeInput = ({
               type="button"
               variant={currentSizes.includes(size) ? "default" : "outline"}
               size="sm"
-              onClick={() => handleCommonSizeClick(size)}
+              onClick={() => addSize(size)}
               disabled={disabled}
               className="h-7 text-xs"
             >
@@ -5197,7 +162,6 @@ const SizeInput = ({
           ))}
         </div>
 
-        {/* Current Sizes Display */}
         <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-10 bg-background">
           {currentSizes.map((size, index) => (
             <Badge key={index} variant="secondary" className="flex items-center gap-1 text-xs py-1">
@@ -5215,22 +179,17 @@ const SizeInput = ({
           <input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={() => inputValue && addSize(inputValue)}
-            placeholder={currentSizes.length === 0 ? "Add sizes..." : "Add another size..."}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                addSize(inputValue);
+              }
+            }}
+            placeholder="Add custom size..."
             className="flex-1 outline-none bg-transparent text-sm min-w-20 placeholder:text-muted-foreground"
             disabled={disabled}
           />
         </div>
-      </div>
-      
-      <div className="space-y-2">
-        <p className="text-xs text-muted-foreground">
-          Click common sizes or type custom sizes (press Enter, comma, or click outside to add)
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Current sizes: {currentSizes.length > 0 ? currentSizes.join(', ') : 'None'}
-        </p>
       </div>
     </div>
   );
@@ -5260,18 +219,12 @@ const TagInput = ({
     onTagsChange(tags.filter((_, i) => i !== index));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addTag(inputValue);
-    }
-  };
-
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-10 bg-background">
         {tags.map((tag, index) => (
           <Badge key={index} variant="secondary" className="flex items-center gap-1 text-xs py-1">
+            <Tag className="h-3 w-3" />
             {tag}
             <button
               type="button"
@@ -5286,17 +239,77 @@ const TagInput = ({
         <input
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={() => inputValue && addTag(inputValue)}
-          placeholder={tags.length === 0 ? "Add tags..." : "Add another tag..."}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ',') {
+              e.preventDefault();
+              addTag(inputValue);
+            }
+          }}
+          placeholder="Add tag..."
           className="flex-1 outline-none bg-transparent text-sm min-w-20 placeholder:text-muted-foreground"
           disabled={disabled}
         />
       </div>
-      <p className="text-xs text-muted-foreground">Press Enter, comma, or click outside to add tags</p>
     </div>
   );
 };
+
+// Product Analytics Card
+const ProductAnalyticsCard = ({
+  title,
+  value,
+  icon: Icon,
+  description,
+  trend,
+  color
+}: {
+  title: string;
+  value: string;
+  icon: any;
+  description: string;
+  trend?: number;
+  color?: string;
+}) => (
+  <Card>
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardTitle className="text-sm font-medium">{title}</CardTitle>
+      <Icon className={`h-4 w-4 ${color || 'text-muted-foreground'}`} />
+    </CardHeader>
+    <CardContent>
+      <div className="text-2xl font-bold">{value}</div>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">{description}</p>
+        {trend !== undefined && (
+          <span className={`text-xs ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {trend >= 0 ? '+' : ''}{trend}%
+          </span>
+        )}
+      </div>
+    </CardContent>
+  </Card>
+);
+
+// Quick Actions Component
+const QuickActions = ({ onAction }: { onAction: (action: string) => void }) => (
+  <div className="flex flex-wrap gap-2">
+    <Button variant="outline" size="sm" onClick={() => onAction('export')}>
+      <Download className="mr-2 h-4 w-4" />
+      Export
+    </Button>
+    <Button variant="outline" size="sm" onClick={() => onAction('import')}>
+      <Upload className="mr-2 h-4 w-4" />
+      Import
+    </Button>
+    <Button variant="outline" size="sm" onClick={() => onAction('duplicate')}>
+      <Copy className="mr-2 h-4 w-4" />
+      Duplicate
+    </Button>
+    <Button variant="outline" size="sm" onClick={() => onAction('bulk_edit')}>
+      <Edit className="mr-2 h-4 w-4" />
+      Bulk Edit
+    </Button>
+  </div>
+);
 
 // Product Details Modal Component
 const ProductDetailsModal = ({
@@ -5308,6 +321,8 @@ const ProductDetailsModal = ({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) => {
+  const { toast } = useToast();
+
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath) return "/placeholder.svg";
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
@@ -5328,35 +343,42 @@ const ProductDetailsModal = ({
     });
   };
 
-  // Safely convert tags to array for display
   const getDisplayTags = (tags: any): string[] => {
     if (!tags) return [];
-
-    if (Array.isArray(tags)) {
-      return tags.filter(tag => typeof tag === 'string');
-    }
-
+    if (Array.isArray(tags)) return tags.filter(tag => typeof tag === 'string');
     if (typeof tags === 'string') {
       try {
         const parsed = JSON.parse(tags);
-        if (Array.isArray(parsed)) {
-          return parsed.filter(tag => typeof tag === 'string');
-        }
+        if (Array.isArray(parsed)) return parsed.filter(tag => typeof tag === 'string');
       } catch {
         return tags.split(',').map(tag => tag.trim()).filter(tag => tag);
       }
     }
-
     return [];
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied!",
+      description: "Text copied to clipboard",
+    });
   };
 
   if (!product) return null;
 
   const displayTags = getDisplayTags(product.tags);
+  const sizeArray = typeof product.size === 'string'
+    ? product.size.split(',').map(s => s.trim()).filter(s => s)
+    : Array.isArray(product.size) ? product.size : [];
+
+  const discountPercentage = product.discountPrice
+    ? Math.round(((parseFloat(product.price) - product.discountPrice) / parseFloat(product.price)) * 100)
+    : 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -5367,1022 +389,239 @@ const ProductDetailsModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4">
-          {/* Product Image */}
-          <div className="flex justify-center">
-            <img
-              src={getImageUrl(product.images?.[0])}
-              alt={product.name}
-              className="h-64 w-64 object-cover rounded-lg border shadow-sm"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "/placeholder.svg";
-              }}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-                <p className="text-muted-foreground">{product.description || "No description available"}</p>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span className="font-medium">Price</span>
-                  <span className="text-lg font-bold text-green-600">
-                    ${parseFloat(product.price?.toString() || '0').toFixed(2)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span className="font-medium">Stock</span>
-                  <Badge variant={product.stock < 10 ? "destructive" : "default"}>
-                    {product.stock} units
-                  </Badge>
-                </div>
-
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span className="font-medium">Status</span>
-                  <Badge variant={product.isActive ? "default" : "destructive"}>
-                    {product.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span className="font-medium">Type</span>
-                  <Badge variant={product.serviceType === 'service' ? "default" : "secondary"}>
-                    {product.serviceType}
-                  </Badge>
-                </div>
-
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span className="font-medium">Unit</span>
-                  <span className="text-muted-foreground capitalize">{product.unit || 'piece'}</span>
-                </div>
-
-                {/* NEW: Sizes Display */}
-                {product.size && (
-                  <div className="flex justify-between items-center py-2 border-b">
-                    <span className="font-medium">Available Sizes</span>
-                    <div className="flex gap-1">
-                      {(() => {
-                        // Convert size string to array for display
-                        const sizeArray = typeof product.size === 'string' 
-                          ? product.size.split(',').map(s => s.trim()).filter(s => s)
-                          : Array.isArray(product.size) 
-                            ? product.size 
-                            : [];
-                        
-                        return sizeArray.map((size, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {size}
-                          </Badge>
-                        ));
-                      })()}
-                    </div>
+        <div className="grid gap-6">
+          {/* Header with Image and Basic Info */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Product Image */}
+            <div className="md:col-span-1">
+              <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
+                <img
+                  src={getImageUrl(product.images?.[0])}
+                  alt={product.name}
+                  className="object-cover w-full h-full"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/placeholder.svg";
+                  }}
+                />
+                {discountPercentage > 0 && (
+                  <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                    -{discountPercentage}%
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Basic Info */}
+            <div className="md:col-span-2 space-y-4">
+              <div>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">{product.name}</h2>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant={product.isActive ? "default" : "destructive"}>
+                        {product.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                      <Badge variant="outline">
+                        {product.sku || "No SKU"}
+                      </Badge>
+                      <Badge variant="secondary">
+                        {product.categoryLevel1}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-green-600">
+                      ${parseFloat(product.price?.toString() || '0').toFixed(2)}
+                    </div>
+                    {product.discountPrice && (
+                      <div className="text-lg line-through text-muted-foreground">
+                        ${product.discountPrice.toFixed(2)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-muted-foreground mt-3">{product.description || "No description available"}</p>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <div className="text-sm text-muted-foreground">Stock</div>
+                  <div className={`text-lg font-semibold ${product.stock < 10 ? "text-red-600" : "text-green-600"}`}>
+                    {product.stock} units
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm text-muted-foreground">Type</div>
+                  <div className="text-lg font-semibold capitalize">{product.serviceType}</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm text-muted-foreground">Rating</div>
+                  <div className="text-lg font-semibold">
+                    {product.rating || 0} ⭐ ({product.reviewsCount || 0} reviews)
+                  </div>
+                </div>
               </div>
 
               {/* Special Categories */}
-              <div className="space-y-3 pt-4 border-t">
-                <h4 className="font-semibold">Special Categories</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-yellow-500" />
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Special Categories</div>
+                <div className="flex gap-2">
+                  {product.isFeatured && (
+                    <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600">
+                      <Star className="h-3 w-3 mr-1" />
                       Featured
-                    </span>
-                    <Badge variant={product.isFeatured ? "default" : "outline"}>
-                      {product.isFeatured ? `Yes (Order: ${product.featuredOrder || 0})` : "No"}
                     </Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-orange-500" />
+                  )}
+                  {product.isTrending && (
+                    <Badge variant="default" className="bg-orange-500 hover:bg-orange-600">
+                      <Zap className="h-3 w-3 mr-1" />
                       Trending
-                    </span>
-                    <Badge variant={product.isTrending ? "default" : "outline"}>
-                      {product.isTrending ? `Yes (Order: ${product.trendingOrder || 0})` : "No"}
                     </Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-blue-500" />
+                  )}
+                  {product.isNewArrival && (
+                    <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
+                      <Clock className="h-3 w-3 mr-1" />
                       New Arrival
-                    </span>
-                    <Badge variant={product.isNewArrival ? "default" : "outline"}>
-                      {product.isNewArrival ? `Yes (Order: ${product.newArrivalOrder || 0})` : "No"}
                     </Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Details */}
-            <div className="space-y-4">
-              <div className="space-y-3">
-                <h4 className="font-semibold">Category Information</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b">
-                    <span className="font-medium">Main Category</span>
-                    <Badge variant="outline" className="text-sm">
-                      {product.categoryLevel1}
-                    </Badge>
-                  </div>
-                  
-                  {product.categoryLevel2 && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="font-medium">Subcategory</span>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-sm">
-                          {product.categoryLevel2}
-                        </Badge>
-                        {/* Show category icon based on level 2 */}
-                        {product.categoryLevel2 === 'Women' && (
-                          <span className="text-pink-500">♀</span>
-                        )}
-                        {product.categoryLevel2 === 'Men' && (
-                          <span className="text-blue-500">♂</span>
-                        )}
-                        {product.categoryLevel2 === 'Kids' && (
-                          <span className="text-green-500">👶</span>
-                        )}
-                        {product.categoryLevel2 === 'Pantry' && (
-                          <Package className="h-4 w-4 text-orange-500" />
-                        )}
-                        {product.categoryLevel2 === 'Prepared Mixes' && (
-                          <span className="text-yellow-500">🥣</span>
-                        )}
-                        {product.categoryLevel2 === 'Soup Base' && (
-                          <span className="text-red-500">🍲</span>
-                        )}
-                      </div>
-                    </div>
                   )}
-                  
-                  {product.categoryLevel3 && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="font-medium">Sub-subcategory</span>
-                      <Badge variant="outline" className="text-sm bg-muted/50">
-                        {product.categoryLevel3}
-                      </Badge>
-                    </div>
-                  )}
-
-                  {/* Show the full category path */}
-                  <div className="p-3 bg-muted/30 rounded-lg">
-                    <div className="text-xs text-muted-foreground mb-1">Full Category Path</div>
-                    <div className="text-sm font-medium">
-                      {[
-                        product.categoryLevel1,
-                        product.categoryLevel2,
-                        product.categoryLevel3
-                      ]
-                        .filter(Boolean)
-                        .join(' → ')}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {product.brand && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Brand</h4>
-                  <Badge variant="secondary" className="text-sm py-1 px-3">
-                    {product.brand}
-                  </Badge>
-                </div>
-              )}
-
-              {product.serviceDuration && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Service Duration</h4>
-                  <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">{product.serviceDuration}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Tags */}
-              {displayTags.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Tags</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {displayTags.map((tag, index) => (
-                      <Badge key={index} variant="outline" className="text-xs py-1">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Timestamps */}
-              <div className="space-y-2 pt-4 border-t">
-                <h4 className="font-semibold">Timestamps</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">Created</div>
-                      <div className="text-muted-foreground">{formatDate(product.createdAt)}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">Updated</div>
-                      <div className="text-muted-foreground">{formatDate(product.updatedAt)}</div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-// Special Products Manager Component
-const SpecialProductsManager = ({ products, onUpdateProduct }: { products: ProductWithSpecial[], onUpdateProduct: (productId: string, updates: any) => void }) => {
-  const [allProducts, setAllProducts] = useState<ProductWithSpecial[]>(products);
-  const [filteredProducts, setFilteredProducts] = useState<ProductWithSpecial[]>(products);
-  const [selectedTab, setSelectedTab] = useState<'all' | 'featured' | 'trending' | 'new-arrivals'>('all');
-  const [searchTerm, setSearchTerm] = useState("");
-  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
-  const [quickEditDialogOpen, setQuickEditDialogOpen] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-  const [editingProduct, setEditingProduct] = useState<ProductWithSpecial | null>(null);
-  const [bulkAction, setBulkAction] = useState<'add-featured' | 'add-trending' | 'add-new-arrival' | 'remove-all'>('add-featured');
-  const [quickEditData, setQuickEditData] = useState({
-    isFeatured: false,
-    isTrending: false,
-    isNewArrival: false,
-    featuredOrder: 0,
-    trendingOrder: 0,
-    newArrivalOrder: 0,
-  });
-
-  const { toast } = useToast();
-
-  // Helper function to convert file path to URL
-  const getImageUrl = (imagePath: string | undefined) => {
-    if (!imagePath) return "/placeholder.svg";
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      return imagePath;
-    }
-    const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8003';
-    const filename = imagePath.split(/[\\/]/).pop();
-    return `${BACKEND_URL}/uploads/products/${filename}`;
-  };
-
-  // Update local products when props change
-  useEffect(() => {
-    setAllProducts(products);
-    setFilteredProducts(products);
-  }, [products]);
-
-  // Filter products based on search and selected tab
-  useEffect(() => {
-    let filtered = allProducts;
-
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(product =>
-        product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply category filter
-    switch (selectedTab) {
-      case 'featured':
-        filtered = filtered.filter(product => product.isFeatured);
-        break;
-      case 'trending':
-        filtered = filtered.filter(product => product.isTrending);
-        break;
-      case 'new-arrivals':
-        filtered = filtered.filter(product => product.isNewArrival);
-        break;
-      case 'all':
-      default:
-        // Show all products
-        break;
-    }
-
-    setFilteredProducts(filtered);
-  }, [allProducts, searchTerm, selectedTab]);
-
-  // Calculate analytics
-  const analytics = {
-    totalProducts: allProducts.length,
-    featured: allProducts.filter(p => p.isFeatured).length,
-    trending: allProducts.filter(p => p.isTrending).length,
-    newArrivals: allProducts.filter(p => p.isNewArrival).length,
-    activeProducts: allProducts.filter(p => p.isActive).length,
-  };
-
-  const handleQuickEdit = (product: ProductWithSpecial) => {
-    setEditingProduct(product);
-    setQuickEditData({
-      isFeatured: product.isFeatured,
-      isTrending: product.isTrending,
-      isNewArrival: product.isNewArrival,
-      featuredOrder: product.featuredOrder,
-      trendingOrder: product.trendingOrder,
-      newArrivalOrder: product.newArrivalOrder,
-    });
-    setQuickEditDialogOpen(true);
-  };
-
-  const handleQuickUpdate = async () => {
-    if (!editingProduct) return;
-
-    try {
-      await adminApiService.updateProductSpecialCategories(editingProduct.id, quickEditData);
-
-      // Update local state
-      const updatedProducts = allProducts.map(p =>
-        p.id === editingProduct.id
-          ? { ...p, ...quickEditData }
-          : p
-      );
-      setAllProducts(updatedProducts);
-
-      // Notify parent component
-      onUpdateProduct(editingProduct.id, quickEditData);
-
-      toast({
-        title: "Product updated",
-        description: "Special categories updated successfully.",
-      });
-
-      setQuickEditDialogOpen(false);
-      setEditingProduct(null);
-    } catch (error) {
-      console.error('Failed to update product:', error);
-      toast({
-        variant: "destructive",
-        title: "Error updating product",
-        description: "Could not update special categories.",
-      });
-    }
-  };
-
-  const handleBulkAction = async () => {
-    if (selectedProducts.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "No products selected",
-        description: "Please select at least one product.",
-      });
-      return;
-    }
-
-    try {
-      let updates: BulkUpdateItem[] = [];
-
-      switch (bulkAction) {
-        case 'add-featured':
-          updates = selectedProducts.map(productId => ({
-            productId,
-            updates: {
-              isFeatured: true,
-              featuredOrder: 0
-            }
-          }));
-          break;
-        case 'add-trending':
-          updates = selectedProducts.map(productId => ({
-            productId,
-            updates: {
-              isTrending: true,
-              trendingOrder: 0
-            }
-          }));
-          break;
-        case 'add-new-arrival':
-          updates = selectedProducts.map(productId => ({
-            productId,
-            updates: {
-              isNewArrival: true,
-              newArrivalOrder: 0
-            }
-          }));
-          break;
-        case 'remove-all':
-          updates = selectedProducts.map(productId => ({
-            productId,
-            updates: {
-              isFeatured: false,
-              isTrending: false,
-              isNewArrival: false,
-              featuredOrder: 0,
-              trendingOrder: 0,
-              newArrivalOrder: 0
-            }
-          }));
-          break;
-      }
-
-      const response = await adminApiService.bulkUpdateSpecialCategories({
-        products: updates
-      });
-
-      // Update local state for all affected products
-      const updatedProducts = allProducts.map(product => {
-        if (selectedProducts.includes(product.id)) {
-          const update = updates.find(u => u.productId === product.id);
-          if (update) {
-            const updatedProduct = { ...product, ...update.updates };
-            // Notify parent component for each updated product
-            onUpdateProduct(product.id, update.updates);
-            return updatedProduct;
-          }
-        }
-        return product;
-      });
-      setAllProducts(updatedProducts);
-
-      toast({
-        title: "Bulk update completed",
-        description: `${response.results.length} products updated successfully.`,
-      });
-
-      setSelectedProducts([]);
-      setBulkDialogOpen(false);
-    } catch (error) {
-      console.error('Failed to perform bulk action:', error);
-      toast({
-        variant: "destructive",
-        title: "Error performing bulk action",
-        description: "Could not update products.",
-      });
-    }
-  };
-
-  const handleProductSelect = (productId: string) => {
-    setSelectedProducts(prev =>
-      prev.includes(productId)
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
-  };
-
-  const handleSelectAll = () => {
-    if (selectedProducts.length === filteredProducts.length) {
-      setSelectedProducts([]);
-    } else {
-      setSelectedProducts(filteredProducts.map(p => p.id));
-    }
-  };
-
-  const handleQuickToggle = async (productId: string, field: 'isFeatured' | 'isTrending' | 'isNewArrival') => {
-    try {
-      const product = allProducts.find(p => p.id === productId);
-      if (!product) return;
-
-      const updates = {
-        [field]: !product[field],
-        [`${field}Order`]: !product[field] ? 0 : product[`${field}Order`]
-      };
-
-      await adminApiService.updateProductSpecialCategories(productId, updates);
-
-      // Update local state
-      const updatedProducts = allProducts.map(p =>
-        p.id === productId
-          ? { ...p, ...updates }
-          : p
-      );
-      setAllProducts(updatedProducts);
-
-      // Notify parent component
-      onUpdateProduct(productId, updates);
-
-      toast({
-        title: "Product updated",
-        description: `${field.replace('is', '').replace(/([A-Z])/g, ' $1').trim()} status updated.`,
-      });
-    } catch (error) {
-      console.error('Failed to toggle product status:', error);
-      toast({
-        variant: "destructive",
-        title: "Error updating product",
-        description: "Could not update product status.",
-      });
-    }
-  };
-
-  const SpecialCategoryBadge = ({ product }: { product: ProductWithSpecial }) => (
-    <div className="flex gap-1">
-      {product.isFeatured && (
-        <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-xs">
-          <Star className="h-3 w-3 mr-1" />
-          Featured
-        </Badge>
-      )}
-      {product.isTrending && (
-        <Badge variant="default" className="bg-orange-500 hover:bg-orange-600 text-xs">
-          <Zap className="h-3 w-3 mr-1" />
-          Trending
-        </Badge>
-      )}
-      {product.isNewArrival && (
-        <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 text-xs">
-          <Clock className="h-3 w-3 mr-1" />
-          New
-        </Badge>
-      )}
-      {!product.isFeatured && !product.isTrending && !product.isNewArrival && (
-        <span className="text-xs text-muted-foreground">No special categories</span>
-      )}
-    </div>
-  );
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Product Special Categories</h1>
-        <div className="flex gap-2">
-          {selectedProducts.length > 0 && (
-            <Button onClick={() => setBulkDialogOpen(true)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Bulk Action ({selectedProducts.length})
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Analytics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalProducts}</div>
-            <p className="text-xs text-muted-foreground">
-              {analytics.activeProducts} active
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Featured</CardTitle>
-            <Star className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.featured}</div>
-            <p className="text-xs text-muted-foreground">
-              Featured products
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Trending</CardTitle>
-            <Zap className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.trending}</div>
-            <p className="text-xs text-muted-foreground">
-              Trending products
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Arrivals</CardTitle>
-            <Clock className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.newArrivals}</div>
-            <p className="text-xs text-muted-foreground">
-              New arrivals
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Selected</CardTitle>
-            <Check className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{selectedProducts.length}</div>
-            <p className="text-xs text-muted-foreground">
-              For bulk action
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Manage Special Categories</CardTitle>
-          <CardDescription>
-            Feature products in special categories to highlight them on your store. All products are shown here.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as any)}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all" className="flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                All Products
-              </TabsTrigger>
-              <TabsTrigger value="featured" className="flex items-center gap-2">
-                <Star className="h-4 w-4" />
-                Featured
-              </TabsTrigger>
-              <TabsTrigger value="trending" className="flex items-center gap-2">
-                <Zap className="h-4 w-4" />
-                Trending
-              </TabsTrigger>
-              <TabsTrigger value="new-arrivals" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                New Arrivals
-              </TabsTrigger>
+          {/* Tabs for Detailed Information */}
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="grid grid-cols-4">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="specifications">Specifications</TabsTrigger>
+              <TabsTrigger value="categories">Categories</TabsTrigger>
+              <TabsTrigger value="metadata">Metadata</TabsTrigger>
             </TabsList>
 
-            <TabsContent value={selectedTab} className="space-y-4">
-              {/* Search and Filters */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                <div className="relative w-full sm:w-96">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search products by name, brand, or description..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+            <TabsContent value="details" className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Product Information</Label>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Brand</span>
+                      <span className="text-sm font-medium">{product.brand || "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Unit</span>
+                      <span className="text-sm font-medium capitalize">{product.unit}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Service Duration</span>
+                      <span className="text-sm font-medium">{product.serviceDuration || "N/A"}</span>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Filter className="h-4 w-4" />
-                  <span>{filteredProducts.length} products</span>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Sizes</Label>
+                  {sizeArray.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {sizeArray.map((size, index) => (
+                        <Badge key={index} variant="outline" className="text-sm">
+                          {size}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No sizes specified</p>
+                  )}
                 </div>
-              </div>
-
-              {/* Products Table */}
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">
-                        <input
-                          type="checkbox"
-                          checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
-                          onChange={handleSelectAll}
-                          className="rounded border-gray-300"
-                        />
-                      </TableHead>
-                      <TableHead>Product</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Special Categories</TableHead>
-                      <TableHead className="text-center">Quick Toggles</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredProducts.length > 0 ? (
-                      filteredProducts.map((product) => (
-                        <TableRow key={product.id} className="hover:bg-muted/50">
-                          <TableCell>
-                            <input
-                              type="checkbox"
-                              checked={selectedProducts.includes(product.id)}
-                              onChange={() => handleProductSelect(product.id)}
-                              className="rounded border-gray-300"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={getImageUrl(product.images?.[0])}
-                                alt={product.name}
-                                className="h-10 w-10 rounded object-cover border"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = "/placeholder.svg";
-                                }}
-                              />
-                              <div>
-                                <div className="font-medium">{product.name}</div>
-                                <div className="text-sm text-muted-foreground">
-                                  {product.brand && <span>{product.brand} • </span>}
-                                  {product.categoryLevel1}
-                                </div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            ${parseFloat(product.price?.toString() || '0').toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={product.stock < 10 ? "destructive" : "outline"}>
-                              {product.stock}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={product.isActive ? "default" : "destructive"}>
-                              {product.isActive ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <SpecialCategoryBadge product={product} />
-                            {(product.isFeatured || product.isTrending || product.isNewArrival) && (
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {product.isFeatured && `Featured Order: ${product.featuredOrder} `}
-                                {product.isTrending && `Trending Order: ${product.trendingOrder} `}
-                                {product.isNewArrival && `New Arrival Order: ${product.newArrivalOrder}`}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex justify-center gap-2">
-                              <Button
-                                size="sm"
-                                variant={product.isFeatured ? "default" : "outline"}
-                                className={`h-8 w-8 p-0 ${product.isFeatured
-                                    ? "bg-yellow-500 hover:bg-yellow-600"
-                                    : ""
-                                  }`}
-                                onClick={() => handleQuickToggle(product.id, 'isFeatured')}
-                                title="Toggle Featured"
-                              >
-                                <Star className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={product.isTrending ? "default" : "outline"}
-                                className={`h-8 w-8 p-0 ${product.isTrending
-                                    ? "bg-orange-500 hover:bg-orange-600"
-                                    : ""
-                                  }`}
-                                onClick={() => handleQuickToggle(product.id, 'isTrending')}
-                                title="Toggle Trending"
-                              >
-                                <Zap className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={product.isNewArrival ? "default" : "outline"}
-                                className={`h-8 w-8 p-0 ${product.isNewArrival
-                                    ? "bg-blue-500 hover:bg-blue-600"
-                                    : ""
-                                  }`}
-                                onClick={() => handleQuickToggle(product.id, 'isNewArrival')}
-                                title="Toggle New Arrival"
-                              >
-                                <Clock className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleQuickEdit(product)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={9} className="text-center py-10">
-                          <Package className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                          <p className="text-lg font-medium">No products found</p>
-                          <p className="text-muted-foreground">
-                            {searchTerm ? "Try adjusting your search terms" : "No products available"}
-                          </p>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
               </div>
             </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
 
-      {/* Quick Edit Dialog */}
-      <Dialog open={quickEditDialogOpen} onOpenChange={setQuickEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Edit Special Categories</DialogTitle>
-            <DialogDescription>
-              Configure special categories for {editingProduct?.name}
-            </DialogDescription>
-          </DialogHeader>
+            <TabsContent value="specifications" className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Weight</span>
+                    <span className="text-sm font-medium">{product.weight || "N/A"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Dimensions</span>
+                    <span className="text-sm font-medium">{product.dimensions || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
 
-          <div className="space-y-4 py-4">
-            <div className="space-y-3">
-              <Label className="text-base font-medium">Special Categories</Label>
-
+            <TabsContent value="categories" className="space-y-4 pt-4">
               <div className="space-y-3">
-                {/* Featured */}
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <Label htmlFor="isFeatured" className="flex items-center gap-2 cursor-pointer">
-                    <Star className="h-5 w-5 text-yellow-500" />
-                    <div>
-                      <div className="font-medium">Featured</div>
-                      <div className="text-sm text-muted-foreground">Highlight on featured section</div>
-                    </div>
-                  </Label>
-                  <Switch
-                    id="isFeatured"
-                    checked={quickEditData.isFeatured}
-                    onCheckedChange={(checked) => setQuickEditData({ ...quickEditData, isFeatured: checked })}
-                  />
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Main Category</span>
+                  <Badge variant="outline">{product.categoryLevel1}</Badge>
                 </div>
-
-                {/* Trending */}
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <Label htmlFor="isTrending" className="flex items-center gap-2 cursor-pointer">
-                    <Zap className="h-5 w-5 text-orange-500" />
-                    <div>
-                      <div className="font-medium">Trending</div>
-                      <div className="text-sm text-muted-foreground">Show in trending products</div>
-                    </div>
-                  </Label>
-                  <Switch
-                    id="isTrending"
-                    checked={quickEditData.isTrending}
-                    onCheckedChange={(checked) => setQuickEditData({ ...quickEditData, isTrending: checked })}
-                  />
-                </div>
-
-                {/* New Arrival */}
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <Label htmlFor="isNewArrival" className="flex items-center gap-2 cursor-pointer">
-                    <Clock className="h-5 w-5 text-blue-500" />
-                    <div>
-                      <div className="font-medium">New Arrival</div>
-                      <div className="text-sm text-muted-foreground">Mark as new arrival</div>
-                    </div>
-                  </Label>
-                  <Switch
-                    id="isNewArrival"
-                    checked={quickEditData.isNewArrival}
-                    onCheckedChange={(checked) => setQuickEditData({ ...quickEditData, isNewArrival: checked })}
-                  />
+                {product.categoryLevel2 && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Subcategory</span>
+                    <Badge variant="secondary">{product.categoryLevel2}</Badge>
+                  </div>
+                )}
+                {product.categoryLevel3 && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Sub-subcategory</span>
+                    <Badge variant="outline">{product.categoryLevel3}</Badge>
+                  </div>
+                )}
+                <div className="p-3 bg-muted/30 rounded-lg">
+                  <div className="text-xs text-muted-foreground mb-1">Full Category Path</div>
+                  <div className="text-sm font-medium">
+                    {[product.categoryLevel1, product.categoryLevel2, product.categoryLevel3]
+                      .filter(Boolean)
+                      .join(' → ')}
+                  </div>
                 </div>
               </div>
-            </div>
+            </TabsContent>
 
-            {/* Display Orders */}
-            <div className="space-y-3">
-              <Label className="text-base font-medium">Display Orders</Label>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="featuredOrder" className="text-xs">Featured Order</Label>
-                  <Input
-                    id="featuredOrder"
-                    type="number"
-                    min="0"
-                    value={quickEditData.featuredOrder}
-                    onChange={(e) => setQuickEditData({ ...quickEditData, featuredOrder: parseInt(e.target.value) || 0 })}
-                    disabled={!quickEditData.isFeatured}
-                  />
+            <TabsContent value="metadata" className="space-y-4 pt-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Created</span>
+                  <span className="text-sm font-medium">{formatDate(product.createdAt)}</span>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="trendingOrder" className="text-xs">Trending Order</Label>
-                  <Input
-                    id="trendingOrder"
-                    type="number"
-                    min="0"
-                    value={quickEditData.trendingOrder}
-                    onChange={(e) => setQuickEditData({ ...quickEditData, trendingOrder: parseInt(e.target.value) || 0 })}
-                    disabled={!quickEditData.isTrending}
-                  />
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Updated</span>
+                  <span className="text-sm font-medium">{formatDate(product.updatedAt)}</span>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="newArrivalOrder" className="text-xs">New Arrival Order</Label>
-                  <Input
-                    id="newArrivalOrder"
-                    type="number"
-                    min="0"
-                    value={quickEditData.newArrivalOrder}
-                    onChange={(e) => setQuickEditData({ ...quickEditData, newArrivalOrder: parseInt(e.target.value) || 0 })}
-                    disabled={!quickEditData.isNewArrival}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setQuickEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleQuickUpdate}>
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Bulk Action Dialog */}
-      <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Bulk Action</DialogTitle>
-            <DialogDescription>
-              Apply action to {selectedProducts.length} selected products
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="space-y-3">
-              <Label className="text-base font-medium">Select Action</Label>
-
-              <Select value={bulkAction} onValueChange={(value: any) => setBulkAction(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="add-featured">
-                    <div className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      Add to Featured
+                {displayTags.length > 0 && (
+                  <div>
+                    <div className="text-sm text-muted-foreground mb-2">Tags</div>
+                    <div className="flex flex-wrap gap-2">
+                      {displayTags.map((tag, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
                     </div>
-                  </SelectItem>
-                  <SelectItem value="add-trending">
-                    <div className="flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-orange-500" />
-                      Add to Trending
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="add-new-arrival">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-blue-500" />
-                      Add to New Arrivals
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="remove-all">
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-destructive" />
-                      Remove from All Categories
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Selected Products Preview */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Selected Products ({selectedProducts.length})</Label>
-              <div className="max-h-32 overflow-y-auto border rounded-md p-2">
-                {allProducts
-                  .filter(p => selectedProducts.includes(p.id))
-                  .slice(0, 5)
-                  .map(product => (
-                    <div key={product.id} className="text-sm py-1 truncate">
-                      {product.name}
-                    </div>
-                  ))}
-                {selectedProducts.length > 5 && (
-                  <div className="text-sm text-muted-foreground py-1">
-                    +{selectedProducts.length - 5} more...
                   </div>
                 )}
               </div>
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setBulkDialogOpen(false)}>
-              Cancel
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => copyToClipboard(product.id)}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Copy ID
             </Button>
-            <Button onClick={handleBulkAction}>
-              Apply to {selectedProducts.length} Products
+            <Button onClick={() => onOpenChange(false)}>
+              Close
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -6400,6 +639,9 @@ export default function Products() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("catalog");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [formData, setFormData] = useState<ProductFormData>({
     name: "",
     description: "",
@@ -6414,12 +656,12 @@ export default function Products() {
     brand: "",
     tags: [],
     isActive: true,
-    image: "",
-
-    // NEW: Size field
+    image: null,
     size: "",
-
-    // NEW SPECIAL CATEGORY FIELDS
+    sku: "",
+    weight: "",
+    dimensions: "",
+    discountPrice: "",
     isFeatured: false,
     isTrending: false,
     isNewArrival: false,
@@ -6427,78 +669,43 @@ export default function Products() {
     trendingOrder: 0,
     newArrivalOrder: 0,
   });
+
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const serviceTypeOptions = ['physical', 'service'];
-  const unitOptions = ['piece', 'kg', 'hour', 'day', 'month', 'set'];
 
-  // Helper function to convert file path to URL
-  const getImageUrl = (image?: string): string => {
-    if (!image || !image.trim()) {
-      return "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&h=500&fit=crop";
-    }
+  const serviceTypeOptions = ['physical', 'digital', 'service'];
+  const unitOptions = ['piece', 'kg', 'g', 'ml', 'l', 'hour', 'day', 'month', 'set', 'pair'];
+  const statusOptions = ['all', 'active', 'inactive', 'low-stock', 'no-stock'];
 
-    const clean = image.trim();
-
-    // ✅ If it's already a Cloudinary URL — keep it
-    if (clean.includes("cloudinary.com")) {
-      return clean;
-    }
-
-    // ✅ If it's from your backend uploads but needs Cloudinary mapping
-    if (clean.includes("georgina-server-code.onrender.com/uploads/products/")) {
-      const filename = clean.split("/").pop();
-      return `https://res.cloudinary.com/dy0lpwemp/image/upload/v1762654150/georgina-products/${filename}`;
-    }
-
-    // ✅ If it's a relative upload (no host yet)
-    if (clean.startsWith("uploads/products/")) {
-      const filename = clean.split("/").pop();
-      return `https://res.cloudinary.com/dy0lpwemp/image/upload/v1762654150/georgina-products/${filename}`;
-    }
-
-    // ✅ Otherwise, return as-is
-    return clean;
-  };
-
-  // Fetch categories from your API
+  // Fetch categories
   const fetchCategories = async () => {
     try {
       setIsCategoriesLoading(true);
-      console.log('🔄 Fetching categories from API...');
-      
       const response = await fetch('https://georgina-server-code.onrender.com/api/categories-tree');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const categoriesData = await response.json();
-      console.log('✅ Categories response:', categoriesData);
-      
       setCategories(categoriesData);
     } catch (err: any) {
-      console.error('❌ Failed to fetch categories:', err);
+      console.error('Failed to fetch categories:', err);
       toast({
         variant: "destructive",
         title: "Error loading categories",
-        description: "Could not fetch categories. Using fallback options.",
+        description: "Could not fetch categories.",
       });
     } finally {
       setIsCategoriesLoading(false);
     }
   };
 
-  // Fetch products from API
+  // Fetch products
   const fetchProducts = async () => {
     try {
       setIsLoading(true);
       setError(null);
-
       const productsResponse = await adminApiService.getProducts();
       const productsList = productsResponse.products || productsResponse.data?.products || productsResponse || [];
 
-      // Cast the products to include special fields with defaults
       const productsWithDefaults = (Array.isArray(productsList) ? productsList : []).map(product => ({
         ...product,
         isFeatured: (product as any).isFeatured ?? false,
@@ -6507,10 +714,15 @@ export default function Products() {
         featuredOrder: (product as any).featuredOrder ?? 0,
         trendingOrder: (product as any).trendingOrder ?? 0,
         newArrivalOrder: (product as any).newArrivalOrder ?? 0,
+        sku: (product as any).sku || `SKU-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+        weight: (product as any).weight || null,
+        dimensions: (product as any).dimensions || null,
+        discountPrice: (product as any).discountPrice || null,
+        rating: (product as any).rating || 0,
+        reviewsCount: (product as any).reviewsCount || 0,
       })) as ProductWithSpecial[];
 
       setProducts(productsWithDefaults);
-
     } catch (err) {
       console.error('Failed to fetch data:', err);
       setError('Failed to load data. Please try again.');
@@ -6524,84 +736,57 @@ export default function Products() {
     }
   };
 
-  // Fetch both products and categories on component mount
   useEffect(() => {
     fetchProducts();
     fetchCategories();
   }, []);
 
-  // Helper function to flatten categories for easier processing
-  const flattenCategories = (categories: Category[]): Category[] => {
-    const flattened: Category[] = [];
-    
-    const flatten = (category: Category) => {
-      flattened.push(category);
-      if (category.children && category.children.length > 0) {
-        category.children.forEach(child => flatten(child));
-      }
-    };
-    
-    categories.forEach(category => flatten(category));
-    return flattened;
-  };
-
-  // Get all categories as a flat array
-  const allCategories = flattenCategories(categories);
-
-  // Get categories by level
-  const getCategoriesByLevel = (level: number) => {
-    return allCategories.filter(cat => cat.level === level);
-  };
-
-  // Get top-level categories (level 1)
-  const topLevelCategories = getCategoriesByLevel(1);
-
-  // Get level 2 categories
-  const level2Categories = getCategoriesByLevel(2);
-
-  // Get level 3 categories
-  const level3Categories = getCategoriesByLevel(3);
-
-  // Get subcategories for a specific parent
-  const getSubcategories = (parentId: string) => {
-    return allCategories.filter(cat => cat.parentId === parentId);
-  };
-
-  // Handle product updates from SpecialProductsManager
-  const handleProductUpdate = (productId: string, updates: any) => {
-    setProducts(prevProducts =>
-      prevProducts.map(product =>
-        product.id === productId
-          ? { ...product, ...updates }
-          : product
-      )
-    );
-  };
-
-  const filteredProducts = products.filter(
-    (product) =>
+  // Filter products
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
       (product.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (product.categoryLevel1?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (product.brand?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (product.description?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  );
+      (product.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (product.sku?.toLowerCase() || '').includes(searchTerm.toLowerCase());
 
-  const totalProducts = filteredProducts.length;
-  const totalValue = filteredProducts.reduce((sum, p) => {
-    const price = parseFloat(p.price?.toString() || '0');
-    const stock = parseInt(p.stock?.toString() || '0');
-    return sum + (price * stock);
-  }, 0);
-  const lowStockCount = filteredProducts.filter(p => (p.stock || 0) < 10).length;
+    const matchesStatus = selectedStatus === "all" ? true :
+      selectedStatus === "active" ? product.isActive :
+        selectedStatus === "inactive" ? !product.isActive :
+          selectedStatus === "low-stock" ? (product.stock || 0) < 10 :
+            selectedStatus === "no-stock" ? (product.stock || 0) === 0 : true;
 
-  // Count special category products
-  const featuredCount = filteredProducts.filter(p => p.isFeatured).length;
-  const trendingCount = filteredProducts.filter(p => p.isTrending).length;
-  const newArrivalsCount = filteredProducts.filter(p => p.isNewArrival).length;
+    const matchesCategory = selectedCategory === "all" ? true :
+      product.categoryLevel1 === selectedCategory ||
+      product.categoryLevel2 === selectedCategory ||
+      product.categoryLevel3 === selectedCategory;
 
+    return matchesSearch && matchesStatus && matchesCategory;
+  });
+
+  // Analytics calculations
+  const analytics = {
+    totalProducts: filteredProducts.length,
+    activeProducts: filteredProducts.filter(p => p.isActive).length,
+    lowStock: filteredProducts.filter(p => (p.stock || 0) < 10 && (p.stock || 0) > 0).length,
+    outOfStock: filteredProducts.filter(p => (p.stock || 0) === 0).length,
+    featured: filteredProducts.filter(p => p.isFeatured).length,
+    trending: filteredProducts.filter(p => p.isTrending).length,
+    newArrivals: filteredProducts.filter(p => p.isNewArrival).length,
+    totalValue: filteredProducts.reduce((sum, p) => {
+      const price = parseFloat(p.price?.toString() || '0');
+      const stock = parseInt(p.stock?.toString() || '0');
+      return sum + (price * stock);
+    }, 0),
+    averagePrice: filteredProducts.length > 0 ?
+      filteredProducts.reduce((sum, p) => sum + parseFloat(p.price?.toString() || '0'), 0) / filteredProducts.length : 0,
+  };
+   const handleViewProduct = (product: ProductWithSpecial) => {
+    setSelectedProduct(product);
+    setDetailsDialogOpen(true);
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.name || !formData.price || !formData.categoryLevel1) {
       toast({
         variant: "destructive",
@@ -6612,11 +797,8 @@ export default function Products() {
     }
 
     setIsSubmitting(true);
-
     try {
       const formDataObj = new FormData();
-
-      // Append all product data
       formDataObj.append('name', formData.name);
       formDataObj.append('description', formData.description);
       formDataObj.append('price', formData.price);
@@ -6628,16 +810,13 @@ export default function Products() {
       formDataObj.append('unit', formData.unit);
       formDataObj.append('stock', formData.stock);
       formDataObj.append('brand', formData.brand);
-
-      // NEW: Append size field
       formDataObj.append('size', formData.size);
-
-      // Append tags as JSON string
+      formDataObj.append('sku', formData.sku);
+      formDataObj.append('weight', formData.weight);
+      formDataObj.append('dimensions', formData.dimensions);
+      formDataObj.append('discountPrice', formData.discountPrice);
       formDataObj.append('tags', JSON.stringify(formData.tags));
-
       formDataObj.append('isActive', formData.isActive.toString());
-
-      // NEW: Append special category fields
       formDataObj.append('isFeatured', formData.isFeatured.toString());
       formDataObj.append('isTrending', formData.isTrending.toString());
       formDataObj.append('isNewArrival', formData.isNewArrival.toString());
@@ -6645,7 +824,6 @@ export default function Products() {
       formDataObj.append('trendingOrder', formData.trendingOrder.toString());
       formDataObj.append('newArrivalOrder', formData.newArrivalOrder.toString());
 
-      // Handle image upload
       if (formData.image instanceof File) {
         formDataObj.append('image', formData.image);
       } else if (!formData.image && !editingProduct) {
@@ -6661,7 +839,6 @@ export default function Products() {
       let result;
       if (editingProduct) {
         result = await adminApiService.updateProduct(editingProduct.id, formDataObj);
-        // Cast the result to include special fields
         const resultWithSpecial = {
           ...result,
           isFeatured: (result as any).isFeatured ?? false,
@@ -6673,13 +850,9 @@ export default function Products() {
         } as ProductWithSpecial;
 
         setProducts(products.map((p) => p.id === editingProduct.id ? resultWithSpecial : p));
-        toast({
-          title: "Product updated",
-          description: "Product has been updated successfully"
-        });
+        toast({ title: "Product updated", description: "Product has been updated successfully" });
       } else {
         result = await adminApiService.createProduct(formDataObj);
-        // Cast the result to include special fields
         const resultWithSpecial = {
           ...result,
           isFeatured: (result as any).isFeatured ?? false,
@@ -6691,13 +864,9 @@ export default function Products() {
         } as ProductWithSpecial;
 
         setProducts(prev => [...prev, resultWithSpecial]);
-        toast({
-          title: "Product added",
-          description: "Product has been added successfully"
-        });
+        toast({ title: "Product added", description: "Product has been added successfully" });
       }
 
-      // Reset form and close dialog
       setFormData({
         name: "",
         description: "",
@@ -6713,11 +882,11 @@ export default function Products() {
         tags: [],
         isActive: true,
         image: null,
-
-        // NEW: Reset size field
         size: "",
-
-        // NEW: Reset special category fields
+        sku: "",
+        weight: "",
+        dimensions: "",
+        discountPrice: "",
         isFeatured: false,
         isTrending: false,
         isNewArrival: false,
@@ -6727,7 +896,6 @@ export default function Products() {
       });
       setEditingProduct(null);
       setDialogOpen(false);
-
     } catch (err) {
       console.error('Failed to save product:', err);
       toast({
@@ -6757,11 +925,11 @@ export default function Products() {
       tags: [],
       isActive: true,
       image: null,
-
-      // NEW: Reset size field
       size: "",
-
-      // NEW: Reset special category fields
+      sku: `SKU-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+      weight: "",
+      dimensions: "",
+      discountPrice: "",
       isFeatured: false,
       isTrending: false,
       isNewArrival: false,
@@ -6774,52 +942,34 @@ export default function Products() {
 
   const handleEditProduct = (productToEdit: ProductWithSpecial) => {
     setEditingProduct(productToEdit);
-
     const convertTagsToArray = (tags: unknown): string[] => {
       if (!tags) return [];
-      
       if (Array.isArray(tags)) {
         return tags.reduce<string[]>((acc, tag) => {
-          if (typeof tag === 'string' && tag.trim()) {
-            acc.push(tag.trim());
-          }
+          if (typeof tag === 'string' && tag.trim()) acc.push(tag.trim());
           return acc;
         }, []);
       }
-      
       if (typeof tags === 'string') {
         try {
           const parsed = JSON.parse(tags);
           if (Array.isArray(parsed)) {
             return parsed.reduce<string[]>((acc, tag) => {
-              if (typeof tag === 'string' && tag.trim()) {
-                acc.push(tag.trim());
-              }
+              if (typeof tag === 'string' && tag.trim()) acc.push(tag.trim());
               return acc;
             }, []);
           }
         } catch {
-          return tags.split(',')
-            .map(tag => tag.trim())
-            .filter(tag => tag !== '');
+          return tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
         }
       }
-      
       return [];
     };
 
-    // Convert product size to string format for the form
     const getSizeString = (size: any): string => {
       if (!size) return "";
-      
-      if (Array.isArray(size)) {
-        return size.filter(s => typeof s === 'string').join(',');
-      }
-      
-      if (typeof size === 'string') {
-        return size; // Already in the correct format
-      }
-      
+      if (Array.isArray(size)) return size.filter(s => typeof s === 'string').join(',');
+      if (typeof size === 'string') return size;
       return "";
     };
 
@@ -6837,12 +987,12 @@ export default function Products() {
       brand: productToEdit.brand || "",
       tags: convertTagsToArray(productToEdit.tags),
       isActive: productToEdit.isActive !== undefined ? productToEdit.isActive : true,
-      image: getImageUrl(productToEdit.images?.[0]) || "",
-
-      // NEW: Include size field
+      image: productToEdit.images?.[0] || "",
       size: getSizeString(productToEdit.size),
-
-      // FIXED: Use numbers directly from the product
+      sku: productToEdit.sku || `SKU-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+      weight: (productToEdit.weight || "").toString(),
+      dimensions: productToEdit.dimensions || "",
+      discountPrice: (productToEdit.discountPrice || "").toString(),
       isFeatured: productToEdit.isFeatured || false,
       isTrending: productToEdit.isTrending || false,
       isNewArrival: productToEdit.isNewArrival || false,
@@ -6853,23 +1003,14 @@ export default function Products() {
     setDialogOpen(true);
   };
 
-  const handleViewProduct = (product: ProductWithSpecial) => {
-    setSelectedProduct(product);
-    setDetailsDialogOpen(true);
-  };
+
 
   const handleDeleteProduct = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) {
-      return;
-    }
-
+    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
     try {
       await adminApiService.deleteProduct(id);
       setProducts(products.filter((p) => p.id !== id));
-      toast({
-        title: "Product deleted",
-        description: "The product has been removed successfully"
-      });
+      toast({ title: "Product deleted", description: "The product has been removed successfully" });
     } catch (err) {
       console.error('Failed to delete product:', err);
       toast({
@@ -6884,9 +1025,7 @@ export default function Products() {
     try {
       const formData = new FormData();
       formData.append('isActive', (!productToToggle.isActive).toString());
-
       const updatedProduct = await adminApiService.updateProduct(productToToggle.id, formData);
-      // Cast the updated product to include special fields
       const updatedProductWithSpecial = {
         ...updatedProduct,
         isFeatured: (updatedProduct as any).isFeatured ?? productToToggle.isFeatured,
@@ -6896,7 +1035,6 @@ export default function Products() {
         trendingOrder: (updatedProduct as any).trendingOrder ?? productToToggle.trendingOrder,
         newArrivalOrder: (updatedProduct as any).newArrivalOrder ?? productToToggle.newArrivalOrder,
       } as ProductWithSpecial;
-
       setProducts(products.map((p) => p.id === productToToggle.id ? updatedProductWithSpecial : p));
       toast({
         title: `Product ${!productToToggle.isActive ? 'activated' : 'deactivated'}`,
@@ -6912,45 +1050,42 @@ export default function Products() {
     }
   };
 
-  // Loading and Skeleton Components
-  const SkeletonRow = () => (
-    <TableRow>
-      <TableCell>
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 bg-muted rounded animate-pulse" />
-          <div className="space-y-2">
-            <div className="h-4 bg-muted rounded animate-pulse w-32" />
-            <div className="h-3 bg-muted rounded animate-pulse w-24" />
-          </div>
-        </div>
-      </TableCell>
-      <TableCell>
-        <div className="h-6 bg-muted rounded animate-pulse w-20" />
-      </TableCell>
-      <TableCell>
-        <div className="h-6 bg-muted rounded animate-pulse w-16" />
-      </TableCell>
-      <TableCell>
-        <div className="h-4 bg-muted rounded animate-pulse w-12" />
-      </TableCell>
-      <TableCell>
-        <div className="h-4 bg-muted rounded animate-pulse w-16" />
-      </TableCell>
-      <TableCell>
-        <div className="h-6 bg-muted rounded animate-pulse w-16" />
-      </TableCell>
-      <TableCell>
-        <div className="h-6 bg-muted rounded animate-pulse w-16" />
-      </TableCell>
-      <TableCell>
-        <div className="flex justify-end gap-2">
-          <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-          <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-          <div className="h-8 w-8 bg-muted rounded animate-pulse" />
-        </div>
-      </TableCell>
-    </TableRow>
-  );
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'export':
+        toast({ title: "Export", description: "Export functionality coming soon" });
+        break;
+      case 'import':
+        toast({ title: "Import", description: "Import functionality coming soon" });
+        break;
+      case 'duplicate':
+        toast({ title: "Duplicate", description: "Duplicate functionality coming soon" });
+        break;
+      case 'bulk_edit':
+        toast({ title: "Bulk Edit", description: "Bulk edit functionality coming soon" });
+        break;
+    }
+  };
+
+  const getImageUrl = (image?: string): string => {
+    if (!image || !image.trim()) {
+      return "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&h=500&fit=crop";
+    }
+    const clean = image.trim();
+    if (clean.includes("cloudinary.com")) return clean;
+    if (clean.includes("georgina-server-code.onrender.com/uploads/products/")) {
+      const filename = clean.split("/").pop();
+      return `https://res.cloudinary.com/dy0lpwemp/image/upload/v1762654150/georgina-products/${filename}`;
+    }
+    if (clean.startsWith("uploads/products/")) {
+      const filename = clean.split("/").pop();
+      return `https://res.cloudinary.com/dy0lpwemp/image/upload/v1762654150/georgina-products/${filename}`;
+    }
+    return clean;
+  };
+
+  // Get unique categories for filter
+  const uniqueCategories = [...new Set(products.flatMap(p => [p.categoryLevel1, p.categoryLevel2, p.categoryLevel3].filter(Boolean)))];
 
   if (error && products.length === 0) {
     return (
@@ -6979,8 +1114,12 @@ export default function Products() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Products</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Products</h1>
+          <p className="text-muted-foreground">Manage your product catalog and inventory</p>
+        </div>
         <div className="flex gap-2">
           <Button onClick={() => { fetchProducts(); fetchCategories(); }} variant="outline" disabled={isLoading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -6995,180 +1134,157 @@ export default function Products() {
         </div>
       </div>
 
+      {/* Analytics Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <ProductAnalyticsCard
+          title="Total Products"
+          value={analytics.totalProducts.toString()}
+          icon={Package}
+          description={`${analytics.activeProducts} active`}
+          color="text-blue-500"
+        />
+        <ProductAnalyticsCard
+          title="Inventory Value"
+          value={`$${analytics.totalValue.toFixed(2)}`}
+          icon={DollarSign}
+          description={`Avg: $${analytics.averagePrice.toFixed(2)}`}
+          color="text-green-500"
+        />
+        <ProductAnalyticsCard
+          title="Stock Status"
+          value={`${analytics.lowStock + analytics.outOfStock}`}
+          icon={AlertTriangle}
+          description={`${analytics.lowStock} low, ${analytics.outOfStock} out`}
+          color="text-orange-500"
+        />
+        <ProductAnalyticsCard
+          title="Special Categories"
+          value={`${analytics.featured + analytics.trending + analytics.newArrivals}`}
+          icon={Star}
+          description={`${analytics.featured} featured, ${analytics.trending} trending`}
+          color="text-purple-500"
+        />
+      </div>
+
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="catalog" className="flex items-center gap-2">
             <Package className="h-4 w-4" />
-            Product Catalog
+            Catalog
           </TabsTrigger>
-          <TabsTrigger value="special" className="flex items-center gap-2">
-            <Star className="h-4 w-4" />
-            Special Categories
+          <TabsTrigger value="inventory" className="flex items-center gap-2">
+            <Layers className="h-4 w-4" />
+            Inventory
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Analytics
           </TabsTrigger>
         </TabsList>
 
-        {/* Product Catalog Tab */}
+        {/* Catalog Tab */}
         <TabsContent value="catalog" className="space-y-6">
-          {/* Stats Cards - Updated with Special Categories */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <>
-                    <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-                    <div className="h-4 bg-muted rounded animate-pulse" />
-                  </>
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold">{totalProducts}</div>
-                    <p className="text-xs text-muted-foreground">Active in catalog</p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Featured</CardTitle>
-                <Star className="h-4 w-4 text-yellow-500" />
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <>
-                    <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-                    <div className="h-4 bg-muted rounded animate-pulse" />
-                  </>
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold">{featuredCount}</div>
-                    <p className="text-xs text-muted-foreground">Featured products</p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Trending</CardTitle>
-                <Zap className="h-4 w-4 text-orange-500" />
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <>
-                    <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-                    <div className="h-4 bg-muted rounded animate-pulse" />
-                  </>
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold">{trendingCount}</div>
-                    <p className="text-xs text-muted-foreground">Trending products</p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">New Arrivals</CardTitle>
-                <Clock className="h-4 w-4 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <>
-                    <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-                    <div className="h-4 bg-muted rounded animate-pulse" />
-                  </>
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold">{newArrivalsCount}</div>
-                    <p className="text-xs text-muted-foreground">New arrivals</p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <>
-                    <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-                    <div className="h-4 bg-muted rounded animate-pulse" />
-                  </>
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold">${(totalValue ?? 0).toFixed(2)}</div>
-                    <p className="text-xs text-muted-foreground">Inventory worth</p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <>
-                    <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-                    <div className="h-4 bg-muted rounded animate-pulse" />
-                  </>
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold">{lowStockCount}</div>
-                    <p className="text-xs text-muted-foreground">Items below 10 units</p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          {/* Filters and Search */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row gap-4 justify-between">
+                <div className="flex flex-col md:flex-row gap-4 flex-1">
+                  <div className="relative flex-1 md:max-w-sm">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search products by name, SKU, brand..."
+                      className="pl-8"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status.replace('-', ' ').toUpperCase()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {uniqueCategories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setViewMode("grid")}
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setViewMode("list")}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <QuickActions onAction={handleQuickAction} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Products Table */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Product Catalog</CardTitle>
-              <CardDescription>Manage your product inventory</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-6">
-                <div className="relative w-full md:w-96">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search products..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    disabled={isLoading}
-                  />
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Product Catalog</CardTitle>
+                  <CardDescription>{filteredProducts.length} products found</CardDescription>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Filter className="h-4 w-4" />
+                  <span>Filtered results</span>
                 </div>
               </div>
-
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Sizes</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Special</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    Array.from({ length: 5 }).map((_, index) => (
-                      <SkeletonRow key={index} />
-                    ))
-                  ) : filteredProducts.length > 0 ? (
-                    filteredProducts.map((product) => (
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="h-16 bg-muted rounded animate-pulse" />
+                  ))}
+                </div>
+              ) : filteredProducts.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>SKU</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Stock</TableHead>
+                      <TableHead>Sizes</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Special</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProducts.map((product) => (
                       <TableRow key={product.id} className="hover:bg-muted/50">
                         <TableCell>
                           <div className="flex items-center gap-3">
@@ -7195,6 +1311,11 @@ export default function Products() {
                           </div>
                         </TableCell>
                         <TableCell>
+                          <div className="font-mono text-xs text-muted-foreground">
+                            {product.sku}
+                          </div>
+                        </TableCell>
+                        <TableCell>
                           <div className="space-y-1">
                             <Badge variant="outline">{product.categoryLevel1}</Badge>
                             {product.categoryLevel2 && (
@@ -7203,48 +1324,74 @@ export default function Products() {
                           </div>
                         </TableCell>
                         <TableCell className="font-medium">
-                          ${product.price != null ? parseFloat(product.price.toString()).toFixed(2) : '0.00'}
+                          <div className="space-y-1">
+                            <div>${product.price != null ? parseFloat(product.price.toString()).toFixed(2) : '0.00'}</div>
+                            {product.discountPrice && (
+                              <div className="text-xs text-red-600 line-through">
+                                ${product.discountPrice.toFixed(2)}
+                              </div>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
-                          <span className={product.stock < 10 ? "text-destructive font-medium" : ""}>
-                            {product.stock}
-                          </span>
+                          <div className="space-y-1">
+                            <span className={product.stock < 10 ? "text-destructive font-medium" : ""}>
+                              {product.stock}
+                            </span>
+                            {product.stock < 10 && product.stock > 0 && (
+                              <div className="text-xs text-destructive">Low stock</div>
+                            )}
+                            {product.stock === 0 && (
+                              <div className="text-xs text-destructive">Out of stock</div>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           {product.size ? (
                             <div className="flex flex-wrap gap-1 max-w-24">
+                              {/* Safely get the first 2 sizes */}
                               {(() => {
-                                const sizeArray = typeof product.size === 'string' 
-                                  ? product.size.split(',').map(s => s.trim()).filter(s => s).slice(0, 2)
-                                  : Array.isArray(product.size) 
-                                    ? product.size?.slice(0, 2)
-                                    : [];
-                                
-                                return (
-                                  <>
-                                    {sizeArray.map((size, index) => (
-                                      <Badge key={index} variant="outline" className="text-xs">
-                                        {size}
-                                      </Badge>
-                                    ))}
-                                    {((typeof product.size === 'string' && product.size.split(',').length > 2) ||
-                                      (Array.isArray(product.size) && product.size.length > 2)) && (
-                                      <span className="text-xs text-muted-foreground">
-                                        +{((typeof product.size === 'string' ? product.size.split(',').length : product.size?.length) - 2)} more
-                                      </span>
-                                    )}
-                                  </>
-                                );
+                                if (typeof product.size === 'string') {
+                                  const sizes = product.size.split(',').filter(s => s.trim());
+                                  return sizes.slice(0, 2).map((size, index) => (
+                                    <Badge key={index} variant="outline" className="text-xs">
+                                      {size.trim()}
+                                    </Badge>
+                                  ));
+                                } else if (Array.isArray(product.size)) {
+                                  const sizes = product.size.filter(s => s != null);
+                                  return sizes.slice(0, 2).map((size, index) => (
+                                    <Badge key={index} variant="outline" className="text-xs">
+                                      {size}
+                                    </Badge>
+                                  ));
+                                }
+                                return null;
+                              })()}
+
+                              {/* Show "+ more" indicator */}
+                              {(() => {
+                                let sizeCount = 0;
+
+                                if (typeof product.size === 'string') {
+                                  sizeCount = product.size.split(',').filter(s => s.trim()).length;
+                                } else if (Array.isArray(product.size)) {
+                                  sizeCount = product.size.filter(s => s != null).length;
+                                }
+
+                                if (sizeCount > 2) {
+                                  return (
+                                    <span className="text-xs text-muted-foreground">
+                                      +{sizeCount - 2} more
+                                    </span>
+                                  );
+                                }
+                                return null;
                               })()}
                             </div>
                           ) : (
                             <span className="text-xs text-muted-foreground">-</span>
                           )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={product.serviceType === 'service' ? 'default' : 'secondary'}>
-                            {product.serviceType}
-                          </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge variant={product.isActive ? 'default' : 'destructive'}>
@@ -7271,87 +1418,170 @@ export default function Products() {
                                 N
                               </Badge>
                             )}
-                            {!product.isFeatured && !product.isTrending && !product.isNewArrival && (
-                              <span className="text-xs text-muted-foreground">-</span>
-                            )}
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewProduct(product)}
-                              disabled={isLoading}
-                              title="View Details"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleToggleStatus(product)}
-                              disabled={isLoading}
-                            >
-                              {product.isActive ? 'Deactivate' : 'Activate'}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditProduct(product)}
-                              disabled={isLoading}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteProduct(product.id)}
-                              disabled={isLoading}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewProduct(product)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditProduct(product)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleToggleStatus(product)}>
+                                {product.isActive ? 'Deactivate' : 'Activate'}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteProduct(product.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={9} className="text-center py-10">
-                        <Package className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-lg font-medium">No products found</p>
-                        <p className="text-muted-foreground">
-                          {searchTerm ? "Try adjusting your search terms" : "Get started by adding your first product"}
-                        </p>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-10">
+                  <Package className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-lg font-medium">No products found</p>
+                  <p className="text-muted-foreground">
+                    {searchTerm ? "Try adjusting your search terms" : "Get started by adding your first product"}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Special Categories Tab */}
-        <TabsContent value="special">
-          <SpecialProductsManager
-            products={products}
-            onUpdateProduct={handleProductUpdate}
-          />
+        {/* Inventory Tab */}
+        <TabsContent value="inventory" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Inventory Management</CardTitle>
+              <CardDescription>Manage stock levels and inventory status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">Low Stock Alert</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-orange-600">{analytics.lowStock}</div>
+                      <p className="text-xs text-muted-foreground">Products with less than 10 units</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-red-600">{analytics.outOfStock}</div>
+                      <p className="text-xs text-muted-foreground">Products with zero stock</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">Healthy Stock</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600">
+                        {analytics.totalProducts - analytics.lowStock - analytics.outOfStock}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Products with sufficient stock</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Product Analytics</CardTitle>
+              <CardDescription>Performance metrics and insights</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Special Categories</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Featured</span>
+                        <span className="font-bold">{analytics.featured}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Trending</span>
+                        <span className="font-bold">{analytics.trending}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">New Arrivals</span>
+                        <span className="font-bold">{analytics.newArrivals}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Pricing Stats</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Average Price</span>
+                        <span className="font-bold">${analytics.averagePrice.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Highest Price</span>
+                        <span className="font-bold">
+                          ${Math.max(...filteredProducts.map(p => parseFloat(p.price?.toString() || '0'))).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Lowest Price</span>
+                        <span className="font-bold">
+                          ${Math.min(...filteredProducts.map(p => parseFloat(p.price?.toString() || '0'))).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
       {/* Add/Edit Product Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base">
               {editingProduct ? "Edit Product" : "Add New Product"}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              {editingProduct
-                ? "Update the product information"
-                : "Add a new product to your catalog"}
+              {editingProduct ? "Update the product information" : "Add a new product to your catalog"}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
@@ -7368,17 +1598,30 @@ export default function Products() {
                 className="h-40"
               />
 
-              <div className="grid gap-2">
-                <Label htmlFor="name" className="text-xs">Product Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Wireless Headphones"
-                  className="h-9 text-sm"
-                  required
-                  disabled={isSubmitting}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name" className="text-xs">Product Name *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="e.g., Wireless Headphones"
+                    className="h-9 text-sm"
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="sku" className="text-xs">SKU</Label>
+                  <Input
+                    id="sku"
+                    value={formData.sku}
+                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                    placeholder="e.g., PROD-001"
+                    className="h-9 text-sm"
+                    disabled={isSubmitting}
+                  />
+                </div>
               </div>
 
               <div className="grid gap-2">
@@ -7394,7 +1637,7 @@ export default function Products() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="price" className="text-xs">Price *</Label>
                   <Input
@@ -7411,6 +1654,20 @@ export default function Products() {
                   />
                 </div>
                 <div className="grid gap-2">
+                  <Label htmlFor="discountPrice" className="text-xs">Discount Price</Label>
+                  <Input
+                    id="discountPrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.discountPrice}
+                    onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
+                    placeholder="0.00"
+                    className="h-9 text-sm"
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="grid gap-2">
                   <Label htmlFor="stock" className="text-xs">Stock</Label>
                   <Input
                     id="stock"
@@ -7422,28 +1679,6 @@ export default function Products() {
                     className="h-9 text-sm"
                     disabled={isSubmitting}
                   />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="serviceType" className="text-xs">Service Type *</Label>
-                  <Select
-                    value={formData.serviceType}
-                    onValueChange={(value: 'physical' | 'service') => setFormData({ ...formData, serviceType: value })}
-                    disabled={isSubmitting}
-                  >
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Select service type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {serviceTypeOptions.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="unit" className="text-xs">Unit</Label>
@@ -7466,21 +1701,27 @@ export default function Products() {
                 </div>
               </div>
 
-              {formData.serviceType === 'service' && (
+              <div className="grid grid-cols-3 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="serviceDuration" className="text-xs">Service Duration</Label>
-                  <Input
-                    id="serviceDuration"
-                    value={formData.serviceDuration}
-                    onChange={(e) => setFormData({ ...formData, serviceDuration: e.target.value })}
-                    placeholder="e.g., 2 hours, 1 day"
-                    className="h-9 text-sm"
+                  <Label htmlFor="serviceType" className="text-xs">Service Type *</Label>
+                  <Select
+                    value={formData.serviceType}
+                    onValueChange={(value: 'physical' | 'digital' | 'service') =>
+                      setFormData({ ...formData, serviceType: value })}
                     disabled={isSubmitting}
-                  />
+                  >
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue placeholder="Select service type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {serviceTypeOptions.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="brand" className="text-xs">Brand</Label>
                   <Input
@@ -7489,6 +1730,56 @@ export default function Products() {
                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                     placeholder="Brand name"
                     className="h-9 text-sm"
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="serviceDuration" className="text-xs">Service Duration</Label>
+                  <Input
+                    id="serviceDuration"
+                    value={formData.serviceDuration}
+                    onChange={(e) => setFormData({ ...formData, serviceDuration: e.target.value })}
+                    placeholder="e.g., 2 hours"
+                    className="h-9 text-sm"
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="weight" className="text-xs">Weight (kg)</Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={formData.weight}
+                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                    placeholder="0.0"
+                    className="h-9 text-sm"
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="dimensions" className="text-xs">Dimensions (L×W×H)</Label>
+                  <Input
+                    id="dimensions"
+                    value={formData.dimensions}
+                    onChange={(e) => setFormData({ ...formData, dimensions: e.target.value })}
+                    placeholder="e.g., 10×5×2 cm"
+                    className="h-9 text-sm"
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label className="text-xs">Sizes (for clothing)</Label>
+                  <SizeInput
+                    sizes={formData.size}
+                    onSizesChange={(newSizes) => setFormData({ ...formData, size: newSizes })}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -7502,21 +1793,98 @@ export default function Products() {
                 </div>
               </div>
 
-              {/* NEW: Size Input Section */}
-              <div className="grid gap-2">
-                <Label htmlFor="sizes" className="text-xs">Sizes (for clothing products)</Label>
-                <SizeInput
-                  sizes={formData.size}
-                  onSizesChange={(newSizes) => setFormData({ ...formData, size: newSizes })}
-                  disabled={isSubmitting}
-                />
+              {/* Category Selection */}
+              <div className="grid gap-3">
+                <Label className="text-xs">Category *</Label>
+                <div className="grid gap-3">
+                  <div className="grid gap-2">
+                    <Label htmlFor="categoryLevel1" className="text-xs">Level 1 *</Label>
+                    <Select
+                      value={formData.categoryLevel1}
+                      onValueChange={(value) => setFormData({
+                        ...formData,
+                        categoryLevel1: value,
+                        categoryLevel2: "",
+                        categoryLevel3: ""
+                      })}
+                      disabled={isSubmitting || isCategoriesLoading}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Select main category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories
+                          .filter(cat => cat.level === 1)
+                          .map((category) => (
+                            <SelectItem key={category.id} value={category.name}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {formData.categoryLevel1 && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="categoryLevel2" className="text-xs">Level 2</Label>
+                      <Select
+                        value={formData.categoryLevel2}
+                        onValueChange={(value) => setFormData({
+                          ...formData,
+                          categoryLevel2: value,
+                          categoryLevel3: ""
+                        })}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue placeholder="Select subcategory" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories
+                            .filter(cat => cat.parentId === categories.find(c => c.name === formData.categoryLevel1)?.id)
+                            .map((subcategory) => (
+                              <SelectItem key={subcategory.id} value={subcategory.name}>
+                                {subcategory.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {formData.categoryLevel2 && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="categoryLevel3" className="text-xs">Level 3</Label>
+                      <Select
+                        value={formData.categoryLevel3}
+                        onValueChange={(value) => setFormData({
+                          ...formData,
+                          categoryLevel3: value
+                        })}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue placeholder="Select sub-subcategory" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories
+                            .filter(cat => cat.parentId === categories.find(c => c.name === formData.categoryLevel2)?.id)
+                            .map((subsubcategory) => (
+                              <SelectItem key={subsubcategory.id} value={subsubcategory.name}>
+                                {subsubcategory.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* NEW: Special Categories Section */}
+              {/* Special Categories */}
               <div className="space-y-4 pt-4 border-t">
                 <Label className="text-sm font-medium">Special Categories</Label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Featured */}
                   <div className="space-y-3 p-3 border rounded-lg">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="isFeatured" className="flex items-center gap-2 text-sm">
@@ -7550,7 +1918,6 @@ export default function Products() {
                     )}
                   </div>
 
-                  {/* Trending */}
                   <div className="space-y-3 p-3 border rounded-lg">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="isTrending" className="flex items-center gap-2 text-sm">
@@ -7584,7 +1951,6 @@ export default function Products() {
                     )}
                   </div>
 
-                  {/* New Arrival */}
                   <div className="space-y-3 p-3 border rounded-lg">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="isNewArrival" className="flex items-center gap-2 text-sm">
@@ -7620,104 +1986,18 @@ export default function Products() {
                 </div>
               </div>
 
-              {/* Category Selection - UPDATED TO USE ACTUAL API DATA */}
-              <div className="grid gap-3">
-                <Label className="text-xs">Category *</Label>
-                <div className="grid gap-3">
-                  {/* Level 1 Dropdown */}
-                  <div className="grid gap-2">
-                    <Label htmlFor="categoryLevel1" className="text-xs">Level 1 *</Label>
-                    <Select
-                      value={formData.categoryLevel1}
-                      onValueChange={(value) => setFormData({
-                        ...formData,
-                        categoryLevel1: value,
-                        categoryLevel2: "",
-                        categoryLevel3: ""
-                      })}
-                      disabled={isSubmitting || isCategoriesLoading}
-                    >
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder={
-                          isCategoriesLoading ? "Loading categories..." : "Select category level 1"
-                        } />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {topLevelCategories.map((category) => (
-                          <SelectItem key={category.id} value={category.name}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Level 2 Dropdown - Conditionally shown */}
-                  {formData.categoryLevel1 && (
-                    <div className="grid gap-2">
-                      <Label htmlFor="categoryLevel2" className="text-xs">Level 2</Label>
-                      <Select
-                        value={formData.categoryLevel2}
-                        onValueChange={(value) => setFormData({
-                          ...formData,
-                          categoryLevel2: value,
-                          categoryLevel3: ""
-                        })}
-                        disabled={isSubmitting}
-                      >
-                        <SelectTrigger className="h-9 text-sm">
-                          <SelectValue placeholder="Select category level 2" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getSubcategories(
-                            categories.find(cat => cat.name === formData.categoryLevel1)?.id || ''
-                          ).map((subcategory) => (
-                            <SelectItem key={subcategory.id} value={subcategory.name}>
-                              {subcategory.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {/* Level 3 Dropdown - Conditionally shown */}
-                  {formData.categoryLevel2 && (
-                    <div className="grid gap-2">
-                      <Label htmlFor="categoryLevel3" className="text-xs">Level 3</Label>
-                      <Select
-                        value={formData.categoryLevel3}
-                        onValueChange={(value) => setFormData({
-                          ...formData,
-                          categoryLevel3: value
-                        })}
-                        disabled={isSubmitting}
-                      >
-                        <SelectTrigger className="h-9 text-sm">
-                          <SelectValue placeholder="Select category level 3" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getSubcategories(
-                            level2Categories.find(cat => cat.name === formData.categoryLevel2)?.id || ''
-                          ).map((subsubcategory) => (
-                            <SelectItem key={subsubcategory.id} value={subsubcategory.name}>
-                              {subsubcategory.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+              <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center gap-3">
+                  <Switch
+                    checked={formData.isActive}
+                    onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                    disabled={isSubmitting}
+                  />
+                  <Label htmlFor="isActive" className="text-sm">Active Product</Label>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-3 pt-2">
-                <Switch
-                  checked={formData.isActive}
-                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                  disabled={isSubmitting}
-                />
-                <Label htmlFor="isActive" className="text-sm">Active Product</Label>
+                <div className="text-xs text-muted-foreground">
+                  {editingProduct ? "Update this product" : "Create new product"}
+                </div>
               </div>
             </div>
             <DialogFooter className="gap-2 mt-4">
