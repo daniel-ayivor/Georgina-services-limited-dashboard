@@ -1,7 +1,56 @@
+// Mock data with simplified interfaces for local use
 
-import { Product, Order, Customer, Notification } from "@/types";
+export interface MockProduct {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  inventory: number;
+  category: string;
+  image: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
-export const mockProducts: Product[] = [
+export interface MockOrder {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  paymentStatus: 'paid' | 'unpaid' | 'refunded';
+  total: number;
+  items: MockOrderItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MockOrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+}
+
+export interface MockCustomer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  orders: number;
+  totalSpent: number;
+  createdAt: string;
+}
+
+export interface MockNotification {
+  id: string;
+  title: string;
+  description: string;
+  type: 'order' | 'product' | 'system';
+  read: boolean;
+  createdAt: string;
+}
+
+export const mockProducts: MockProduct[] = [
   {
     id: "prod-1",
     name: "Wireless Headphones",
@@ -59,7 +108,7 @@ export const mockProducts: Product[] = [
   }
 ];
 
-export const mockOrders: Order[] = [
+export const mockOrders: MockOrder[] = [
   {
     id: "ord-1",
     customerName: "John Smith",
@@ -158,7 +207,7 @@ export const mockOrders: Order[] = [
   }
 ];
 
-export const mockCustomers: Customer[] = [
+export const mockCustomers: MockCustomer[] = [
   {
     id: "cust-1",
     name: "John Smith",
@@ -206,7 +255,7 @@ export const mockCustomers: Customer[] = [
   }
 ];
 
-export const mockNotifications: Notification[] = [
+export const mockNotifications: MockNotification[] = [
   {
     id: "notif-1",
     title: "New order received",
