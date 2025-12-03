@@ -7101,7 +7101,7 @@ export default function Products() {
                   </>
                 ) : (
                   <>
-                    <div className="text-2xl font-bold">${totalValue.toFixed(2)}</div>
+                    <div className="text-2xl font-bold">${(totalValue ?? 0).toFixed(2)}</div>
                     <p className="text-xs text-muted-foreground">Inventory worth</p>
                   </>
                 )}

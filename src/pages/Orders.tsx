@@ -991,7 +991,7 @@ export default function Orders() {
               </>
             ) : (
               <>
-                <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+                <div className="text-2xl font-bold">${(totalRevenue ?? 0).toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground">
                   From {paidOrders} paid orders
                 </p>
@@ -1012,7 +1012,7 @@ export default function Orders() {
               </>
             ) : (
               <>
-                <div className="text-2xl font-bold">${avgOrderValue.toFixed(2)}</div>
+                <div className="text-2xl font-bold">${(avgOrderValue ?? 0).toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground">
                   Per order average
                 </p>
@@ -1131,7 +1131,7 @@ export default function Orders() {
                     </TableCell>
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
                     <TableCell>{getPaymentStatusBadge(order.paymentStatus)}</TableCell>
-                    <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">${(order.total ?? 0).toFixed(2)}</TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -1174,7 +1174,7 @@ export default function Orders() {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">Total</p>
-                    <p className="text-xl font-bold">${selectedOrder.total.toFixed(2)}</p>
+                    <p className="text-xl font-bold">${(selectedOrder.total ?? 0).toFixed(2)}</p>
                   </div>
                 </div>
                 
@@ -1200,8 +1200,8 @@ export default function Orders() {
                             <TableRow key={item.id || Math.random().toString()}>
                               <TableCell>{getOrderItemProductName(item)}</TableCell>
                               <TableCell className="text-center">{quantity}</TableCell>
-                              <TableCell className="text-right">${price.toFixed(2)}</TableCell>
-                              <TableCell className="text-right">${total.toFixed(2)}</TableCell>
+                              <TableCell className="text-right">${(price ?? 0).toFixed(2)}</TableCell>
+                              <TableCell className="text-right">${(total ?? 0).toFixed(2)}</TableCell>
                             </TableRow>
                           );
                         })
