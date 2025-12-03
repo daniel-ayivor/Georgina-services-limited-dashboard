@@ -25,7 +25,7 @@ import {
   Target
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import adminApiService, { Customer, OrderItem, Product } from "@/contexts/adminApiService";
+import adminApiService, { Customer, OrderItem } from "@/contexts/adminApiService";
 
 // Define analytics data interface
 interface AnalyticsData {
@@ -43,14 +43,71 @@ interface AnalyticsData {
   categoryData: { name: string; count: number; value: number }[];
   dailyOrdersData: { date: string; orders: number; revenue: number }[];
   revenueData: { name: string; revenue: number }[];
+  topSellingProducts: { name: string; sales: number; revenue: number }[];
 }
 
 // Since we don't have Order interface with status, let's create a helper
 interface OrderSummary {
   id: string;
   totalAmount: number;
-  status: 'pending' | 'paid' | 'failed' | 'completed'; // Based on your status enum
+  status: string;
   createdAt: string;
+}
+
+// Extended OrderItem with full data from your JSON
+interface ExtendedOrderItem {
+  id: number;
+  orderId: number;
+  productId: number;
+  productName: string;
+  quantity: number;
+  price: number;
+  createdAt: string;
+  updatedAt: string;
+  order: {
+    id: number;
+    userId: number;
+    status: string;
+    totalAmount: number;
+    paymentIntentId: string | null;
+    paymentMethod: string;
+    shippingAddress: string;
+    createdAt: string;
+    updatedAt: string;
+    user: {
+      id: number;
+      name: string;
+      email: string;
+    };
+  };
+  product: {
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    price: string;
+    categoryLevel1: string;
+    categoryLevel2: string;
+    categoryLevel3: string;
+    serviceType: string;
+    serviceDuration: string | null;
+    unit: string;
+    stock: number;
+    images: string[];
+    isActive: boolean;
+    tags: string[];
+    brand: string | null;
+    isFeatured: boolean;
+    isTrending: boolean;
+    isNewArrival: boolean;
+    featuredOrder: number;
+    trendingOrder: number;
+    newArrivalOrder: number;
+    wishList: boolean;
+    size: string | null;
+    createdAt: string;
+    updatedAt: string;
+  };
 }
 
 export default function Analytics() {
@@ -67,18 +124,18 @@ export default function Analytics() {
       setLoading(true);
       setError(null);
 
-      // Fetch all necessary data in parallel
-      const [orderItems, products, customers] = await Promise.all([
+      // Fetch all necessary data
+      const [orderItemsResponse, products, customers] = await Promise.all([
         adminApiService.getOrderItems(),
         adminApiService.getProducts(),
         adminApiService.getCustomers(),
       ]);
 
-      // Transform order items into order summaries
-      const orders = transformOrderItemsToOrders(orderItems);
+      // Type assertion for order items based on your JSON structure
+      const orderItems = (orderItemsResponse as any)?.data as ExtendedOrderItem[] || [];
 
       // Calculate analytics from the data
-      const calculatedData = calculateAnalyticsData(orders, products, customers);
+      const calculatedData = calculateAnalyticsData(orderItems, products, customers);
       setAnalyticsData(calculatedData);
     } catch (err) {
       console.error('Error fetching analytics data:', err);
@@ -90,83 +147,115 @@ export default function Analytics() {
     }
   };
 
-  // Transform OrderItem[] to OrderSummary[]
-  const transformOrderItemsToOrders = (orderItems: OrderItem[]): OrderSummary[] => {
-    // Group order items by order ID (assuming orderItems have orderId)
-    const ordersMap = new Map();
+  const calculateAnalyticsData = (
+    orderItems: ExtendedOrderItem[], 
+    products: any[], 
+    customers: Customer[]
+  ): AnalyticsData => {
+    // Group orders by orderId to avoid double counting
+    const ordersMap = new Map<number, OrderSummary>();
+    
+    // Track product sales
+    const productSales = new Map<number, { name: string; sales: number; revenue: number }>();
     
     orderItems.forEach(item => {
-      // Since OrderItem doesn't have order info, we'll create synthetic orders
-      // In a real app, you'd want to use actual orders endpoint
-      const orderId = (item as any).orderId || `order-${Math.random()}`;
-      
-      if (!ordersMap.has(orderId)) {
-        ordersMap.set(orderId, {
-          id: orderId,
-          totalAmount: 0,
-          // Use payment status as order status for now
-          status: (item as any).status || 'pending',
-          createdAt: (item as any).createdAt || new Date().toISOString(),
-          items: []
+      // Create or update order summary
+      if (!ordersMap.has(item.orderId)) {
+        ordersMap.set(item.orderId, {
+          id: item.orderId.toString(),
+          totalAmount: item.order.totalAmount || 0,
+          status: item.order.status || 'pending',
+          createdAt: item.order.createdAt || item.createdAt,
         });
       }
       
-      const order = ordersMap.get(orderId);
-      order.totalAmount += (item.price * item.quantity);
-      order.items.push(item);
+      // Track product sales
+      const product = productSales.get(item.productId);
+      if (product) {
+        product.sales += item.quantity;
+        product.revenue += item.price * item.quantity;
+      } else {
+        productSales.set(item.productId, {
+          name: item.productName,
+          sales: item.quantity,
+          revenue: item.price * item.quantity,
+        });
+      }
     });
     
-    return Array.from(ordersMap.values());
-  };
-
-  const calculateAnalyticsData = (orders: OrderSummary[], products: Product[], customers: Customer[]): AnalyticsData => {
-    // Revenue calculations - use actual orders total
-    const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
-    const lastMonthRevenue = totalRevenue * 0.88; // Simulate 12% growth
-    const revenueGrowth = ((totalRevenue - lastMonthRevenue) / lastMonthRevenue) * 100;
-
+    const orders = Array.from(ordersMap.values());
+    
+    // Revenue calculations
+    const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+    
     // Order calculations
     const totalOrders = orders.length;
-    // Map payment status to order completion status
-    const completedOrders = orders.filter(o => o.status === 'paid' || o.status === 'completed').length;
+    const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'paid').length;
     const pendingOrders = orders.filter(o => o.status === 'pending').length;
     const orderCompletionRate = totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0;
 
-    // Product calculations
+    // Product calculations - using stock instead of inventory
     const totalProducts = products.length;
-    const totalInventoryValue = products.reduce((sum, p) => sum + (p.price * p.inventory), 0);
-    const lowStockProducts = products.filter(p => p.inventory < 30).length;
+    const totalInventoryValue = products.reduce((sum, p) => {
+      const price = parseFloat(p.price) || 0;
+      const stock = p.stock || 0;
+      return sum + (price * stock);
+    }, 0);
+    
+    const lowStockProducts = products.filter(p => (p.stock || 0) < 10).length;
 
     // Customer calculations
     const totalCustomers = customers.length;
     const avgCustomerValue = totalCustomers > 0 ? totalRevenue / totalCustomers : 0;
 
-    // Order status distribution - based on payment status
+    // Order status distribution
+    const statusCounts = orders.reduce((acc, order) => {
+      const status = order.status || 'unknown';
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
     const orderStatusData = [
-      { name: 'Paid', value: orders.filter(o => o.status === 'paid').length, color: '#10b981' },
-      { name: 'Pending', value: orders.filter(o => o.status === 'pending').length, color: '#f59e0b' },
-      { name: 'Failed', value: orders.filter(o => o.status === 'failed').length, color: '#ef4444' },
+      { name: 'Completed', value: statusCounts.completed || statusCounts.paid || 0, color: '#10b981' },
+      { name: 'Pending', value: statusCounts.pending || 0, color: '#f59e0b' },
+      { name: 'Processing', value: statusCounts.processing || statusCounts.shipped || 0, color: '#3b82f6' },
+      { name: 'Cancelled', value: statusCounts.cancelled || statusCounts.failed || 0, color: '#ef4444' },
     ];
 
     // Category performance
-    const categoryData = products.reduce((acc: any[], product) => {
-      const existing = acc.find(item => item.name === product.category);
+    const categoryMap = new Map<string, { count: number; value: number }>();
+    
+    products.forEach(product => {
+      const category = product.categoryLevel1 || 'Uncategorized';
+      const existing = categoryMap.get(category);
+      const price = parseFloat(product.price) || 0;
+      const stock = product.stock || 0;
+      
       if (existing) {
         existing.count += 1;
-        existing.value += product.price * product.inventory;
+        existing.value += price * stock;
       } else {
-        acc.push({
-          name: product.category,
+        categoryMap.set(category, {
           count: 1,
-          value: product.price * product.inventory,
+          value: price * stock,
         });
       }
-      return acc;
-    }, []);
+    });
+    
+    const categoryData = Array.from(categoryMap.entries()).map(([name, data]) => ({
+      name,
+      count: data.count,
+      value: Math.round(data.value),
+    }));
 
     // Daily orders trend - generate based on order creation dates
-    const dailyOrdersData = generateWeeklyData(orders);
-    const revenueData = generateMonthlyRevenueData(orders);
+    const dailyOrdersData = generateWeeklyData(orderItems);
+    const revenueData = generateMonthlyRevenueData(orderItems);
+    
+    // Top selling products
+    const topSellingProducts = Array.from(productSales.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
 
     return {
       totalRevenue,
@@ -183,6 +272,7 @@ export default function Analytics() {
       categoryData,
       dailyOrdersData,
       revenueData,
+      topSellingProducts,
     };
   };
 
@@ -202,42 +292,74 @@ export default function Analytics() {
       categoryData: [],
       dailyOrdersData: [],
       revenueData: [],
+      topSellingProducts: [],
     };
   };
 
-  // Improved data generation based on actual orders
-  const generateWeeklyData = (orders: OrderSummary[]) => {
+  // Generate weekly data from actual order items
+  const generateWeeklyData = (orderItems: ExtendedOrderItem[]) => {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const dayOrders = new Map<string, { orders: Set<number>; revenue: number }>();
     
-    // Simple aggregation by day of week (in real app, use actual dates)
+    // Initialize all days
+    days.forEach(day => {
+      dayOrders.set(day, { orders: new Set(), revenue: 0 });
+    });
+    
+    // Process order items
+    orderItems.forEach(item => {
+      try {
+        const date = new Date(item.createdAt);
+        const dayIndex = date.getDay();
+        const dayName = days[dayIndex === 0 ? 6 : dayIndex - 1]; // Convert to 0=Mon, 6=Sun
+        
+        const dayData = dayOrders.get(dayName);
+        if (dayData) {
+          dayData.orders.add(item.orderId);
+          dayData.revenue += item.price * item.quantity;
+        }
+      } catch (e) {
+        console.warn('Error processing date:', e);
+      }
+    });
+    
     return days.map(day => {
-      // Simulate some variation based on day
-      const dayIndex = days.indexOf(day);
-      const baseOrders = Math.floor(orders.length / 7);
-      const dayOrders = Math.max(5, baseOrders + (dayIndex - 3) * 2);
-      const dayRevenue = dayOrders * 150; // Average order value
-      
+      const data = dayOrders.get(day) || { orders: new Set(), revenue: 0 };
       return {
         date: day,
-        orders: dayOrders,
-        revenue: dayRevenue,
+        orders: data.orders.size,
+        revenue: data.revenue,
       };
     });
   };
 
-  const generateMonthlyRevenueData = (orders: OrderSummary[]) => {
+  const generateMonthlyRevenueData = (orderItems: ExtendedOrderItem[]) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthRevenue = new Map<string, number>();
     
-    return months.map(month => {
-      // Distribute total revenue across months
-      const monthIndex = months.indexOf(month);
-      const monthlyRevenue = (totalRevenue / 12) * (0.8 + Math.random() * 0.4); // Some variation
-      
-      return {
-        name: month,
-        revenue: Math.round(monthlyRevenue),
-      };
+    // Initialize all months
+    months.forEach(month => {
+      monthRevenue.set(month, 0);
     });
+    
+    // Process order items
+    orderItems.forEach(item => {
+      try {
+        const date = new Date(item.createdAt);
+        const monthIndex = date.getMonth();
+        const monthName = months[monthIndex];
+        
+        const currentRevenue = monthRevenue.get(monthName) || 0;
+        monthRevenue.set(monthName, currentRevenue + (item.price * item.quantity));
+      } catch (e) {
+        console.warn('Error processing date:', e);
+      }
+    });
+    
+    return months.map(month => ({
+      name: month,
+      revenue: monthRevenue.get(month) || 0,
+    }));
   };
 
   if (loading) {
@@ -298,15 +420,16 @@ export default function Analytics() {
     categoryData,
     dailyOrdersData,
     revenueData,
+    topSellingProducts,
   } = analyticsData;
 
-  // Calculate actual revenue growth based on current vs previous data
-  const revenueGrowth = totalRevenue > 0 ? 12.5 : 0; // You can make this dynamic
+  // Calculate revenue growth (simplified - in real app compare with previous period)
+  const revenueGrowth = 12.5;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
         <p className="text-muted-foreground">Comprehensive business insights and metrics</p>
       </div>
 
@@ -318,7 +441,7 @@ export default function Analytics() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
             <p className="text-xs text-success flex items-center mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
               +{revenueGrowth.toFixed(1)}% from last month
@@ -358,7 +481,7 @@ export default function Analytics() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalInventoryValue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">${totalInventoryValue.toFixed(2)}</div>
             <p className="text-xs text-warning mt-1">
               {lowStockProducts} low stock items
             </p>
@@ -366,7 +489,6 @@ export default function Analytics() {
         </Card>
       </div>
 
-      {/* Rest of your component remains the same */}
       {/* Charts Row 1 */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Revenue Trend */}
@@ -374,9 +496,9 @@ export default function Analytics() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Revenue Trend
+              Monthly Revenue
             </CardTitle>
-            <CardDescription>Monthly revenue over time</CardDescription>
+            <CardDescription>Revenue distribution by month</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -397,9 +519,9 @@ export default function Analytics() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5" />
-              Daily Orders
+              Weekly Order Trends
             </CardTitle>
-            <CardDescription>Order volume this week</CardDescription>
+            <CardDescription>Order volume by day of week</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -484,7 +606,7 @@ export default function Analytics() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Order Completion</CardTitle>
+            <CardTitle className="text-base">Order Performance</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -496,7 +618,11 @@ export default function Analytics() {
                 <span>Pending</span>
                 <span className="font-medium">{pendingOrders}</span>
               </div>
-              <div className="flex justify-between text-sm font-bold">
+              <div className="flex justify-between text-sm">
+                <span>Total</span>
+                <span className="font-medium">{totalOrders}</span>
+              </div>
+              <div className="flex justify-between text-sm font-bold pt-2 border-t">
                 <span>Success Rate</span>
                 <span className="text-success">{orderCompletionRate.toFixed(1)}%</span>
               </div>
@@ -515,10 +641,14 @@ export default function Analytics() {
                 <span className="font-medium">{totalProducts}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Low Stock</span>
+                <span>Low Stock ({"<"}10)</span>
                 <span className="font-medium text-warning">{lowStockProducts}</span>
               </div>
-              <div className="flex justify-between text-sm font-bold">
+              <div className="flex justify-between text-sm">
+                <span>Inventory Value</span>
+                <span className="font-medium">${totalInventoryValue.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-bold pt-2 border-t">
                 <span>Stock Health</span>
                 <span className="text-success">
                   {totalProducts > 0 ? ((1 - lowStockProducts / totalProducts) * 100).toFixed(1) : 0}%
@@ -544,7 +674,11 @@ export default function Analytics() {
                   ${totalOrders > 0 ? (totalRevenue / totalOrders).toFixed(2) : 0}
                 </span>
               </div>
-              <div className="flex justify-between text-sm font-bold">
+              <div className="flex justify-between text-sm">
+                <span>Total Revenue</span>
+                <span className="font-medium">${totalRevenue.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-bold pt-2 border-t">
                 <span>Customer LTV</span>
                 <span className="text-success">${avgCustomerValue.toFixed(2)}</span>
               </div>
@@ -552,6 +686,39 @@ export default function Analytics() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Top Selling Products */}
+      {topSellingProducts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Top Selling Products
+            </CardTitle>
+            <CardDescription>Products with highest revenue</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {topSellingProducts.map((product, index) => (
+                <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
+                  <div className="space-y-1">
+                    <p className="font-medium">{product.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {product.sales} units sold
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold">${product.revenue.toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      ${(product.revenue / product.sales).toFixed(2)} avg
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
