@@ -1014,6 +1014,17 @@ async safeDeleteCategory(id: string, permanent: boolean = false): Promise<{
     ];
   }
 
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<{ 
+  success: boolean; 
+  message: string; 
+  user?: User 
+}> {
+  return this.request('/auth/admin/change-own-password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+}
   private getFallbackCustomers(): Customer[] {
     return [
       {
