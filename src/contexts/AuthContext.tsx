@@ -6,6 +6,11 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{
+    success: boolean;
+    message: string;
+    user?: User;
+  }>;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -132,10 +137,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Corrected changePassword function
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<{
+    success: boolean;
+    message: string;
+    user?: User;
+  }> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      console.log("🔑 Changing password...");
+      
+      // Correct usage of adminApiService.changePassword()
+      const response = await adminApiService.changePassword(currentPassword, newPassword);
+      
+      console.log("✅ Password change response:", response);
+      
+      if (response.success) {
+        // Update user in state if needed
+        if (response.user) {
+          setUser(response.user);
+          localStorage.setItem("e-commerce-admin-user", JSON.stringify(response.user));
+        }
+        
+        toast({
+          title: "Password updated",
+          description: "Your password has been changed successfully.",
+        });
+        
+        return response;
+      } else {
+        throw new Error(response.message || 'Failed to change password');
+      }
+    } catch (err) {
+      console.error("❌ Password change failed:", err);
+      const errorMessage = err instanceof Error ? err.message : "Password change failed. Please try again.";
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "Password change failed",
+        description: errorMessage,
+      });
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   console.log("AuthProvider render - isAuthenticated:", !!user, "isLoading:", isLoading);
 
   return (
     <AuthContext.Provider value={{ 
+      changePassword,
       user, 
       login, 
       logout, 
