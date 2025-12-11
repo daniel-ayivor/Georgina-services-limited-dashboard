@@ -286,12 +286,7 @@ class AdminApiService {
     }
   }
 
-  private async requestWithFormData(
-    endpoint: string,
-    formData: FormData,
-    method = 'POST',
-    options?: { invalidate?: () => void | Promise<void> }
-  ) {
+  private async requestWithFormData(endpoint: string, formData: FormData, method = 'POST') {
     const url = `${this.baseUrl}${endpoint}`;
     const headers = {};
 
@@ -318,23 +313,11 @@ class AdminApiService {
       }
 
       const contentType = response.headers.get('content-type');
-      let result;
       if (contentType && contentType.includes('application/json')) {
-        result = await response.json();
-      } else {
-        result = {};
+        return await response.json();
       }
 
-      // Call invalidation callback after successful request
-      if (options?.invalidate()) {
-        try {
-          await options.invalidate();
-        } catch (e) {
-          console.warn('requestWithFormData invalidate handler error:', e);
-        }
-      }
-
-      return result;
+      return {};
     } catch (error) {
       console.error('API request failed:', error);
       throw error;
@@ -573,19 +556,12 @@ async bulkUpdateSpecialCategories(
     return this.request(`/api/admin/products/${id}`);
   }
 
-  async createProduct(
-    productData: FormData,
-    options?: { invalidate?: () => void | Promise<void> }
-  ) {
-    return this.requestWithFormData('/api/admin/products', productData, 'POST', options);
+  async createProduct(productData: FormData) {
+    return this.requestWithFormData('/api/admin/products', productData, 'POST');
   }
 
-  async updateProduct(
-    id: string,
-    productData: FormData,
-    options?: { invalidate?: () => void | Promise<void> }
-  ) {
-    return this.requestWithFormData(`/api/admin/products/${id}`, productData, 'PUT', options);
+  async updateProduct(id: string, productData: FormData) {
+    return this.requestWithFormData(`/api/admin/products/${id}`, productData, 'PUT');
   }
 
   async deleteProduct(id: string) {
