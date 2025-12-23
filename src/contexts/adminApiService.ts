@@ -184,6 +184,64 @@ export interface Category {
   updatedAt: string;
 }
 
+// ==================== REVIEW MANAGEMENT ====================
+
+export interface Review {
+  id: string;
+  productId: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  rating: number;
+  title?: string;
+  comment: string;
+  verifiedPurchase: boolean;
+  helpfulCount: number;
+  isApproved: boolean;
+  reply?: string;
+  repliedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  Product?: {
+    id: string;
+    name: string;
+    slug: string;
+    images?: string[];
+  };
+}
+
+export interface ReviewStats {
+  totalReviews: number;
+  approvedReviews: number;
+  pendingReviews: number;
+  averageRating: string;
+}
+
+export interface ReviewsResponse {
+  reviews: Review[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalReviews: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+  stats?: ReviewStats;
+  message: string;
+}
+
+export interface ReviewFilterParams {
+  page?: number;
+  limit?: number;
+  productId?: string;
+  userId?: string;
+  rating?: number;
+  isApproved?: boolean;
+  verifiedPurchase?: boolean;
+  search?: string;
+}
+
+
 export interface SubCategory {
   id: string;
   name: string;
@@ -1025,6 +1083,200 @@ async safeDeleteCategory(id: string, permanent: boolean = false): Promise<{
     body: JSON.stringify({ currentPassword, newPassword }),
   });
 }
+
+
+// Add these methods to your AdminApiService class:
+
+/**
+ * Admin: Get all reviews with filtering and pagination
+ */
+async getAdminReviews(params?: ReviewFilterParams): Promise<ReviewsResponse> {
+  const queryParams = new URLSearchParams();
+  
+  if (params?.page) queryParams.append('page', params.page.toString());
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  if (params?.productId) queryParams.append('productId', params.productId);
+  if (params?.userId) queryParams.append('userId', params.userId);
+  if (params?.rating) queryParams.append('rating', params.rating.toString());
+  if (params?.isApproved !== undefined) queryParams.append('isApproved', params.isApproved.toString());
+  if (params?.verifiedPurchase !== undefined) queryParams.append('verifiedPurchase', params.verifiedPurchase.toString());
+  if (params?.search) queryParams.append('search', params.search);
+
+  const queryString = queryParams.toString();
+  const endpoint = `/api/admin/reviews${queryString ? `?${queryString}` : ''}`;
+  
+  console.log('📋 Admin API Call - getAdminReviews:', endpoint);
+  return this.request(endpoint);
+}
+
+/**
+ * Admin: Reply to a review
+ */
+async replyToReview(reviewId: string, reply: string): Promise<{ 
+  success: boolean;
+  message: string; 
+  review: Review;
+}> {
+  const endpoint = `/api/reviews/${reviewId}/reply`;
+  console.log('💬 Admin API Call - replyToReview:', endpoint, { reply });
+  return this.request(endpoint, {
+    method: 'POST',
+    body: JSON.stringify({ reply }),
+  });
+}
+
+/**
+ * Admin: Update review approval status
+ */
+async updateReviewStatus(
+  reviewId: string, 
+  isApproved: boolean
+): Promise<{
+  success: boolean;
+  message: string;
+  review: Review;
+}> {
+  const endpoint = `/api/admin/reviews/${reviewId}/status`;
+  console.log('✅ Admin API Call - updateReviewStatus:', endpoint, { isApproved });
+  return this.request(endpoint, {
+    method: 'PATCH',
+    body: JSON.stringify({ isApproved }),
+  });
+}
+
+/**
+ * Admin: Delete a review
+ */
+async deleteReview(reviewId: string): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  const endpoint = `/api/admin/reviews/${reviewId}`;
+  console.log('🗑️ Admin API Call - deleteReview:', endpoint);
+  return this.request(endpoint, {
+    method: 'DELETE',
+  });
+}
+
+/**
+ * Admin: Get review statistics and analytics
+ */
+async getReviewAnalytics(): Promise<{
+  success: boolean;
+  stats: {
+    totalReviews: number;
+    approvedReviews: number;
+    pendingReviews: number;
+    averageRating: string;
+    reviewsToday: number;
+    reviewsThisWeek: number;
+    reviewsThisMonth: number;
+    ratingDistribution: Record<number, number>;
+    reviewsByDate: Array<{ date: string; count: number }>;
+  };
+  recentReviews: Review[];
+}> {
+  const endpoint = '/api/admin/reviews/analytics';
+  console.log('📊 Admin API Call - getReviewAnalytics:', endpoint);
+  return this.request(endpoint);
+}
+
+/**
+ * Admin: Bulk update review statuses
+ */
+async bulkUpdateReviewStatus(
+  reviewIds: string[], 
+  isApproved: boolean
+): Promise<{
+  success: boolean;
+  message: string;
+  results: Array<{
+    reviewId: string;
+    success: boolean;
+    error?: string;
+  }>;
+}> {
+  const endpoint = '/api/admin/reviews/bulk/status';
+  console.log('🔄 Admin API Call - bulkUpdateReviewStatus:', endpoint, { reviewIds, isApproved });
+  return this.request(endpoint, {
+    method: 'PATCH',
+    body: JSON.stringify({ reviewIds, isApproved }),
+  });
+}
+
+/**
+ * Admin: Bulk delete reviews
+ */
+async bulkDeleteReviews(reviewIds: string[]): Promise<{
+  success: boolean;
+  message: string;
+  deletedCount: number;
+  results: Array<{
+    reviewId: string;
+    success: boolean;
+    error?: string;
+  }>;
+}> {
+  const endpoint = '/api/admin/reviews/bulk/delete';
+  console.log('🗑️ Admin API Call - bulkDeleteReviews:', endpoint, { reviewIds });
+  return this.request(endpoint, {
+    method: 'POST',
+    body: JSON.stringify({ reviewIds }),
+  });
+}
+
+/**
+ * Admin: Get a single review with details
+ */
+async getReviewById(reviewId: string): Promise<{
+  success: boolean;
+  review: Review & {
+    Product?: {
+      id: string;
+      name: string;
+      slug: string;
+      images: string[];
+      price: string;
+      categoryLevel1: string;
+    };
+    User?: {
+      id: string;
+      name: string;
+      email: string;
+      totalReviews: number;
+      memberSince: string;
+    };
+  };
+}> {
+  const endpoint = `/api/admin/reviews/${reviewId}`;
+  console.log('🔍 Admin API Call - getReviewById:', endpoint);
+  return this.request(endpoint);
+}
+
+/**
+ * Admin: Update review details (rating, comment, etc.)
+ */
+async updateReview(
+  reviewId: string, 
+  updates: {
+    rating?: number;
+    title?: string;
+    comment?: string;
+    verifiedPurchase?: boolean;
+  }
+): Promise<{
+  success: boolean;
+  message: string;
+  review: Review;
+}> {
+  const endpoint = `/api/admin/reviews/${reviewId}`;
+  console.log('✏️ Admin API Call - updateReview:', endpoint, updates);
+  return this.request(endpoint, {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  });
+}
+
   private getFallbackCustomers(): Customer[] {
     return [
       {
