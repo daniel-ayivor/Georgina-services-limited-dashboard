@@ -127,7 +127,12 @@ export function DashboardSidebar() {
                    path="/users" 
                    active={isActive("/users")} 
                  />
-           
+                 <SidebarItem 
+                   icon={BarChartBig} 
+                   label="Reviews" 
+                   path="/review" 
+                   active={isActive("/analytics")} 
+                 />
            
                        <SidebarItem 
                    icon={MessageCircle} 

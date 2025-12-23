@@ -14,6 +14,7 @@ import {
 import { Search, Mail, Trash2, RefreshCw, MessageSquare, Clock, User, AlertCircle, ExternalLink } from "lucide-react";
 import adminApiService, { ContactMessage } from '@/contexts/adminApiService';
 import { useToast } from "@/hooks/use-toast";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 export default function ContactMessagesAdmin() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
@@ -22,6 +23,8 @@ export default function ContactMessagesAdmin() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const { toast } = useToast();
 
   const fetchMessages = async () => {
@@ -53,6 +56,17 @@ export default function ContactMessagesAdmin() {
       (message.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (message.message?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredMessages.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedMessages = filteredMessages.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // Stats calculations
   const totalMessages = messages.length;
@@ -290,8 +304,8 @@ export default function ContactMessagesAdmin() {
                   Array.from({ length: 5 }).map((_, index) => (
                     <SkeletonRow key={index} />
                   ))
-                ) : filteredMessages.length > 0 ? (
-                  filteredMessages.map((message) => (
+                ) : paginatedMessages.length > 0 ? (
+                  paginatedMessages.map((message) => (
                     <tr 
                       key={message.id}
                       className="border-b cursor-pointer hover:bg-muted/50 transition-colors"
@@ -334,6 +348,45 @@ export default function ContactMessagesAdmin() {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination */}
+          {paginatedMessages.length > 0 && (
+            <div className="flex justify-between items-center py-4 border-t">
+              <div className="text-sm text-muted-foreground">
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredMessages.length)} of {filteredMessages.length} messages
+              </div>
+              {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 py-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>   
         {/* View Message Dialog */}

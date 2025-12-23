@@ -156,9 +156,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (response.success) {
         // Update user in state if needed
-        if (response.user) {
-          setUser(response.user);
-          localStorage.setItem("e-commerce-admin-user", JSON.stringify(response.user));
+        if (response.admin) {
+          setUser(response.admin);
+          localStorage.setItem("e-commerce-admin-user", JSON.stringify(response.admin));
         }
         
         toast({
@@ -166,7 +166,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           description: "Your password has been changed successfully.",
         });
         
-        return response;
+        return {
+          success: response.success,
+          message: response.message,
+          user: response.admin
+        };
       } else {
         throw new Error(response.message || 'Failed to change password');
       }

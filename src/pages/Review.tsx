@@ -564,7 +564,7 @@ export default function Reviews() {
         params.search = searchTerm;
       }
 
-      const response: ReviewsResponse = await adminApiService.getAdminReviews(params);
+      const response: ReviewsResponse = await adminApiService.getAllReviews(params);
       
       setReviews(response.reviews);
       setFilteredReviews(response.reviews);

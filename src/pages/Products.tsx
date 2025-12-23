@@ -49,6 +49,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 // Update the Product interface to include special category fields
 interface ProductWithSpecial extends Omit<Product, 'size'> {
@@ -641,6 +642,8 @@ export default function Products() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const [formData, setFormData] = useState<ProductFormData>({
     name: "",
     description: "",
@@ -762,6 +765,17 @@ export default function Products() {
 
     return matchesSearch && matchesStatus && matchesCategory;
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedStatus, selectedCategory]);
 
   // Analytics calculations
   const analytics = {
@@ -1327,7 +1341,8 @@ export default function Products() {
                       ))}
                     </div>
                 ) : filteredProducts.length > 0 ? (
-                    <Table>
+                    <>
+                      <Table>
                       <TableHeader>
                         <TableRow>
                           <TableHead>Product</TableHead>
@@ -1342,7 +1357,7 @@ export default function Products() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredProducts.map((product) => (
+                        {paginatedProducts.map((product) => (
                             <TableRow key={product.id} className="hover:bg-muted/50">
                               <TableCell>
                                 <div className="flex items-center gap-3">
@@ -1512,6 +1527,57 @@ export default function Products() {
                         ))}
                       </TableBody>
                     </Table>
+                    
+                    {/* Pagination */}
+                    {paginatedProducts.length > 0 && (
+                      <div className="flex justify-between items-center py-4 mt-4 border-t">
+                        <div className="text-sm text-muted-foreground">
+                          Showing {startIndex + 1}-{Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} products
+                        </div>
+                        {totalPages > 1 && (
+                          <Pagination>
+                            <PaginationContent>
+                              <PaginationItem>
+                                <PaginationPrevious 
+                                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                />
+                              </PaginationItem>
+                              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                                let pageNum;
+                                if (totalPages <= 7) {
+                                  pageNum = i + 1;
+                                } else if (currentPage <= 4) {
+                                  pageNum = i + 1;
+                                } else if (currentPage >= totalPages - 3) {
+                                  pageNum = totalPages - 6 + i;
+                                } else {
+                                  pageNum = currentPage - 3 + i;
+                                }
+                                return (
+                                  <PaginationItem key={pageNum}>
+                                    <PaginationLink
+                                      onClick={() => setCurrentPage(pageNum)}
+                                      isActive={currentPage === pageNum}
+                                      className="cursor-pointer"
+                                    >
+                                      {pageNum}
+                                    </PaginationLink>
+                                  </PaginationItem>
+                                );
+                              })}
+                              <PaginationItem>
+                                <PaginationNext 
+                                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                />
+                              </PaginationItem>
+                            </PaginationContent>
+                          </Pagination>
+                        )}
+                      </div>
+                    )}
+                  </>
                 ) : (
                     <div className="text-center py-10">
                       <Package className="h-10 w-10 text-muted-foreground mx-auto mb-2" />

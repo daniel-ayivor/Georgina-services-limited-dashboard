@@ -758,6 +758,30 @@ const extractOrderItems = (response: unknown): OrderItem[] => {
   
   // If response is directly an array
   if (Array.isArray(response)) {
+    // Check if it's an array of orders with items
+    if (response.length > 0 && response[0].items) {
+      const allItems: OrderItem[] = [];
+      response.forEach((order: any) => {
+        if (order.items && Array.isArray(order.items)) {
+          order.items.forEach((item: any) => {
+            allItems.push({
+              id: String(item.id || ''),
+              orderId: String(order.id || order.orderId || ''),
+              price: toNumber(item.price),
+              quantity: toNumber(item.quantity || 1),
+              status: order.status || 'pending',
+              createdAt: order.createdAt || item.createdAt,
+              updatedAt: order.updatedAt || item.updatedAt,
+              userId: order.userId ? String(order.userId) : undefined,
+              productId: item.productId ? String(item.productId) : undefined
+            });
+          });
+        }
+      });
+      return allItems;
+    }
+    
+    // Otherwise treat as array of order items
     return response.map(item => ({
       id: String(item.id || ''),
       orderId: item.orderId ? String(item.orderId) : undefined,
@@ -771,6 +795,30 @@ const extractOrderItems = (response: unknown): OrderItem[] => {
     }));
   }
   
+  // If response has orders property with items
+  if (typeof response === 'object' && response !== null && 'orders' in response && Array.isArray((response as any).orders)) {
+    const orders = (response as any).orders;
+    const allItems: OrderItem[] = [];
+    orders.forEach((order: any) => {
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach((item: any) => {
+          allItems.push({
+            id: String(item.id || ''),
+            orderId: String(order.id || ''),
+            price: toNumber(item.price),
+            quantity: toNumber(item.quantity || 1),
+            status: order.status || 'pending',
+            createdAt: order.createdAt || item.createdAt,
+            updatedAt: order.updatedAt || item.updatedAt,
+            userId: order.userId ? String(order.userId) : undefined,
+            productId: item.productId ? String(item.productId) : undefined
+          });
+        });
+      }
+    });
+    return allItems;
+  }
+  
   // If response has a data property that's an array
   if (typeof response === 'object' && response !== null && 'data' in response && Array.isArray((response as any).data)) {
     return extractOrderItems((response as any).data);
@@ -779,18 +827,6 @@ const extractOrderItems = (response: unknown): OrderItem[] => {
   // If response has orderItems property
   if (typeof response === 'object' && response !== null && 'orderItems' in response && Array.isArray((response as any).orderItems)) {
     return extractOrderItems((response as any).orderItems);
-  }
-  
-  // If response has orders property with items
-  if (typeof response === 'object' && response !== null && 'orders' in response && Array.isArray((response as any).orders)) {
-    const orders = (response as any).orders;
-    const allItems: OrderItem[] = [];
-    orders.forEach((order: any) => {
-      if (order.items && Array.isArray(order.items)) {
-        allItems.push(...order.items);
-      }
-    });
-    return allItems;
   }
   
   console.log('No order items found in response');
@@ -942,12 +978,12 @@ export default function Dashboard() {
 
       // Try multiple endpoints to get data
       const promises = [
-        // Try order items first
-        adminApiService.getOrderItems().catch(err => {
-          console.log('Order items endpoint failed, trying orders:', err.message);
-          // Fallback to orders if order items fails
-          return adminApiService.getOrders().catch(err => {
-            console.log('Orders endpoint also failed:', err.message);
+        // Try orders first (contains items)
+        adminApiService.getOrders().catch(err => {
+          console.log('Orders endpoint failed:', err.message);
+          // Fallback to order items
+          return adminApiService.getOrderItems().catch(err => {
+            console.log('Order items endpoint also failed:', err.message);
             return [];
           });
         }),
@@ -958,15 +994,15 @@ export default function Dashboard() {
         })
       ];
 
-      const [orderItemsResponse, productsResponse] = await Promise.all(promises);
+      const [ordersResponse, productsResponse] = await Promise.all(promises);
 
       console.log('Raw API responses:', {
-        orderItemsResponse,
+        ordersResponse,
         productsResponse
       });
 
       // Safe data extraction with type checking
-      const orderItems: OrderItem[] = extractOrderItems(orderItemsResponse);
+      const orderItems: OrderItem[] = extractOrderItems(ordersResponse);
       const products: Product[] = extractProducts(productsResponse);
 
       console.log('Extracted data:', {
@@ -1007,16 +1043,33 @@ export default function Dashboard() {
         productsChange
       });
 
-      // Transform order items into recent orders for display
-      const ordersFromItems = groupOrderItemsIntoOrders(orderItems);
-      const recentOrdersData = ordersFromItems.slice(0, 5);
+      // If we have full orders response with user info, use it directly
+      let recentOrdersData: Order[] = [];
+      if (Array.isArray(ordersResponse) && ordersResponse.length > 0 && ordersResponse[0].user) {
+        recentOrdersData = ordersResponse.slice(0, 5).map((order: any) => ({
+          id: String(order.id),
+          customer: order.user?.name || 'Unknown Customer',
+          email: order.user?.email || 'unknown@email.com',
+          amount: toNumber(order.totalAmount),
+          status: order.status || 'pending',
+          createdAt: order.createdAt,
+          items: order.items || []
+        }));
+      } else {
+        // Transform order items into recent orders for display
+        const ordersFromItems = groupOrderItemsIntoOrders(orderItems);
+        recentOrdersData = ordersFromItems.slice(0, 5);
+      }
       setRecentOrders(recentOrdersData);
 
       // Generate chart data from order items
       const monthlyData = generateMonthlyData(orderItems);
       setChartData(monthlyData);
 
-      console.log('Dashboard data processing completed');
+      console.log('Dashboard data processing completed', {
+        recentOrders: recentOrdersData.length,
+        chartData: monthlyData
+      });
 
     } catch (err: any) {
       console.error('Failed to fetch dashboard data:', err);
