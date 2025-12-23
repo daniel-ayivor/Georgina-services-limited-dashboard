@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -115,10 +114,10 @@ interface Category {
 
 // Size Input Component
 const SizeInput = ({
-  sizes,
-  onSizesChange,
-  disabled
-}: {
+                     sizes,
+                     onSizesChange,
+                     disabled
+                   }: {
   sizes: string;
   onSizesChange: (sizes: string) => void;
   disabled?: boolean;
@@ -143,64 +142,64 @@ const SizeInput = ({
   };
 
   return (
-    <div className="space-y-3">
-      <div className="space-y-2">
-        <Label className="text-xs">Available Sizes</Label>
-        <div className="flex flex-wrap gap-1">
-          {commonSizes.map((size) => (
-            <Button
-              key={size}
-              type="button"
-              variant={currentSizes.includes(size) ? "default" : "outline"}
-              size="sm"
-              onClick={() => addSize(size)}
-              disabled={disabled}
-              className="h-7 text-xs"
-            >
-              {size}
-            </Button>
-          ))}
-        </div>
+      <div className="space-y-3">
+        <div className="space-y-2">
+          <Label className="text-xs">Available Sizes</Label>
+          <div className="flex flex-wrap gap-1">
+            {commonSizes.map((size) => (
+                <Button
+                    key={size}
+                    type="button"
+                    variant={currentSizes.includes(size) ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => addSize(size)}
+                    disabled={disabled}
+                    className="h-7 text-xs"
+                >
+                  {size}
+                </Button>
+            ))}
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-10 bg-background">
-          {currentSizes.map((size, index) => (
-            <Badge key={index} variant="secondary" className="flex items-center gap-1 text-xs py-1">
-              {size}
-              <button
-                type="button"
-                onClick={() => removeSize(size)}
-                className="ml-1 hover:text-destructive text-xs"
+          <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-10 bg-background">
+            {currentSizes.map((size, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 text-xs py-1">
+                  {size}
+                  <button
+                      type="button"
+                      onClick={() => removeSize(size)}
+                      className="ml-1 hover:text-destructive text-xs"
+                      disabled={disabled}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+            ))}
+            <input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    addSize(inputValue);
+                  }
+                }}
+                placeholder="Add custom size..."
+                className="flex-1 outline-none bg-transparent text-sm min-w-20 placeholder:text-muted-foreground"
                 disabled={disabled}
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-          <input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ',') {
-                e.preventDefault();
-                addSize(inputValue);
-              }
-            }}
-            placeholder="Add custom size..."
-            className="flex-1 outline-none bg-transparent text-sm min-w-20 placeholder:text-muted-foreground"
-            disabled={disabled}
-          />
+            />
+          </div>
         </div>
       </div>
-    </div>
   );
 };
 
 // Tag Input Component
 const TagInput = ({
-  tags,
-  onTagsChange,
-  disabled
-}: {
+                    tags,
+                    onTagsChange,
+                    disabled
+                  }: {
   tags: string[];
   onTagsChange: (tags: string[]) => void;
   disabled?: boolean;
@@ -220,49 +219,49 @@ const TagInput = ({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-10 bg-background">
-        {tags.map((tag, index) => (
-          <Badge key={index} variant="secondary" className="flex items-center gap-1 text-xs py-1">
-            <Tag className="h-3 w-3" />
-            {tag}
-            <button
-              type="button"
-              onClick={() => removeTag(index)}
-              className="ml-1 hover:text-destructive text-xs"
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-10 bg-background">
+          {tags.map((tag, index) => (
+              <Badge key={index} variant="secondary" className="flex items-center gap-1 text-xs py-1">
+                <Tag className="h-3 w-3" />
+                {tag}
+                <button
+                    type="button"
+                    onClick={() => removeTag(index)}
+                    className="ml-1 hover:text-destructive text-xs"
+                    disabled={disabled}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+          ))}
+          <input
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                  e.preventDefault();
+                  addTag(inputValue);
+                }
+              }}
+              placeholder="Add tag..."
+              className="flex-1 outline-none bg-transparent text-sm min-w-20 placeholder:text-muted-foreground"
               disabled={disabled}
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-        ))}
-        <input
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ',') {
-              e.preventDefault();
-              addTag(inputValue);
-            }
-          }}
-          placeholder="Add tag..."
-          className="flex-1 outline-none bg-transparent text-sm min-w-20 placeholder:text-muted-foreground"
-          disabled={disabled}
-        />
+          />
+        </div>
       </div>
-    </div>
   );
 };
 
 // Product Analytics Card
 const ProductAnalyticsCard = ({
-  title,
-  value,
-  icon: Icon,
-  description,
-  trend,
-  color
-}: {
+                                title,
+                                value,
+                                icon: Icon,
+                                description,
+                                trend,
+                                color
+                              }: {
   title: string;
   value: string;
   icon: any;
@@ -270,53 +269,53 @@ const ProductAnalyticsCard = ({
   trend?: number;
   color?: string;
 }) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      <Icon className={`h-4 w-4 ${color || 'text-muted-foreground'}`} />
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold">{value}</div>
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">{description}</p>
-        {trend !== undefined && (
-          <span className={`text-xs ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className={`h-4 w-4 ${color || 'text-muted-foreground'}`} />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">{description}</p>
+          {trend !== undefined && (
+              <span className={`text-xs ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {trend >= 0 ? '+' : ''}{trend}%
           </span>
-        )}
-      </div>
-    </CardContent>
-  </Card>
+          )}
+        </div>
+      </CardContent>
+    </Card>
 );
 
 // Quick Actions Component
 const QuickActions = ({ onAction }: { onAction: (action: string) => void }) => (
-  <div className="flex flex-wrap gap-2">
-    <Button variant="outline" size="sm" onClick={() => onAction('export')}>
-      <Download className="mr-2 h-4 w-4" />
-      Export
-    </Button>
-    <Button variant="outline" size="sm" onClick={() => onAction('import')}>
-      <Upload className="mr-2 h-4 w-4" />
-      Import
-    </Button>
-    <Button variant="outline" size="sm" onClick={() => onAction('duplicate')}>
-      <Copy className="mr-2 h-4 w-4" />
-      Duplicate
-    </Button>
-    <Button variant="outline" size="sm" onClick={() => onAction('bulk_edit')}>
-      <Edit className="mr-2 h-4 w-4" />
-      Bulk Edit
-    </Button>
-  </div>
+    <div className="flex flex-wrap gap-2">
+      <Button variant="outline" size="sm" onClick={() => onAction('export')}>
+        <Download className="mr-2 h-4 w-4" />
+        Export
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => onAction('import')}>
+        <Upload className="mr-2 h-4 w-4" />
+        Import
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => onAction('duplicate')}>
+        <Copy className="mr-2 h-4 w-4" />
+        Duplicate
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => onAction('bulk_edit')}>
+        <Edit className="mr-2 h-4 w-4" />
+        Bulk Edit
+      </Button>
+    </div>
 );
 
 // Product Details Modal Component
 const ProductDetailsModal = ({
-  product,
-  open,
-  onOpenChange
-}: {
+                               product,
+                               open,
+                               onOpenChange
+                             }: {
   product: ProductWithSpecial | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -369,259 +368,259 @@ const ProductDetailsModal = ({
 
   const displayTags = getDisplayTags(product.tags);
   const sizeArray = typeof product.size === 'string'
-    ? product.size.split(',').map(s => s.trim()).filter(s => s)
-    : Array.isArray(product.size) ? product.size : [];
+      ? product.size.split(',').map(s => s.trim()).filter(s => s)
+      : Array.isArray(product.size) ? product.size : [];
 
   const discountPercentage = product.discountPrice
-    ? Math.round(((parseFloat(product.price) - product.discountPrice) / parseFloat(product.price)) * 100)
-    : 0;
+      ? Math.round(((parseFloat(product.price) - product.discountPrice) / parseFloat(product.price)) * 100)
+      : 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            Product Details
-          </DialogTitle>
-          <DialogDescription>
-            Complete information about {product.name}
-          </DialogDescription>
-        </DialogHeader>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Product Details
+            </DialogTitle>
+            <DialogDescription>
+              Complete information about {product.name}
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="grid gap-6">
-          {/* Header with Image and Basic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Product Image */}
-            <div className="md:col-span-1">
-              <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
-                <img
-                  src={getImageUrl(product.images?.[0])}
-                  alt={product.name}
-                  className="object-cover w-full h-full"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/placeholder.svg";
-                  }}
-                />
-                {discountPercentage > 0 && (
-                  <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                    -{discountPercentage}%
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Basic Info */}
-            <div className="md:col-span-2 space-y-4">
-              <div>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold">{product.name}</h2>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant={product.isActive ? "default" : "destructive"}>
-                        {product.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                      <Badge variant="outline">
-                        {product.sku || "No SKU"}
-                      </Badge>
-                      <Badge variant="secondary">
-                        {product.categoryLevel1}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-green-600">
-                      ${parseFloat(product.price?.toString() || '0').toFixed(2)}
-                    </div>
-                    {product.discountPrice && (
-                      <div className="text-lg line-through text-muted-foreground">
-                        ${product.discountPrice.toFixed(2)}
+          <div className="grid gap-6">
+            {/* Header with Image and Basic Info */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Product Image */}
+              <div className="md:col-span-1">
+                <div className="relative aspect-square rounded-lg border overflow-hidden bg-muted">
+                  <img
+                      src={getImageUrl(product.images?.[0])}
+                      alt={product.name}
+                      className="object-cover w-full h-full"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/placeholder.svg";
+                      }}
+                  />
+                  {discountPercentage > 0 && (
+                      <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                        -{discountPercentage}%
                       </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Basic Info */}
+              <div className="md:col-span-2 space-y-4">
+                <div>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold">{product.name}</h2>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant={product.isActive ? "default" : "destructive"}>
+                          {product.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                        <Badge variant="outline">
+                          {product.sku || "No SKU"}
+                        </Badge>
+                        <Badge variant="secondary">
+                          {product.categoryLevel1}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-green-600">
+                        ${parseFloat(product.price?.toString() || '0').toFixed(2)}
+                      </div>
+                      {product.discountPrice && (
+                          <div className="text-lg line-through text-muted-foreground">
+                            ${product.discountPrice.toFixed(2)}
+                          </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-muted-foreground mt-3">{product.description || "No description available"}</p>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <div className="text-sm text-muted-foreground">Stock</div>
+                    <div className={`text-lg font-semibold ${product.stock < 10 ? "text-red-600" : "text-green-600"}`}>
+                      {product.stock} units
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-sm text-muted-foreground">Type</div>
+                    <div className="text-lg font-semibold capitalize">{product.serviceType}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-sm text-muted-foreground">Rating</div>
+                    <div className="text-lg font-semibold">
+                      {product.rating || 0} ⭐ ({product.reviewsCount || 0} reviews)
+                    </div>
+                  </div>
+                </div>
+
+                {/* Special Categories */}
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Special Categories</div>
+                  <div className="flex gap-2">
+                    {product.isFeatured && (
+                        <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600">
+                          <Star className="h-3 w-3 mr-1" />
+                          Featured
+                        </Badge>
+                    )}
+                    {product.isTrending && (
+                        <Badge variant="default" className="bg-orange-500 hover:bg-orange-600">
+                          <Zap className="h-3 w-3 mr-1" />
+                          Trending
+                        </Badge>
+                    )}
+                    {product.isNewArrival && (
+                        <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
+                          <Clock className="h-3 w-3 mr-1" />
+                          New Arrival
+                        </Badge>
                     )}
                   </div>
                 </div>
-
-                <p className="text-muted-foreground mt-3">{product.description || "No description available"}</p>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <div className="text-sm text-muted-foreground">Stock</div>
-                  <div className={`text-lg font-semibold ${product.stock < 10 ? "text-red-600" : "text-green-600"}`}>
-                    {product.stock} units
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-sm text-muted-foreground">Type</div>
-                  <div className="text-lg font-semibold capitalize">{product.serviceType}</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-sm text-muted-foreground">Rating</div>
-                  <div className="text-lg font-semibold">
-                    {product.rating || 0} ⭐ ({product.reviewsCount || 0} reviews)
-                  </div>
-                </div>
-              </div>
-
-              {/* Special Categories */}
-              <div className="space-y-2">
-                <div className="text-sm font-medium">Special Categories</div>
-                <div className="flex gap-2">
-                  {product.isFeatured && (
-                    <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600">
-                      <Star className="h-3 w-3 mr-1" />
-                      Featured
-                    </Badge>
-                  )}
-                  {product.isTrending && (
-                    <Badge variant="default" className="bg-orange-500 hover:bg-orange-600">
-                      <Zap className="h-3 w-3 mr-1" />
-                      Trending
-                    </Badge>
-                  )}
-                  {product.isNewArrival && (
-                    <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
-                      <Clock className="h-3 w-3 mr-1" />
-                      New Arrival
-                    </Badge>
-                  )}
-                </div>
               </div>
             </div>
-          </div>
 
-          {/* Tabs for Detailed Information */}
-          <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid grid-cols-4">
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="specifications">Specifications</TabsTrigger>
-              <TabsTrigger value="categories">Categories</TabsTrigger>
-              <TabsTrigger value="metadata">Metadata</TabsTrigger>
-            </TabsList>
+            {/* Tabs for Detailed Information */}
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="grid grid-cols-4">
+                <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="specifications">Specifications</TabsTrigger>
+                <TabsTrigger value="categories">Categories</TabsTrigger>
+                <TabsTrigger value="metadata">Metadata</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="details" className="space-y-4 pt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Product Information</Label>
+              <TabsContent value="details" className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Product Information</Label>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Brand</span>
+                        <span className="text-sm font-medium">{product.brand || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Unit</span>
+                        <span className="text-sm font-medium capitalize">{product.unit}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Service Duration</span>
+                        <span className="text-sm font-medium">{product.serviceDuration || "N/A"}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Sizes</Label>
+                    {sizeArray.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {sizeArray.map((size, index) => (
+                              <Badge key={index} variant="outline" className="text-sm">
+                                {size}
+                              </Badge>
+                          ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">No sizes specified</p>
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="specifications" className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Brand</span>
-                      <span className="text-sm font-medium">{product.brand || "N/A"}</span>
+                      <span className="text-sm text-muted-foreground">Weight</span>
+                      <span className="text-sm font-medium">{product.weight || "N/A"}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Unit</span>
-                      <span className="text-sm font-medium capitalize">{product.unit}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Service Duration</span>
-                      <span className="text-sm font-medium">{product.serviceDuration || "N/A"}</span>
+                      <span className="text-sm text-muted-foreground">Dimensions</span>
+                      <span className="text-sm font-medium">{product.dimensions || "N/A"}</span>
                     </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Sizes</Label>
-                  {sizeArray.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {sizeArray.map((size, index) => (
-                        <Badge key={index} variant="outline" className="text-sm">
-                          {size}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No sizes specified</p>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
+              </TabsContent>
 
-            <TabsContent value="specifications" className="space-y-4 pt-4">
-              <div className="grid grid-cols-2 gap-4">
+              <TabsContent value="categories" className="space-y-4 pt-4">
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Weight</span>
-                    <span className="text-sm font-medium">{product.weight || "N/A"}</span>
+                    <span className="text-sm text-muted-foreground">Main Category</span>
+                    <Badge variant="outline">{product.categoryLevel1}</Badge>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Dimensions</span>
-                    <span className="text-sm font-medium">{product.dimensions || "N/A"}</span>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="categories" className="space-y-4 pt-4">
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Main Category</span>
-                  <Badge variant="outline">{product.categoryLevel1}</Badge>
-                </div>
-                {product.categoryLevel2 && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Subcategory</span>
-                    <Badge variant="secondary">{product.categoryLevel2}</Badge>
-                  </div>
-                )}
-                {product.categoryLevel3 && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Sub-subcategory</span>
-                    <Badge variant="outline">{product.categoryLevel3}</Badge>
-                  </div>
-                )}
-                <div className="p-3 bg-muted/30 rounded-lg">
-                  <div className="text-xs text-muted-foreground mb-1">Full Category Path</div>
-                  <div className="text-sm font-medium">
-                    {[product.categoryLevel1, product.categoryLevel2, product.categoryLevel3]
-                      .filter(Boolean)
-                      .join(' → ')}
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="metadata" className="space-y-4 pt-4">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Created</span>
-                  <span className="text-sm font-medium">{formatDate(product.createdAt)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Updated</span>
-                  <span className="text-sm font-medium">{formatDate(product.updatedAt)}</span>
-                </div>
-                {displayTags.length > 0 && (
-                  <div>
-                    <div className="text-sm text-muted-foreground mb-2">Tags</div>
-                    <div className="flex flex-wrap gap-2">
-                      {displayTags.map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
+                  {product.categoryLevel2 && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Subcategory</span>
+                        <Badge variant="secondary">{product.categoryLevel2}</Badge>
+                      </div>
+                  )}
+                  {product.categoryLevel3 && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Sub-subcategory</span>
+                        <Badge variant="outline">{product.categoryLevel3}</Badge>
+                      </div>
+                  )}
+                  <div className="p-3 bg-muted/30 rounded-lg">
+                    <div className="text-xs text-muted-foreground mb-1">Full Category Path</div>
+                    <div className="text-sm font-medium">
+                      {[product.categoryLevel1, product.categoryLevel2, product.categoryLevel3]
+                          .filter(Boolean)
+                          .join(' → ')}
                     </div>
                   </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+                </div>
+              </TabsContent>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={() => copyToClipboard(product.id)}
-            >
-              <Copy className="h-4 w-4 mr-2" />
-              Copy ID
-            </Button>
-            <Button onClick={() => onOpenChange(false)}>
-              Close
-            </Button>
+              <TabsContent value="metadata" className="space-y-4 pt-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Created</span>
+                    <span className="text-sm font-medium">{formatDate(product.createdAt)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Updated</span>
+                    <span className="text-sm font-medium">{formatDate(product.updatedAt)}</span>
+                  </div>
+                  {displayTags.length > 0 && (
+                      <div>
+                        <div className="text-sm text-muted-foreground mb-2">Tags</div>
+                        <div className="flex flex-wrap gap-2">
+                          {displayTags.map((tag, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                          ))}
+                        </div>
+                      </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button
+                  variant="outline"
+                  onClick={() => copyToClipboard(product.id)}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy ID
+              </Button>
+              <Button onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
   );
 };
 
@@ -744,22 +743,22 @@ export default function Products() {
   // Filter products
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
-      (product.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (product.categoryLevel1?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (product.brand?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (product.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (product.sku?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+        (product.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (product.categoryLevel1?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (product.brand?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (product.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (product.sku?.toLowerCase() || '').includes(searchTerm.toLowerCase());
 
     const matchesStatus = selectedStatus === "all" ? true :
-      selectedStatus === "active" ? product.isActive :
-        selectedStatus === "inactive" ? !product.isActive :
-          selectedStatus === "low-stock" ? (product.stock || 0) < 10 :
-            selectedStatus === "no-stock" ? (product.stock || 0) === 0 : true;
+        selectedStatus === "active" ? product.isActive :
+            selectedStatus === "inactive" ? !product.isActive :
+                selectedStatus === "low-stock" ? (product.stock || 0) < 10 :
+                    selectedStatus === "no-stock" ? (product.stock || 0) === 0 : true;
 
     const matchesCategory = selectedCategory === "all" ? true :
-      product.categoryLevel1 === selectedCategory ||
-      product.categoryLevel2 === selectedCategory ||
-      product.categoryLevel3 === selectedCategory;
+        product.categoryLevel1 === selectedCategory ||
+        product.categoryLevel2 === selectedCategory ||
+        product.categoryLevel3 === selectedCategory;
 
     return matchesSearch && matchesStatus && matchesCategory;
   });
@@ -779,9 +778,9 @@ export default function Products() {
       return sum + (price * stock);
     }, 0),
     averagePrice: filteredProducts.length > 0 ?
-      filteredProducts.reduce((sum, p) => sum + parseFloat(p.price?.toString() || '0'), 0) / filteredProducts.length : 0,
+        filteredProducts.reduce((sum, p) => sum + parseFloat(p.price?.toString() || '0'), 0) / filteredProducts.length : 0,
   };
-   const handleViewProduct = (product: ProductWithSpecial) => {
+  const handleViewProduct = (product: ProductWithSpecial) => {
     setSelectedProduct(product);
     setDetailsDialogOpen(true);
   };
@@ -836,35 +835,56 @@ export default function Products() {
         return;
       }
 
+      // let result;
+      // if (editingProduct) {
+      //   result = await adminApiService.updateProduct(editingProduct.id, formDataObj);
+      //   const resultWithSpecial = {
+      //     ...result,
+      //     isFeatured: (result as any).isFeatured ?? false,
+      //     isTrending: (result as any).isTrending ?? false,
+      //     isNewArrival: (result as any).isNewArrival ?? false,
+      //     featuredOrder: (result as any).featuredOrder ?? 0,
+      //     trendingOrder: (result as any).trendingOrder ?? 0,
+      //     newArrivalOrder: (result as any).newArrivalOrder ?? 0,
+      //   } as ProductWithSpecial;
+      //
+      //   setProducts(products.map((p) => p.id === editingProduct.id ? resultWithSpecial : p));
+      //   toast({ title: "Product updated", description: "Product has been updated successfully" });
+      // } else {
+      //   result = await adminApiService.createProduct(formDataObj);
+      //   const resultWithSpecial = {
+      //     ...result,
+      //     isFeatured: (result as any).isFeatured ?? false,
+      //     isTrending: (result as any).isTrending ?? false,
+      //     isNewArrival: (result as any).isNewArrival ?? false,
+      //     featuredOrder: (result as any).featuredOrder ?? 0,
+      //     trendingOrder: (result as any).trendingOrder ?? 0,
+      //     newArrivalOrder: (result as any).newArrivalOrder ?? 0,
+      //   } as ProductWithSpecial;
+      //
+      //   setProducts(prev => [...prev, resultWithSpecial]);
+      //   toast({ title: "Product added", description: "Product has been added successfully" });
+      // }
+
       let result;
       if (editingProduct) {
-        result = await adminApiService.updateProduct(editingProduct.id, formDataObj);
-        const resultWithSpecial = {
-          ...result,
-          isFeatured: (result as any).isFeatured ?? false,
-          isTrending: (result as any).isTrending ?? false,
-          isNewArrival: (result as any).isNewArrival ?? false,
-          featuredOrder: (result as any).featuredOrder ?? 0,
-          trendingOrder: (result as any).trendingOrder ?? 0,
-          newArrivalOrder: (result as any).newArrivalOrder ?? 0,
-        } as ProductWithSpecial;
+        result = await adminApiService.updateProduct(editingProduct.id, formDataObj, {
+          invalidate: () => fetchProducts()
+        });
 
-        setProducts(products.map((p) => p.id === editingProduct.id ? resultWithSpecial : p));
-        toast({ title: "Product updated", description: "Product has been updated successfully" });
+        toast({
+          title: "Product updated",
+          description: "Product has been updated successfully"
+        });
       } else {
-        result = await adminApiService.createProduct(formDataObj);
-        const resultWithSpecial = {
-          ...result,
-          isFeatured: (result as any).isFeatured ?? false,
-          isTrending: (result as any).isTrending ?? false,
-          isNewArrival: (result as any).isNewArrival ?? false,
-          featuredOrder: (result as any).featuredOrder ?? 0,
-          trendingOrder: (result as any).trendingOrder ?? 0,
-          newArrivalOrder: (result as any).newArrivalOrder ?? 0,
-        } as ProductWithSpecial;
+        result = await adminApiService.createProduct(formDataObj, {
+          invalidate: () => fetchProducts()
+        });
 
-        setProducts(prev => [...prev, resultWithSpecial]);
-        toast({ title: "Product added", description: "Product has been added successfully" });
+        toast({
+          title: "Product added",
+          description: "Product has been added successfully"
+        });
       }
 
       setFormData({
@@ -1025,7 +1045,11 @@ export default function Products() {
     try {
       const formData = new FormData();
       formData.append('isActive', (!productToToggle.isActive).toString());
-      const updatedProduct = await adminApiService.updateProduct(productToToggle.id, formData);
+
+      const updatedProduct = await adminApiService.updateProduct(productToToggle.id, formData, {
+        invalidate: () => fetchProducts()
+      });
+
       const updatedProductWithSpecial = {
         ...updatedProduct,
         isFeatured: (updatedProduct as any).isFeatured ?? productToToggle.isFeatured,
@@ -1089,952 +1113,985 @@ export default function Products() {
 
   if (error && products.length === 0) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-          <Button onClick={fetchProducts} variant="outline">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Retry
-          </Button>
-        </div>
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium mb-2">Failed to load products</p>
-            <p className="text-muted-foreground text-center mb-4">{error}</p>
-            <Button onClick={fetchProducts}>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold tracking-tight">Products</h1>
+            <Button onClick={fetchProducts} variant="outline">
               <RefreshCw className="mr-2 h-4 w-4" />
-              Try Again
+              Retry
             </Button>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-lg font-medium mb-2">Failed to load products</p>
+              <p className="text-muted-foreground text-center mb-4">{error}</p>
+              <Button onClick={fetchProducts}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
     );
   }
 
+  const flattenCategories = (categories: Category[]): Category[] => {
+    const flattened: Category[] = [];
+
+    const flatten = (category: Category) => {
+      flattened.push(category);
+      if (category.children && category.children.length > 0) {
+        category.children.forEach(child => flatten(child));
+      }
+    };
+
+    categories.forEach(category => flatten(category));
+    return flattened;
+  };
+  // Get all categories as a flat array
+  const allCategories = flattenCategories(categories);
+
+  // Get categories by level
+  const getCategoriesByLevel = (level: number) => {
+    return allCategories.filter(cat => cat.level === level);
+  };
+
+  // Get top-level categories (level 1)
+  const topLevelCategories = getCategoriesByLevel(1);
+
+  // Get level 2 categories
+  const level2Categories = getCategoriesByLevel(2);
+
+  // Get level 3 categories
+  // const level3Categories = getCategoriesByLevel(3);
+
+  // Get subcategories for a specific parent
+  const getSubcategories = (parentId: string) => {
+    return allCategories.filter(cat => cat.parentId === parentId);
+  };
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-          <p className="text-muted-foreground">Manage your product catalog and inventory</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={() => { fetchProducts(); fetchCategories(); }} variant="outline" disabled={isLoading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          {activeTab === "catalog" && (
-            <Button onClick={handleAddProduct} disabled={isLoading}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Product
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Products</h1>
+            <p className="text-muted-foreground">Manage your product catalog and inventory</p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => { fetchProducts(); fetchCategories(); }} variant="outline" disabled={isLoading}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
             </Button>
-          )}
+            {activeTab === "catalog" && (
+                <Button onClick={handleAddProduct} disabled={isLoading}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Product
+                </Button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Analytics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <ProductAnalyticsCard
-          title="Total Products"
-          value={analytics.totalProducts.toString()}
-          icon={Package}
-          description={`${analytics.activeProducts} active`}
-          color="text-blue-500"
-        />
-        <ProductAnalyticsCard
-          title="Inventory Value"
-          value={`$${analytics.totalValue.toFixed(2)}`}
-          icon={DollarSign}
-          description={`Avg: $${analytics.averagePrice.toFixed(2)}`}
-          color="text-green-500"
-        />
-        <ProductAnalyticsCard
-          title="Stock Status"
-          value={`${analytics.lowStock + analytics.outOfStock}`}
-          icon={AlertTriangle}
-          description={`${analytics.lowStock} low, ${analytics.outOfStock} out`}
-          color="text-orange-500"
-        />
-        <ProductAnalyticsCard
-          title="Special Categories"
-          value={`${analytics.featured + analytics.trending + analytics.newArrivals}`}
-          icon={Star}
-          description={`${analytics.featured} featured, ${analytics.trending} trending`}
-          color="text-purple-500"
-        />
-      </div>
+        {/* Analytics Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <ProductAnalyticsCard
+              title="Total Products"
+              value={analytics.totalProducts.toString()}
+              icon={Package}
+              description={`${analytics.activeProducts} active`}
+              color="text-blue-500"
+          />
+          <ProductAnalyticsCard
+              title="Inventory Value"
+              value={`$${analytics.totalValue.toFixed(2)}`}
+              icon={DollarSign}
+              description={`Avg: $${analytics.averagePrice.toFixed(2)}`}
+              color="text-green-500"
+          />
+          <ProductAnalyticsCard
+              title="Stock Status"
+              value={`${analytics.lowStock + analytics.outOfStock}`}
+              icon={AlertTriangle}
+              description={`${analytics.lowStock} low, ${analytics.outOfStock} out`}
+              color="text-orange-500"
+          />
+          <ProductAnalyticsCard
+              title="Special Categories"
+              value={`${analytics.featured + analytics.trending + analytics.newArrivals}`}
+              icon={Star}
+              description={`${analytics.featured} featured, ${analytics.trending} trending`}
+              color="text-purple-500"
+          />
+        </div>
 
-      {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="catalog" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Catalog
-          </TabsTrigger>
-          <TabsTrigger value="inventory" className="flex items-center gap-2">
-            <Layers className="h-4 w-4" />
-            Inventory
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Analytics
-          </TabsTrigger>
-        </TabsList>
+        {/* Main Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="catalog" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Catalog
+            </TabsTrigger>
+            <TabsTrigger value="inventory" className="flex items-center gap-2">
+              <Layers className="h-4 w-4" />
+              Inventory
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Catalog Tab */}
-        <TabsContent value="catalog" className="space-y-6">
-          {/* Filters and Search */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-4 justify-between">
-                <div className="flex flex-col md:flex-row gap-4 flex-1">
-                  <div className="relative flex-1 md:max-w-sm">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search products by name, SKU, brand..."
-                      className="pl-8"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status.replace('-', ' ').toUpperCase()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      {uniqueCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant={viewMode === "grid" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setViewMode("grid")}
-                  >
-                    <Grid className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "list" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setViewMode("list")}
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <QuickActions onAction={handleQuickAction} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Products Table */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">Product Catalog</CardTitle>
-                  <CardDescription>{filteredProducts.length} products found</CardDescription>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Filter className="h-4 w-4" />
-                  <span>Filtered results</span>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="space-y-4">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="h-16 bg-muted rounded animate-pulse" />
-                  ))}
-                </div>
-              ) : filteredProducts.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product</TableHead>
-                      <TableHead>SKU</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Sizes</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Special</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredProducts.map((product) => (
-                      <TableRow key={product.id} className="hover:bg-muted/50">
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={getImageUrl(product.images?.[0])}
-                              alt={product.name}
-                              className="h-12 w-12 rounded object-cover border"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = "/placeholder.svg";
-                              }}
-                            />
-                            <div>
-                              <div
-                                className="font-medium cursor-pointer hover:text-blue-600 transition-colors"
-                                onClick={() => handleViewProduct(product)}
-                              >
-                                {product.name}
-                              </div>
-                              <div className="text-sm text-muted-foreground line-clamp-1">
-                                {product.brand && <span>{product.brand} • </span>}
-                                {product.description || "No description"}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-mono text-xs text-muted-foreground">
-                            {product.sku}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <Badge variant="outline">{product.categoryLevel1}</Badge>
-                            {product.categoryLevel2 && (
-                              <div className="text-xs text-muted-foreground">{product.categoryLevel2}</div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          <div className="space-y-1">
-                            <div>${product.price != null ? parseFloat(product.price.toString()).toFixed(2) : '0.00'}</div>
-                            {product.discountPrice && (
-                              <div className="text-xs text-red-600 line-through">
-                                ${product.discountPrice.toFixed(2)}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <span className={product.stock < 10 ? "text-destructive font-medium" : ""}>
-                              {product.stock}
-                            </span>
-                            {product.stock < 10 && product.stock > 0 && (
-                              <div className="text-xs text-destructive">Low stock</div>
-                            )}
-                            {product.stock === 0 && (
-                              <div className="text-xs text-destructive">Out of stock</div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {product.size ? (
-                            <div className="flex flex-wrap gap-1 max-w-24">
-                              {/* Safely get the first 2 sizes */}
-                              {(() => {
-                                if (typeof product.size === 'string') {
-                                  const sizes = product.size.split(',').filter(s => s.trim());
-                                  return sizes.slice(0, 2).map((size, index) => (
-                                    <Badge key={index} variant="outline" className="text-xs">
-                                      {size.trim()}
-                                    </Badge>
-                                  ));
-                                } else if (Array.isArray(product.size)) {
-                                  const sizes = product.size.filter(s => s != null);
-                                  return sizes.slice(0, 2).map((size, index) => (
-                                    <Badge key={index} variant="outline" className="text-xs">
-                                      {size}
-                                    </Badge>
-                                  ));
-                                }
-                                return null;
-                              })()}
-
-                              {/* Show "+ more" indicator */}
-                              {(() => {
-                                let sizeCount = 0;
-
-                                if (typeof product.size === 'string') {
-                                  sizeCount = product.size.split(',').filter(s => s.trim()).length;
-                                } else if (Array.isArray(product.size)) {
-                                  sizeCount = product.size.filter(s => s != null).length;
-                                }
-
-                                if (sizeCount > 2) {
-                                  return (
-                                    <span className="text-xs text-muted-foreground">
-                                      +{sizeCount - 2} more
-                                    </span>
-                                  );
-                                }
-                                return null;
-                              })()}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={product.isActive ? 'default' : 'destructive'}>
-                            {product.isActive ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            {product.isFeatured && (
-                              <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-xs">
-                                <Star className="h-3 w-3 mr-1" />
-                                F
-                              </Badge>
-                            )}
-                            {product.isTrending && (
-                              <Badge variant="default" className="bg-orange-500 hover:bg-orange-600 text-xs">
-                                <Zap className="h-3 w-3 mr-1" />
-                                T
-                              </Badge>
-                            )}
-                            {product.isNewArrival && (
-                              <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 text-xs">
-                                <Clock className="h-3 w-3 mr-1" />
-                                N
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleViewProduct(product)}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditProduct(product)}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleToggleStatus(product)}>
-                                {product.isActive ? 'Deactivate' : 'Activate'}
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => handleDeleteProduct(product.id)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <div className="text-center py-10">
-                  <Package className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-lg font-medium">No products found</p>
-                  <p className="text-muted-foreground">
-                    {searchTerm ? "Try adjusting your search terms" : "Get started by adding your first product"}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Inventory Tab */}
-        <TabsContent value="inventory" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Inventory Management</CardTitle>
-              <CardDescription>Manage stock levels and inventory status</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">Low Stock Alert</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-orange-600">{analytics.lowStock}</div>
-                      <p className="text-xs text-muted-foreground">Products with less than 10 units</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-red-600">{analytics.outOfStock}</div>
-                      <p className="text-xs text-muted-foreground">Products with zero stock</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">Healthy Stock</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-green-600">
-                        {analytics.totalProducts - analytics.lowStock - analytics.outOfStock}
-                      </div>
-                      <p className="text-xs text-muted-foreground">Products with sufficient stock</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Product Analytics</CardTitle>
-              <CardDescription>Performance metrics and insights</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Special Categories</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Featured</span>
-                        <span className="font-bold">{analytics.featured}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Trending</span>
-                        <span className="font-bold">{analytics.trending}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">New Arrivals</span>
-                        <span className="font-bold">{analytics.newArrivals}</span>
-                      </div>
+          {/* Catalog Tab */}
+          <TabsContent value="catalog" className="space-y-6">
+            {/* Filters and Search */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row gap-4 justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 flex-1">
+                    <div className="relative flex-1 md:max-w-sm">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                          placeholder="Search products by name, SKU, brand..."
+                          className="pl-8"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          disabled={isLoading}
+                      />
                     </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Pricing Stats</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Average Price</span>
-                        <span className="font-bold">${analytics.averagePrice.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Highest Price</span>
-                        <span className="font-bold">
-                          ${Math.max(...filteredProducts.map(p => parseFloat(p.price?.toString() || '0'))).toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Lowest Price</span>
-                        <span className="font-bold">
-                          ${Math.min(...filteredProducts.map(p => parseFloat(p.price?.toString() || '0'))).toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Add/Edit Product Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-base">
-              {editingProduct ? "Edit Product" : "Add New Product"}
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              {editingProduct ? "Update the product information" : "Add a new product to your catalog"}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-1">
-              <ImageUploadWithFile
-                onImageChange={(file, previewUrl) => {
-                  setFormData({ ...formData, image: file });
-                }}
-                currentImage={
-                  typeof formData.image === 'string' ? formData.image :
-                    formData.image instanceof File ? '' :
-                      formData.image || ''
-                }
-                className="h-40"
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-xs">Product Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g., Wireless Headphones"
-                    className="h-9 text-sm"
-                    required
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="sku" className="text-xs">SKU</Label>
-                  <Input
-                    id="sku"
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    placeholder="e.g., PROD-001"
-                    className="h-9 text-sm"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="description" className="text-xs">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe your product..."
-                  rows={3}
-                  className="min-h-[80px] text-sm"
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div className="grid grid-cols-4 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="price" className="text-xs">Price *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="0.00"
-                    className="h-9 text-sm"
-                    required
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="discountPrice" className="text-xs">Discount Price</Label>
-                  <Input
-                    id="discountPrice"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.discountPrice}
-                    onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
-                    placeholder="0.00"
-                    className="h-9 text-sm"
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="stock" className="text-xs">Stock</Label>
-                  <Input
-                    id="stock"
-                    type="number"
-                    min="0"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                    placeholder="0"
-                    className="h-9 text-sm"
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="unit" className="text-xs">Unit</Label>
-                  <Select
-                    value={formData.unit}
-                    onValueChange={(value) => setFormData({ ...formData, unit: value })}
-                    disabled={isSubmitting}
-                  >
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Select unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {unitOptions.map((unit) => (
-                        <SelectItem key={unit} value={unit}>
-                          {unit.charAt(0).toUpperCase() + unit.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="serviceType" className="text-xs">Service Type *</Label>
-                  <Select
-                    value={formData.serviceType}
-                    onValueChange={(value: 'physical' | 'digital' | 'service') =>
-                      setFormData({ ...formData, serviceType: value })}
-                    disabled={isSubmitting}
-                  >
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Select service type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {serviceTypeOptions.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="brand" className="text-xs">Brand</Label>
-                  <Input
-                    id="brand"
-                    value={formData.brand}
-                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    placeholder="Brand name"
-                    className="h-9 text-sm"
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="serviceDuration" className="text-xs">Service Duration</Label>
-                  <Input
-                    id="serviceDuration"
-                    value={formData.serviceDuration}
-                    onChange={(e) => setFormData({ ...formData, serviceDuration: e.target.value })}
-                    placeholder="e.g., 2 hours"
-                    className="h-9 text-sm"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="weight" className="text-xs">Weight (kg)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={formData.weight}
-                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                    placeholder="0.0"
-                    className="h-9 text-sm"
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="dimensions" className="text-xs">Dimensions (L×W×H)</Label>
-                  <Input
-                    id="dimensions"
-                    value={formData.dimensions}
-                    onChange={(e) => setFormData({ ...formData, dimensions: e.target.value })}
-                    placeholder="e.g., 10×5×2 cm"
-                    className="h-9 text-sm"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label className="text-xs">Sizes (for clothing)</Label>
-                  <SizeInput
-                    sizes={formData.size}
-                    onSizesChange={(newSizes) => setFormData({ ...formData, size: newSizes })}
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="tags" className="text-xs">Tags</Label>
-                  <TagInput
-                    tags={formData.tags}
-                    onTagsChange={(newTags) => setFormData({ ...formData, tags: newTags })}
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              {/* Category Selection */}
-              <div className="grid gap-3">
-                <Label className="text-xs">Category *</Label>
-                <div className="grid gap-3">
-                  <div className="grid gap-2">
-                    <Label htmlFor="categoryLevel1" className="text-xs">Level 1 *</Label>
-                    <Select
-                      value={formData.categoryLevel1}
-                      onValueChange={(value) => setFormData({
-                        ...formData,
-                        categoryLevel1: value,
-                        categoryLevel2: "",
-                        categoryLevel3: ""
-                      })}
-                      disabled={isSubmitting || isCategoriesLoading}
-                    >
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Select main category" />
+                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
-                        {categories
-                          .filter(cat => cat.level === 1)
-                          .map((category) => (
-                            <SelectItem key={category.id} value={category.name}>
-                              {category.name}
+                        {statusOptions.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status.replace('-', ' ').toUpperCase()}
                             </SelectItem>
-                          ))}
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {uniqueCategories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
-
-                  {formData.categoryLevel1 && (
-                    <div className="grid gap-2">
-                      <Label htmlFor="categoryLevel2" className="text-xs">Level 2</Label>
-                      <Select
-                        value={formData.categoryLevel2}
-                        onValueChange={(value) => setFormData({
-                          ...formData,
-                          categoryLevel2: value,
-                          categoryLevel3: ""
-                        })}
-                        disabled={isSubmitting}
-                      >
-                        <SelectTrigger className="h-9 text-sm">
-                          <SelectValue placeholder="Select subcategory" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories
-                            .filter(cat => cat.parentId === categories.find(c => c.name === formData.categoryLevel1)?.id)
-                            .map((subcategory) => (
-                              <SelectItem key={subcategory.id} value={subcategory.name}>
-                                {subcategory.name}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {formData.categoryLevel2 && (
-                    <div className="grid gap-2">
-                      <Label htmlFor="categoryLevel3" className="text-xs">Level 3</Label>
-                      <Select
-                        value={formData.categoryLevel3}
-                        onValueChange={(value) => setFormData({
-                          ...formData,
-                          categoryLevel3: value
-                        })}
-                        disabled={isSubmitting}
-                      >
-                        <SelectTrigger className="h-9 text-sm">
-                          <SelectValue placeholder="Select sub-subcategory" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories
-                            .filter(cat => cat.parentId === categories.find(c => c.name === formData.categoryLevel2)?.id)
-                            .map((subsubcategory) => (
-                              <SelectItem key={subsubcategory.id} value={subsubcategory.name}>
-                                {subsubcategory.name}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Special Categories */}
-              <div className="space-y-4 pt-4 border-t">
-                <Label className="text-sm font-medium">Special Categories</Label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-3 p-3 border rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="isFeatured" className="flex items-center gap-2 text-sm">
-                        <Star className="h-4 w-4 text-yellow-500" />
-                        Featured
-                      </Label>
-                      <Switch
-                        id="isFeatured"
-                        checked={formData.isFeatured}
-                        onCheckedChange={(checked) => setFormData({ ...formData, isFeatured: checked })}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    {formData.isFeatured && (
-                      <div className="grid gap-2">
-                        <Label htmlFor="featuredOrder" className="text-xs">Display Order</Label>
-                        <Input
-                          id="featuredOrder"
-                          type="number"
-                          min="0"
-                          value={formData.featuredOrder}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            featuredOrder: parseInt(e.target.value) || 0
-                          })}
-                          placeholder="0"
-                          className="h-8 text-sm"
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-3 p-3 border rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="isTrending" className="flex items-center gap-2 text-sm">
-                        <Zap className="h-4 w-4 text-orange-500" />
-                        Trending
-                      </Label>
-                      <Switch
-                        id="isTrending"
-                        checked={formData.isTrending}
-                        onCheckedChange={(checked) => setFormData({ ...formData, isTrending: checked })}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    {formData.isTrending && (
-                      <div className="grid gap-2">
-                        <Label htmlFor="trendingOrder" className="text-xs">Display Order</Label>
-                        <Input
-                          id="trendingOrder"
-                          type="number"
-                          min="0"
-                          value={formData.trendingOrder}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            trendingOrder: parseInt(e.target.value) || 0
-                          })}
-                          placeholder="0"
-                          className="h-8 text-sm"
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-3 p-3 border rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="isNewArrival" className="flex items-center gap-2 text-sm">
-                        <Clock className="h-4 w-4 text-blue-500" />
-                        New Arrival
-                      </Label>
-                      <Switch
-                        id="isNewArrival"
-                        checked={formData.isNewArrival}
-                        onCheckedChange={(checked) => setFormData({ ...formData, isNewArrival: checked })}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    {formData.isNewArrival && (
-                      <div className="grid gap-2">
-                        <Label htmlFor="newArrivalOrder" className="text-xs">Display Order</Label>
-                        <Input
-                          id="newArrivalOrder"
-                          type="number"
-                          min="0"
-                          value={formData.newArrivalOrder}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            newArrivalOrder: parseInt(e.target.value) || 0
-                          })}
-                          placeholder="0"
-                          className="h-8 text-sm"
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                    )}
+                  <div className="flex items-center gap-2">
+                    <Button
+                        variant={viewMode === "grid" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setViewMode("grid")}
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant={viewMode === "list" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setViewMode("list")}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                    <QuickActions onAction={handleQuickAction} />
                   </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center gap-3">
-                  <Switch
-                    checked={formData.isActive}
-                    onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                    disabled={isSubmitting}
-                  />
-                  <Label htmlFor="isActive" className="text-sm">Active Product</Label>
+            {/* Products Table */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Product Catalog</CardTitle>
+                    <CardDescription>{filteredProducts.length} products found</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Filter className="h-4 w-4" />
+                    <span>Filtered results</span>
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {editingProduct ? "Update this product" : "Create new product"}
-                </div>
-              </div>
-            </div>
-            <DialogFooter className="gap-2 mt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setDialogOpen(false)}
-                className="h-9 text-sm px-4"
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="h-9 text-sm px-4"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    {editingProduct ? "Updating..." : "Adding..."}
-                  </>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                    <div className="space-y-4">
+                      {[...Array(5)].map((_, i) => (
+                          <div key={i} className="h-16 bg-muted rounded animate-pulse" />
+                      ))}
+                    </div>
+                ) : filteredProducts.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Product</TableHead>
+                          <TableHead>SKU</TableHead>
+                          <TableHead>Category</TableHead>
+                          <TableHead>Price</TableHead>
+                          <TableHead>Stock</TableHead>
+                          <TableHead>Sizes</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Special</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredProducts.map((product) => (
+                            <TableRow key={product.id} className="hover:bg-muted/50">
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <img
+                                      src={getImageUrl(product.images?.[0])}
+                                      alt={product.name}
+                                      className="h-12 w-12 rounded object-cover border"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                      }}
+                                  />
+                                  <div>
+                                    <div
+                                        className="font-medium cursor-pointer hover:text-blue-600 transition-colors"
+                                        onClick={() => handleViewProduct(product)}
+                                    >
+                                      {product.name}
+                                    </div>
+                                    <div className="text-sm text-muted-foreground line-clamp-1">
+                                      {product.brand && <span>{product.brand} • </span>}
+                                      {product.description || "No description"}
+                                    </div>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="font-mono text-xs text-muted-foreground">
+                                  {product.sku}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="space-y-1">
+                                  <Badge variant="outline">{product.categoryLevel1}</Badge>
+                                  {product.categoryLevel2 && (
+                                      <div className="text-xs text-muted-foreground">{product.categoryLevel2}</div>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                <div className="space-y-1">
+                                  <div>${product.price != null ? parseFloat(product.price.toString()).toFixed(2) : '0.00'}</div>
+                                  {product.discountPrice && (
+                                      <div className="text-xs text-red-600 line-through">
+                                        ${product.discountPrice.toFixed(2)}
+                                      </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="space-y-1">
+                            <span className={product.stock < 10 ? "text-destructive font-medium" : ""}>
+                              {product.stock}
+                            </span>
+                                  {product.stock < 10 && product.stock > 0 && (
+                                      <div className="text-xs text-destructive">Low stock</div>
+                                  )}
+                                  {product.stock === 0 && (
+                                      <div className="text-xs text-destructive">Out of stock</div>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {product.size ? (
+                                    <div className="flex flex-wrap gap-1 max-w-24">
+                                      {/* Safely get the first 2 sizes */}
+                                      {(() => {
+                                        if (typeof product.size === 'string') {
+                                          const sizes = product.size.split(',').filter(s => s.trim());
+                                          return sizes.slice(0, 2).map((size, index) => (
+                                              <Badge key={index} variant="outline" className="text-xs">
+                                                {size.trim()}
+                                              </Badge>
+                                          ));
+                                        } else if (Array.isArray(product.size)) {
+                                          const sizes = product.size.filter(s => s != null);
+                                          return sizes.slice(0, 2).map((size, index) => (
+                                              <Badge key={index} variant="outline" className="text-xs">
+                                                {size}
+                                              </Badge>
+                                          ));
+                                        }
+                                        return null;
+                                      })()}
+
+                                      {/* Show "+ more" indicator */}
+                                      {(() => {
+                                        let sizeCount = 0;
+
+                                        if (typeof product.size === 'string') {
+                                          sizeCount = product.size.split(',').filter(s => s.trim()).length;
+                                        } else if (Array.isArray(product.size)) {
+                                          sizeCount = product.size.filter(s => s != null).length;
+                                        }
+
+                                        if (sizeCount > 2) {
+                                          return (
+                                              <span className="text-xs text-muted-foreground">
+                                      +{sizeCount - 2} more
+                                    </span>
+                                          );
+                                        }
+                                        return null;
+                                      })()}
+                                    </div>
+                                ) : (
+                                    <span className="text-xs text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={product.isActive ? 'default' : 'destructive'}>
+                                  {product.isActive ? 'Active' : 'Inactive'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-1">
+                                  {product.isFeatured && (
+                                      <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-xs">
+                                        <Star className="h-3 w-3 mr-1" />
+                                        F
+                                      </Badge>
+                                  )}
+                                  {product.isTrending && (
+                                      <Badge variant="default" className="bg-orange-500 hover:bg-orange-600 text-xs">
+                                        <Zap className="h-3 w-3 mr-1" />
+                                        T
+                                      </Badge>
+                                  )}
+                                  {product.isNewArrival && (
+                                      <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 text-xs">
+                                        <Clock className="h-3 w-3 mr-1" />
+                                        N
+                                      </Badge>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleViewProduct(product)}>
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      View Details
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleEditProduct(product)}>
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleToggleStatus(product)}>
+                                      {product.isActive ? 'Deactivate' : 'Activate'}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={() => handleDeleteProduct(product.id)}
+                                        className="text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </TableCell>
+                            </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                 ) : (
-                  editingProduct ? "Update Product" : "Add Product"
+                    <div className="text-center py-10">
+                      <Package className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-lg font-medium">No products found</p>
+                      <p className="text-muted-foreground">
+                        {searchTerm ? "Try adjusting your search terms" : "Get started by adding your first product"}
+                      </p>
+                    </div>
                 )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-      {/* Product Details Modal */}
-      <ProductDetailsModal
-        product={selectedProduct}
-        open={detailsDialogOpen}
-        onOpenChange={setDetailsDialogOpen}
-      />
-    </div>
+          {/* Inventory Tab */}
+          <TabsContent value="inventory" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Inventory Management</CardTitle>
+                <CardDescription>Manage stock levels and inventory status</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Low Stock Alert</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-orange-600">{analytics.lowStock}</div>
+                        <p className="text-xs text-muted-foreground">Products with less than 10 units</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-red-600">{analytics.outOfStock}</div>
+                        <p className="text-xs text-muted-foreground">Products with zero stock</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Healthy Stock</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-green-600">
+                          {analytics.totalProducts - analytics.lowStock - analytics.outOfStock}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Products with sufficient stock</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Product Analytics</CardTitle>
+                <CardDescription>Performance metrics and insights</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">Special Categories</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Featured</span>
+                          <span className="font-bold">{analytics.featured}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Trending</span>
+                          <span className="font-bold">{analytics.trending}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">New Arrivals</span>
+                          <span className="font-bold">{analytics.newArrivals}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">Pricing Stats</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Average Price</span>
+                          <span className="font-bold">${analytics.averagePrice.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Highest Price</span>
+                          <span className="font-bold">
+                          ${Math.max(...filteredProducts.map(p => parseFloat(p.price?.toString() || '0'))).toFixed(2)}
+                        </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Lowest Price</span>
+                          <span className="font-bold">
+                          ${Math.min(...filteredProducts.map(p => parseFloat(p.price?.toString() || '0'))).toFixed(2)}
+                        </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Add/Edit Product Dialog */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-base">
+                {editingProduct ? "Edit Product" : "Add New Product"}
+              </DialogTitle>
+              <DialogDescription className="text-xs">
+                {editingProduct ? "Update the product information" : "Add a new product to your catalog"}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit}>
+              <div className="grid gap-4 py-1">
+                <ImageUploadWithFile
+                    onImageChange={(file, previewUrl) => {
+                      setFormData({ ...formData, image: file });
+                    }}
+                    currentImage={
+                      typeof formData.image === 'string' ? formData.image :
+                          formData.image instanceof File ? '' :
+                              formData.image || ''
+                    }
+                    className="h-40"
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name" className="text-xs">Product Name *</Label>
+                    <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="e.g., Wireless Headphones"
+                        className="h-9 text-sm"
+                        required
+                        disabled={isSubmitting}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="sku" className="text-xs">SKU</Label>
+                    <Input
+                        id="sku"
+                        value={formData.sku}
+                        onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                        placeholder="e.g., PROD-001"
+                        className="h-9 text-sm"
+                        disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="description" className="text-xs">Description</Label>
+                  <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Describe your product..."
+                      rows={3}
+                      className="min-h-[80px] text-sm"
+                      disabled={isSubmitting}
+                  />
+                </div>
+
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="price" className="text-xs">Price *</Label>
+                    <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        placeholder="0.00"
+                        className="h-9 text-sm"
+                        required
+                        disabled={isSubmitting}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="discountPrice" className="text-xs">Discount Price</Label>
+                    <Input
+                        id="discountPrice"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.discountPrice}
+                        onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
+                        placeholder="0.00"
+                        className="h-9 text-sm"
+                        disabled={isSubmitting}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="stock" className="text-xs">Stock</Label>
+                    <Input
+                        id="stock"
+                        type="number"
+                        min="0"
+                        value={formData.stock}
+                        onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                        placeholder="0"
+                        className="h-9 text-sm"
+                        disabled={isSubmitting}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="unit" className="text-xs">Unit</Label>
+                    <Select
+                        value={formData.unit}
+                        onValueChange={(value) => setFormData({ ...formData, unit: value })}
+                        disabled={isSubmitting}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Select unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {unitOptions.map((unit) => (
+                            <SelectItem key={unit} value={unit}>
+                              {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                            </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="serviceType" className="text-xs">Service Type *</Label>
+                    <Select
+                        value={formData.serviceType}
+                        onValueChange={(value: 'physical' | 'digital' | 'service') =>
+                            setFormData({ ...formData, serviceType: value })}
+                        disabled={isSubmitting}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Select service type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {serviceTypeOptions.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type.charAt(0).toUpperCase() + type.slice(1)}
+                            </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="brand" className="text-xs">Brand</Label>
+                    <Input
+                        id="brand"
+                        value={formData.brand}
+                        onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                        placeholder="Brand name"
+                        className="h-9 text-sm"
+                        disabled={isSubmitting}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="serviceDuration" className="text-xs">Service Duration</Label>
+                    <Input
+                        id="serviceDuration"
+                        value={formData.serviceDuration}
+                        onChange={(e) => setFormData({ ...formData, serviceDuration: e.target.value })}
+                        placeholder="e.g., 2 hours"
+                        className="h-9 text-sm"
+                        disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="weight" className="text-xs">Weight (kg)</Label>
+                    <Input
+                        id="weight"
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        value={formData.weight}
+                        onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                        placeholder="0.0"
+                        className="h-9 text-sm"
+                        disabled={isSubmitting}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="dimensions" className="text-xs">Dimensions (L×W×H)</Label>
+                    <Input
+                        id="dimensions"
+                        value={formData.dimensions}
+                        onChange={(e) => setFormData({ ...formData, dimensions: e.target.value })}
+                        placeholder="e.g., 10×5×2 cm"
+                        className="h-9 text-sm"
+                        disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label className="text-xs">Sizes (for clothing)</Label>
+                    <SizeInput
+                        sizes={formData.size}
+                        onSizesChange={(newSizes) => setFormData({ ...formData, size: newSizes })}
+                        disabled={isSubmitting}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="tags" className="text-xs">Tags</Label>
+                    <TagInput
+                        tags={formData.tags}
+                        onTagsChange={(newTags) => setFormData({ ...formData, tags: newTags })}
+                        disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+
+                {/* Category Selection */}
+                <div className="grid gap-3">
+                  <Label className="text-xs">Category *</Label>
+                  <div className="grid gap-3">
+                    <div className="grid gap-2">
+                      <Select
+                          value={formData.categoryLevel1}
+                          onValueChange={(value) => setFormData({
+                            ...formData,
+                            categoryLevel1: value,
+                            categoryLevel2: "",
+                            categoryLevel3: ""
+                          })}
+                          disabled={isSubmitting || isCategoriesLoading}
+                      >
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue placeholder={
+                            isCategoriesLoading ? "Loading categories..." : "Select category"
+                          } />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {topLevelCategories.map((category) => (
+                              <SelectItem key={category.id} value={category.name}>
+                                {category.name}
+                              </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {formData.categoryLevel1 && (
+                        <div className="grid gap-2">
+                          <Label htmlFor="categoryLevel2" className="text-xs">Sub Category</Label>
+                          <Select
+                              value={formData.categoryLevel2}
+                              onValueChange={(value) => setFormData({
+                                ...formData,
+                                categoryLevel2: value,
+                                categoryLevel3: ""
+                              })}
+                              disabled={isSubmitting}
+                          >
+                            <SelectTrigger className="h-9 text-sm">
+                              <SelectValue placeholder="Select sub category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getSubcategories(
+                                  categories.find(cat => cat.name === formData.categoryLevel1)?.id || ''
+                              ).map((subcategory) => (
+                                  <SelectItem key={subcategory.id} value={subcategory.name}>
+                                    {subcategory.name}
+                                  </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                    )}
+
+                    {formData.categoryLevel2 && (
+                        <div className="grid gap-2">
+                          <Label htmlFor="categoryLevel3" className="text-xs">Item</Label>
+                          <Select
+                              value={formData.categoryLevel3}
+                              onValueChange={(value) => setFormData({
+                                ...formData,
+                                categoryLevel3: value
+                              })}
+                              disabled={isSubmitting}
+                          >
+                            <SelectTrigger className="h-9 text-sm">
+                              <SelectValue placeholder="Select item" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getSubcategories(
+                                  level2Categories.find(cat => cat.name === formData.categoryLevel2)?.id || ''
+                              ).map((subsubcategory) => (
+                                  <SelectItem key={subsubcategory.id} value={subsubcategory.name}>
+                                    {subsubcategory.name}
+                                  </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Special Categories */}
+                <div className="space-y-4 pt-4 border-t">
+                  <Label className="text-sm font-medium">Special Categories</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-3 p-3 border rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="isFeatured" className="flex items-center gap-2 text-sm">
+                          <Star className="h-4 w-4 text-yellow-500" />
+                          Featured
+                        </Label>
+                        <Switch
+                            id="isFeatured"
+                            checked={formData.isFeatured}
+                            onCheckedChange={(checked) => setFormData({ ...formData, isFeatured: checked })}
+                            disabled={isSubmitting}
+                        />
+                      </div>
+                      {formData.isFeatured && (
+                          <div className="grid gap-2">
+                            <Label htmlFor="featuredOrder" className="text-xs">Display Order</Label>
+                            <Input
+                                id="featuredOrder"
+                                type="number"
+                                min="0"
+                                value={formData.featuredOrder}
+                                onChange={(e) => setFormData({
+                                  ...formData,
+                                  featuredOrder: parseInt(e.target.value) || 0
+                                })}
+                                placeholder="0"
+                                className="h-8 text-sm"
+                                disabled={isSubmitting}
+                            />
+                          </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-3 p-3 border rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="isTrending" className="flex items-center gap-2 text-sm">
+                          <Zap className="h-4 w-4 text-orange-500" />
+                          Trending
+                        </Label>
+                        <Switch
+                            id="isTrending"
+                            checked={formData.isTrending}
+                            onCheckedChange={(checked) => setFormData({ ...formData, isTrending: checked })}
+                            disabled={isSubmitting}
+                        />
+                      </div>
+                      {formData.isTrending && (
+                          <div className="grid gap-2">
+                            <Label htmlFor="trendingOrder" className="text-xs">Display Order</Label>
+                            <Input
+                                id="trendingOrder"
+                                type="number"
+                                min="0"
+                                value={formData.trendingOrder}
+                                onChange={(e) => setFormData({
+                                  ...formData,
+                                  trendingOrder: parseInt(e.target.value) || 0
+                                })}
+                                placeholder="0"
+                                className="h-8 text-sm"
+                                disabled={isSubmitting}
+                            />
+                          </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-3 p-3 border rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="isNewArrival" className="flex items-center gap-2 text-sm">
+                          <Clock className="h-4 w-4 text-blue-500" />
+                          New Arrival
+                        </Label>
+                        <Switch
+                            id="isNewArrival"
+                            checked={formData.isNewArrival}
+                            onCheckedChange={(checked) => setFormData({ ...formData, isNewArrival: checked })}
+                            disabled={isSubmitting}
+                        />
+                      </div>
+                      {formData.isNewArrival && (
+                          <div className="grid gap-2">
+                            <Label htmlFor="newArrivalOrder" className="text-xs">Display Order</Label>
+                            <Input
+                                id="newArrivalOrder"
+                                type="number"
+                                min="0"
+                                value={formData.newArrivalOrder}
+                                onChange={(e) => setFormData({
+                                  ...formData,
+                                  newArrivalOrder: parseInt(e.target.value) || 0
+                                })}
+                                placeholder="0"
+                                className="h-8 text-sm"
+                                disabled={isSubmitting}
+                            />
+                          </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center gap-3">
+                    <Switch
+                        checked={formData.isActive}
+                        onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                        disabled={isSubmitting}
+                    />
+                    <Label htmlFor="isActive" className="text-sm">Active Product</Label>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {editingProduct ? "Update this product" : "Create new product"}
+                  </div>
+                </div>
+              </div>
+              <DialogFooter className="gap-2 mt-4">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setDialogOpen(false)}
+                    className="h-9 text-sm px-4"
+                    disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                    type="submit"
+                    className="h-9 text-sm px-4"
+                    disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        {editingProduct ? "Updating..." : "Adding..."}
+                      </>
+                  ) : (
+                      editingProduct ? "Update Product" : "Add Product"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Product Details Modal */}
+        <ProductDetailsModal
+            product={selectedProduct}
+            open={detailsDialogOpen}
+            onOpenChange={setDetailsDialogOpen}
+        />
+      </div>
   );
 }

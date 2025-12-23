@@ -103,7 +103,7 @@ export interface Product {
   brand: string | null;
   createdAt: string;
   updatedAt: string;
-  
+
   // ADD THESE NEW FIELDS:
   isFeatured: boolean;
   isTrending: boolean;
@@ -320,7 +320,7 @@ class AdminApiService {
 
     try {
       const response = await fetch(url, config);
-      
+
       if (response.status === 401) {
         this.clearToken();
         localStorage.removeItem('e-commerce-admin-user');
@@ -331,12 +331,12 @@ class AdminApiService {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
-      
+
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
         return await response.json();
       }
-      
+
       return {};
     } catch (error) {
       console.error('API request failed:', error);
@@ -344,7 +344,12 @@ class AdminApiService {
     }
   }
 
-  private async requestWithFormData(endpoint: string, formData: FormData, method = 'POST') {
+  private async requestWithFormData(
+      endpoint: string,
+      formData: FormData,
+      method = 'POST',
+      options?: { invalidate?: () => void | Promise<void> }
+  ) {
     const url = `${this.baseUrl}${endpoint}`;
     const headers = {};
 
@@ -371,11 +376,23 @@ class AdminApiService {
       }
 
       const contentType = response.headers.get('content-type');
+      let result;
       if (contentType && contentType.includes('application/json')) {
-        return await response.json();
+        result = await response.json();
+      } else {
+        result = {};
       }
 
-      return {};
+      // Call invalidation callback after successful request
+      if (options?.invalidate()) {
+        try {
+          await options.invalidate();
+        } catch (e) {
+          console.warn('requestWithFormData invalidate handler error:', e);
+        }
+      }
+
+      return result;
     } catch (error) {
       console.error('API request failed:', error);
       throw error;
@@ -383,82 +400,82 @@ class AdminApiService {
   }
 
 
-async getAdminSpecialProducts(params?: {
-  type?: 'featured' | 'trending' | 'new-arrivals';
-  limit?: number;
-  page?: number;
-  search?: string;
-}): Promise<SpecialProductsResponse> {
-  const queryParams = new URLSearchParams();
-  
-  if (params?.type) queryParams.append('type', params.type);
-  if (params?.limit) queryParams.append('limit', params.limit.toString());
-  if (params?.page) queryParams.append('page', params.page.toString());
-  if (params?.search) queryParams.append('search', params.search);
+  async getAdminSpecialProducts(params?: {
+    type?: 'featured' | 'trending' | 'new-arrivals';
+    limit?: number;
+    page?: number;
+    search?: string;
+  }): Promise<SpecialProductsResponse> {
+    const queryParams = new URLSearchParams();
 
-  const queryString = queryParams.toString();
-  const endpoint = `/api/admin/products/special${queryString ? `?${queryString}` : ''}`;
-  
-  console.log('API Call:', endpoint); // Debug log
-  return this.request(endpoint);
-}
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.search) queryParams.append('search', params.search);
 
-/**
- * Get products not in any special categories (for adding new ones)
- */
-async getProductsNotInSpecialCategories(params?: {
-  limit?: number;
-  page?: number;
-  search?: string;
-}): Promise<{ products: Product[]; pagination: any }> {
-  const queryParams = new URLSearchParams();
-  
-  if (params?.limit) queryParams.append('limit', params.limit.toString());
-  if (params?.page) queryParams.append('page', params.page.toString());
-  if (params?.search) queryParams.append('search', params.search);
+    const queryString = queryParams.toString();
+    const endpoint = `/api/admin/products/special${queryString ? `?${queryString}` : ''}`;
 
-  const queryString = queryParams.toString();
-  const endpoint = `/api/admin/products/special/available${queryString ? `?${queryString}` : ''}`;
-  
-  console.log('API Call:', endpoint); // Debug log
-  return this.request(endpoint);
-}
-
-/**
- * Update a product's special categories
- */
-async updateProductSpecialCategories(
-  productId: string, 
-  updates: {
-    isFeatured?: boolean;
-    isTrending?: boolean;
-    isNewArrival?: boolean;
-    featuredOrder?: number;
-    trendingOrder?: number;
-    newArrivalOrder?: number;
+    console.log('API Call:', endpoint); // Debug log
+    return this.request(endpoint);
   }
-): Promise<{ product: Product; message: string }> {
-  const endpoint = `/api/admin/products/special/${productId}`;
-  console.log('API Call:', endpoint, updates); // Debug log
-  return this.request(endpoint, {
-    method: 'PATCH',
-    body: JSON.stringify(updates),
-  });
-}
 
-/**
- * Bulk update special categories for multiple products
- */
-async bulkUpdateSpecialCategories(
-  updates: BulkSpecialUpdate
-): Promise<BulkUpdateResponse> {
-  const endpoint = '/api/admin/products/special/bulk/update';
-  console.log('API Call:', endpoint, updates); // Debug log
-  return this.request(endpoint, {
-    method: 'PATCH',
-    body: JSON.stringify(updates),
-  });
-}
+  /**
+   * Get products not in any special categories (for adding new ones)
+   */
+  async getProductsNotInSpecialCategories(params?: {
+    limit?: number;
+    page?: number;
+    search?: string;
+  }): Promise<{ products: Product[]; pagination: any }> {
+    const queryParams = new URLSearchParams();
+
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.search) queryParams.append('search', params.search);
+
+    const queryString = queryParams.toString();
+    const endpoint = `/api/admin/products/special/available${queryString ? `?${queryString}` : ''}`;
+
+    console.log('API Call:', endpoint); // Debug log
+    return this.request(endpoint);
+  }
+
+  /**
+   * Update a product's special categories
+   */
+  async updateProductSpecialCategories(
+      productId: string,
+      updates: {
+        isFeatured?: boolean;
+        isTrending?: boolean;
+        isNewArrival?: boolean;
+        featuredOrder?: number;
+        trendingOrder?: number;
+        newArrivalOrder?: number;
+      }
+  ): Promise<{ product: Product; message: string }> {
+    const endpoint = `/api/admin/products/special/${productId}`;
+    console.log('API Call:', endpoint, updates); // Debug log
+    return this.request(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+  }
+
+  /**
+   * Bulk update special categories for multiple products
+   */
+  async bulkUpdateSpecialCategories(
+      updates: BulkSpecialUpdate
+  ): Promise<BulkUpdateResponse> {
+    const endpoint = '/api/admin/products/special/bulk/update';
+    console.log('API Call:', endpoint, updates); // Debug log
+    return this.request(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+  }
 
 
 // user routes
@@ -485,13 +502,13 @@ async bulkUpdateSpecialCategories(
    */
   async getNewArrivals(params?: { limit?: number; days?: number }): Promise<Product[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.days) queryParams.append('days', params.days.toString());
 
     const queryString = queryParams.toString();
     const endpoint = `/api/products/special/new-arrivals${queryString ? `?${queryString}` : ''}`;
-    
+
     const response = await this.request(endpoint);
     return response.products || [];
   }
@@ -540,10 +557,10 @@ async bulkUpdateSpecialCategories(
     const updates = {
       products: productIds.map(id => ({
         productId: id,
-        updates: { 
+        updates: {
           isFeatured: false,
-          isTrending: false, 
-          isNewArrival: false 
+          isTrending: false,
+          isNewArrival: false
         }
       }))
     };
@@ -556,11 +573,11 @@ async bulkUpdateSpecialCategories(
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    
+
     if (data.token) {
       this.setToken(data.token);
     }
-    
+
     return data;
   }
 
@@ -614,12 +631,19 @@ async bulkUpdateSpecialCategories(
     return this.request(`/api/admin/products/${id}`);
   }
 
-  async createProduct(productData: FormData) {
-    return this.requestWithFormData('/api/admin/products', productData, 'POST');
+  async createProduct(
+      productData: FormData,
+      options?: { invalidate?: () => void | Promise<void> }
+  ) {
+    return this.requestWithFormData('/api/admin/products', productData, 'POST', options);
   }
 
-  async updateProduct(id: string, productData: FormData) {
-    return this.requestWithFormData(`/api/admin/products/${id}`, productData, 'PUT');
+  async updateProduct(
+      id: string,
+      productData: FormData,
+      options?: { invalidate?: () => void | Promise<void> }
+  ) {
+    return this.requestWithFormData(`/api/admin/products/${id}`, productData, 'PUT', options);
   }
 
   async deleteProduct(id: string) {
@@ -636,77 +660,77 @@ async bulkUpdateSpecialCategories(
 
 
 
-  
+
   // Add to your existing adminApiService class - CORRECTED ENDPOINTS
 
 // Enhanced category deletion with options
-async deleteCategory(id: string, options?: { 
-  deleteSubcategories?: boolean;
-  moveToParent?: boolean | 'root';
-}): Promise<{ 
-  message: string; 
-  deletedCategory?: any;
-  deletedSubcategories?: number;
-  totalDeleted?: number;
-  movedSubcategories?: number;
-  newParent?: any;
-  promotedToLevel?: number;
-}> {
-  const queryParams = new URLSearchParams();
-  
-  if (options?.deleteSubcategories) {
-    queryParams.append('deleteSubcategories', 'true');
+  async deleteCategory(id: string, options?: {
+    deleteSubcategories?: boolean;
+    moveToParent?: boolean | 'root';
+  }): Promise<{
+    message: string;
+    deletedCategory?: any;
+    deletedSubcategories?: number;
+    totalDeleted?: number;
+    movedSubcategories?: number;
+    newParent?: any;
+    promotedToLevel?: number;
+  }> {
+    const queryParams = new URLSearchParams();
+
+    if (options?.deleteSubcategories) {
+      queryParams.append('deleteSubcategories', 'true');
+    }
+
+    if (options?.moveToParent === true) {
+      queryParams.append('moveToParent', 'true');
+    } else if (options?.moveToParent === 'root') {
+      queryParams.append('moveToParent', 'root');
+    }
+
+    const queryString = queryParams.toString();
+    const endpoint = `/api/admin/categories/${id}${queryString ? `?${queryString}` : ''}`;
+
+    console.log('🗑️ Delete category API call:', endpoint);
+    return this.request(endpoint, {
+      method: 'DELETE',
+    });
   }
-  
-  if (options?.moveToParent === true) {
-    queryParams.append('moveToParent', 'true');
-  } else if (options?.moveToParent === 'root') {
-    queryParams.append('moveToParent', 'root');
-  }
-  
-  const queryString = queryParams.toString();
-  const endpoint = `/api/admin/categories/${id}${queryString ? `?${queryString}` : ''}`;
-  
-  console.log('🗑️ Delete category API call:', endpoint);
-  return this.request(endpoint, {
-    method: 'DELETE',
-  });
-}
 
 // Bulk delete subcategories
-async deleteSubcategories(parentId: string): Promise<{
-  message: string;
-  deletedCount: number;
-  parentCategory: any;
-}> {
-  return this.request(`/api/admin/categories/${parentId}/subcategories`, {
-    method: 'DELETE',
-  });
-}
+  async deleteSubcategories(parentId: string): Promise<{
+    message: string;
+    deletedCount: number;
+    parentCategory: any;
+  }> {
+    return this.request(`/api/admin/categories/${parentId}/subcategories`, {
+      method: 'DELETE',
+    });
+  }
 
 // Delete specific subcategory
-async deleteSubcategory(parentId: string, subcategoryId: string): Promise<{
-  message: string;
-  deletedSubcategory: any;
-  parentCategory: any;
-}> {
-  return this.request(`/api/admin/categories/${parentId}/subcategories/${subcategoryId}`, {
-    method: 'DELETE',
-  });
-}
+  async deleteSubcategory(parentId: string, subcategoryId: string): Promise<{
+    message: string;
+    deletedSubcategory: any;
+    parentCategory: any;
+  }> {
+    return this.request(`/api/admin/categories/${parentId}/subcategories/${subcategoryId}`, {
+      method: 'DELETE',
+    });
+  }
 
 // Safe delete with archive option
-async safeDeleteCategory(id: string, permanent: boolean = false): Promise<{
-  message: string;
-  archived?: boolean;
-  permanentlyDeleted?: boolean;
-  category?: any;
-}> {
-  const endpoint = `/api/admin/categories/${id}/safe${permanent ? '?permanent=true' : ''}`;
-  return this.request(endpoint, {
-    method: 'DELETE',
-  });
-}
+  async safeDeleteCategory(id: string, permanent: boolean = false): Promise<{
+    message: string;
+    archived?: boolean;
+    permanentlyDeleted?: boolean;
+    category?: any;
+  }> {
+    const endpoint = `/api/admin/categories/${id}/safe${permanent ? '?permanent=true' : ''}`;
+    return this.request(endpoint, {
+      method: 'DELETE',
+    });
+  }
 
   // 📦 CATEGORY MANAGEMENT
   async getCategories() {
@@ -813,7 +837,7 @@ async safeDeleteCategory(id: string, permanent: boolean = false): Promise<{
 
   async updateAdminCleaningBooking(id: string | number, bookingData: any) {
     const bookingId = typeof id === 'string' ? parseInt(id, 10) : id;
-    
+
     return this.request(`/api/admin/bookings/${bookingId}`, {
       method: 'PUT',
       body: JSON.stringify(bookingData),
@@ -1037,9 +1061,9 @@ async safeDeleteCategory(id: string, permanent: boolean = false): Promise<{
     });
   }
 
-  
 
- 
+
+
 
   private getFallbackOrders(): Order[] {
     return [
@@ -1083,200 +1107,6 @@ async safeDeleteCategory(id: string, permanent: boolean = false): Promise<{
     body: JSON.stringify({ currentPassword, newPassword }),
   });
 }
-
-
-// Add these methods to your AdminApiService class:
-
-/**
- * Admin: Get all reviews with filtering and pagination
- */
-async getAdminReviews(params?: ReviewFilterParams): Promise<ReviewsResponse> {
-  const queryParams = new URLSearchParams();
-  
-  if (params?.page) queryParams.append('page', params.page.toString());
-  if (params?.limit) queryParams.append('limit', params.limit.toString());
-  if (params?.productId) queryParams.append('productId', params.productId);
-  if (params?.userId) queryParams.append('userId', params.userId);
-  if (params?.rating) queryParams.append('rating', params.rating.toString());
-  if (params?.isApproved !== undefined) queryParams.append('isApproved', params.isApproved.toString());
-  if (params?.verifiedPurchase !== undefined) queryParams.append('verifiedPurchase', params.verifiedPurchase.toString());
-  if (params?.search) queryParams.append('search', params.search);
-
-  const queryString = queryParams.toString();
-  const endpoint = `/api/admin/reviews${queryString ? `?${queryString}` : ''}`;
-  
-  console.log('📋 Admin API Call - getAdminReviews:', endpoint);
-  return this.request(endpoint);
-}
-
-/**
- * Admin: Reply to a review
- */
-async replyToReview(reviewId: string, reply: string): Promise<{ 
-  success: boolean;
-  message: string; 
-  review: Review;
-}> {
-  const endpoint = `/api/reviews/${reviewId}/reply`;
-  console.log('💬 Admin API Call - replyToReview:', endpoint, { reply });
-  return this.request(endpoint, {
-    method: 'POST',
-    body: JSON.stringify({ reply }),
-  });
-}
-
-/**
- * Admin: Update review approval status
- */
-async updateReviewStatus(
-  reviewId: string, 
-  isApproved: boolean
-): Promise<{
-  success: boolean;
-  message: string;
-  review: Review;
-}> {
-  const endpoint = `/api/admin/reviews/${reviewId}/status`;
-  console.log('✅ Admin API Call - updateReviewStatus:', endpoint, { isApproved });
-  return this.request(endpoint, {
-    method: 'PATCH',
-    body: JSON.stringify({ isApproved }),
-  });
-}
-
-/**
- * Admin: Delete a review
- */
-async deleteReview(reviewId: string): Promise<{
-  success: boolean;
-  message: string;
-}> {
-  const endpoint = `/api/admin/reviews/${reviewId}`;
-  console.log('🗑️ Admin API Call - deleteReview:', endpoint);
-  return this.request(endpoint, {
-    method: 'DELETE',
-  });
-}
-
-/**
- * Admin: Get review statistics and analytics
- */
-async getReviewAnalytics(): Promise<{
-  success: boolean;
-  stats: {
-    totalReviews: number;
-    approvedReviews: number;
-    pendingReviews: number;
-    averageRating: string;
-    reviewsToday: number;
-    reviewsThisWeek: number;
-    reviewsThisMonth: number;
-    ratingDistribution: Record<number, number>;
-    reviewsByDate: Array<{ date: string; count: number }>;
-  };
-  recentReviews: Review[];
-}> {
-  const endpoint = '/api/admin/reviews/analytics';
-  console.log('📊 Admin API Call - getReviewAnalytics:', endpoint);
-  return this.request(endpoint);
-}
-
-/**
- * Admin: Bulk update review statuses
- */
-async bulkUpdateReviewStatus(
-  reviewIds: string[], 
-  isApproved: boolean
-): Promise<{
-  success: boolean;
-  message: string;
-  results: Array<{
-    reviewId: string;
-    success: boolean;
-    error?: string;
-  }>;
-}> {
-  const endpoint = '/api/admin/reviews/bulk/status';
-  console.log('🔄 Admin API Call - bulkUpdateReviewStatus:', endpoint, { reviewIds, isApproved });
-  return this.request(endpoint, {
-    method: 'PATCH',
-    body: JSON.stringify({ reviewIds, isApproved }),
-  });
-}
-
-/**
- * Admin: Bulk delete reviews
- */
-async bulkDeleteReviews(reviewIds: string[]): Promise<{
-  success: boolean;
-  message: string;
-  deletedCount: number;
-  results: Array<{
-    reviewId: string;
-    success: boolean;
-    error?: string;
-  }>;
-}> {
-  const endpoint = '/api/admin/reviews/bulk/delete';
-  console.log('🗑️ Admin API Call - bulkDeleteReviews:', endpoint, { reviewIds });
-  return this.request(endpoint, {
-    method: 'POST',
-    body: JSON.stringify({ reviewIds }),
-  });
-}
-
-/**
- * Admin: Get a single review with details
- */
-async getReviewById(reviewId: string): Promise<{
-  success: boolean;
-  review: Review & {
-    Product?: {
-      id: string;
-      name: string;
-      slug: string;
-      images: string[];
-      price: string;
-      categoryLevel1: string;
-    };
-    User?: {
-      id: string;
-      name: string;
-      email: string;
-      totalReviews: number;
-      memberSince: string;
-    };
-  };
-}> {
-  const endpoint = `/api/admin/reviews/${reviewId}`;
-  console.log('🔍 Admin API Call - getReviewById:', endpoint);
-  return this.request(endpoint);
-}
-
-/**
- * Admin: Update review details (rating, comment, etc.)
- */
-async updateReview(
-  reviewId: string, 
-  updates: {
-    rating?: number;
-    title?: string;
-    comment?: string;
-    verifiedPurchase?: boolean;
-  }
-): Promise<{
-  success: boolean;
-  message: string;
-  review: Review;
-}> {
-  const endpoint = `/api/admin/reviews/${reviewId}`;
-  console.log('✏️ Admin API Call - updateReview:', endpoint, updates);
-  return this.request(endpoint, {
-    method: 'PUT',
-    body: JSON.stringify(updates),
-  });
-}
-
   private getFallbackCustomers(): Customer[] {
     return [
       {
@@ -1289,11 +1119,11 @@ async updateReview(
         updatedAt: new Date().toISOString()
       },
       {
-        id: 2, 
+        id: 2,
         name: 'Jane Smith',
         email: 'jane.smith@example.com',
         contact: '+0987654321',
-            role:"user",
+        role:"user",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
@@ -1302,7 +1132,7 @@ async updateReview(
         name: 'Bob Johnson',
         email: 'bob.johnson@example.com',
         contact: '+1122334455',
-            role:"user",
+        role:"user",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
