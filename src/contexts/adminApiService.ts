@@ -1224,6 +1224,8 @@ export interface CleaningBooking {
   price: number;
   status: 'pending' | 'confirmed' | 'in-progress' | 'completed' | 'cancelled';
   paymentIntentId?: string | null; // NEW: Added to match backend payment flow
+  paymentStatus?: 'pending' | 'completed' | 'failed' | 'refunded'; // NEW: Explicit payment status from backend
+  paidAmount?: number; // NEW: Actual amount paid
   userId?: number; // NEW: User who made the booking
   notes?: string;
   specialInstructions?: string;

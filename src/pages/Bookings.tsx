@@ -71,8 +71,9 @@ interface Booking {
   duration: number;
   price: number;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-  paymentIntentId?: string | null; // NEW: Payment intent ID from Stripe
-  paymentStatus?: 'paid' | 'unpaid' | 'pending'; // NEW: Payment status
+  paymentIntentId?: string | null; // Payment intent ID from Stripe
+  paymentStatus?: 'pending' | 'completed' | 'failed' | 'refunded'; // Explicit payment status from backend
+  paidAmount?: number; // Actual amount paid
   notes?: string;
   specialInstructions?: string;
   createdAt: string;
@@ -121,6 +122,14 @@ export default function Bookings() {
       
       console.log('✅ Processed bookings data:', bookingsData);
       
+      // Check if payment fields exist in the data
+      const hasPaymentFields = bookingsData.length > 0 && 
+        ('paymentStatus' in bookingsData[0] || 'paymentIntentId' in bookingsData[0]);
+      
+      if (!hasPaymentFields && bookingsData.length > 0) {
+        console.warn('⚠️ Payment fields missing from API response. Please ensure your backend returns: paymentStatus, paymentIntentId, paidAmount');
+      }
+      
       // Transform API data to match our Booking interface
       const transformedBookings: Booking[] = bookingsData.map((booking: any) => {
         const bookingId = String(booking.id);
@@ -151,6 +160,9 @@ export default function Bookings() {
           duration: booking.duration || 1,
           price: booking.price || 0,
           status: (booking.status as 'pending' | 'confirmed' | 'completed' | 'cancelled') || 'pending',
+          paymentIntentId: booking.paymentIntentId || null, // NEW: Payment intent ID
+          paymentStatus: booking.paymentStatus || undefined, // NEW: Payment status
+          paidAmount: booking.paidAmount || undefined, // NEW: Paid amount
           notes: booking.notes || '',
           specialInstructions: booking.specialInstructions || '',
           createdAt: booking.createdAt || new Date().toISOString(),
@@ -331,32 +343,45 @@ useEffect(() => {
   };
 
   const getPaymentStatusBadge = (booking: Booking) => {
-    // If booking has paymentIntentId, it means payment was initiated/completed
-    if (booking.paymentIntentId) {
-      // If booking is confirmed, payment was successful
-      if (booking.status === 'confirmed' || booking.status === 'completed') {
+    // Use the actual paymentStatus field from the backend
+    switch (booking.paymentStatus) {
+      case 'completed':
         return (
           <Badge className="bg-green-100 text-green-800 border-green-200">
             <DollarSign className="w-3 h-3 mr-1" />
             Paid
           </Badge>
         );
-      }
-      // If has payment intent but not confirmed, payment is pending
-      return (
-        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
-          <Clock className="w-3 h-3 mr-1" />
-          Pending
-        </Badge>
-      );
+      case 'pending':
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+            <Clock className="w-3 h-3 mr-1" />
+            Pending
+          </Badge>
+        );
+      case 'failed':
+        return (
+          <Badge className="bg-red-100 text-red-800 border-red-200">
+            <XCircle className="w-3 h-3 mr-1" />
+            Failed
+          </Badge>
+        );
+      case 'refunded':
+        return (
+          <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+            <RefreshCw className="w-3 h-3 mr-1" />
+            Refunded
+          </Badge>
+        );
+      default:
+        // Fallback for bookings without payment info (legacy bookings)
+        return (
+          <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+            <XCircle className="w-3 h-3 mr-1" />
+            Unpaid
+          </Badge>
+        );
     }
-    // No payment intent means unpaid (legacy bookings or unpaid)
-    return (
-      <Badge className="bg-gray-100 text-gray-800 border-gray-200">
-        <XCircle className="w-3 h-3 mr-1" />
-        Unpaid
-      </Badge>
-    );
   };
 
   const getServiceTypeName = (type: string) => {
@@ -719,6 +744,11 @@ useEffect(() => {
                 <p className="font-medium">Service & Price</p>
                 <p className="text-sm">{getServiceTypeName(currentBooking.serviceType)}</p>
                 <p className="text-xl font-bold">${(currentBooking.price ?? 0).toFixed(2)}</p>
+                {currentBooking.paidAmount !== undefined && currentBooking.paidAmount > 0 && (
+                  <p className="text-xs text-green-600 font-medium mt-1">
+                    Paid: ${currentBooking.paidAmount.toFixed(2)}
+                  </p>
+                )}
               </div>
             </div>
             
