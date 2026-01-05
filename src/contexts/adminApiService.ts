@@ -1216,12 +1216,15 @@ export interface CleaningBooking {
   customerEmail: string;
   customerPhone: string;
   serviceType: string;
+  selectedFeatures?: string[]; // NEW: Added to match backend
   address: string;
   date: string;
   time: string;
   duration: number;
   price: number;
   status: 'pending' | 'confirmed' | 'in-progress' | 'completed' | 'cancelled';
+  paymentIntentId?: string | null; // NEW: Added to match backend payment flow
+  userId?: number; // NEW: User who made the booking
   notes?: string;
   specialInstructions?: string;
   bookingReference?: string;
@@ -1881,6 +1884,36 @@ class AdminApiService {
   async getAdminOrders(): Promise<{ orders: Order[] }> {
     const response = await this.request('/api/admin/orders');
     return response;
+  }
+
+  async getOrderById(id: string): Promise<Order> {
+    const response = await this.request(`/api/admin/orders/${id}`);
+    return response.data || response;
+  }
+
+  async updateOrderStatus(id: string, status: 'pending' | 'confirmed' | 'processing' | 'completed' | 'cancelled'): Promise<{ success: boolean; data: Order }> {
+    return this.request(`/api/admin/orders/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async deleteOrder(id: string): Promise<{ success: boolean; message: string }> {
+    return this.request(`/api/admin/orders/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getOrderStats(): Promise<{
+    success: boolean;
+    data: {
+      totalOrders: number;
+      pendingOrders: number;
+      completedOrders: number;
+      totalRevenue: number;
+    };
+  }> {
+    return this.request('/api/admin/orders-stats');
   }
 
   async getOrderItems() {

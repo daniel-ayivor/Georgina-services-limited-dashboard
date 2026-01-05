@@ -71,6 +71,8 @@ interface Booking {
   duration: number;
   price: number;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  paymentIntentId?: string | null; // NEW: Payment intent ID from Stripe
+  paymentStatus?: 'paid' | 'unpaid' | 'pending'; // NEW: Payment status
   notes?: string;
   specialInstructions?: string;
   createdAt: string;
@@ -328,6 +330,35 @@ useEffect(() => {
     }
   };
 
+  const getPaymentStatusBadge = (booking: Booking) => {
+    // If booking has paymentIntentId, it means payment was initiated/completed
+    if (booking.paymentIntentId) {
+      // If booking is confirmed, payment was successful
+      if (booking.status === 'confirmed' || booking.status === 'completed') {
+        return (
+          <Badge className="bg-green-100 text-green-800 border-green-200">
+            <DollarSign className="w-3 h-3 mr-1" />
+            Paid
+          </Badge>
+        );
+      }
+      // If has payment intent but not confirmed, payment is pending
+      return (
+        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+          <Clock className="w-3 h-3 mr-1" />
+          Pending
+        </Badge>
+      );
+    }
+    // No payment intent means unpaid (legacy bookings or unpaid)
+    return (
+      <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+        <XCircle className="w-3 h-3 mr-1" />
+        Unpaid
+      </Badge>
+    );
+  };
+
   const getServiceTypeName = (type: string) => {
     // Use the actual service type names from your database
     return type || "Unknown Service";
@@ -557,6 +588,7 @@ useEffect(() => {
                 <TableHead>Selected Features</TableHead> {/* NEW COLUMN */}
                 <TableHead>Date & Time</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Payment</TableHead> {/* NEW: Payment Status Column */}
                 <TableHead className="text-right">Price</TableHead>
               </TableRow>
             </TableHeader>
@@ -594,12 +626,13 @@ useEffect(() => {
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(booking.status)}</TableCell>
+                    <TableCell>{getPaymentStatusBadge(booking)}</TableCell>
                     <TableCell className="text-right">${(booking.price ?? 0).toFixed(2)}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10">
+                  <TableCell colSpan={8} className="text-center py-10">
                     <div className="flex flex-col items-center">
                       <CalendarCheck className="h-10 w-10 text-muted-foreground mb-2" />
                       <p className="text-lg font-medium">No bookings found</p>
@@ -752,24 +785,38 @@ useEffect(() => {
             )}
             
             
-            <div>
-           <p className="font-medium mb-2">Status</p>
-              <Select 
-                value={currentBooking.status} 
-                onValueChange={(value) => handleStatusChange(value as any)} 
-                disabled={updatingStatus}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                  {updatingStatus && <RefreshCw className="h-4 w-4 ml-2 animate-spin" />}
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="font-medium mb-2">Booking Status</p>
+                <Select 
+                  value={currentBooking.status} 
+                  onValueChange={(value) => handleStatusChange(value as any)} 
+                  disabled={updatingStatus}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                    {updatingStatus && <RefreshCw className="h-4 w-4 ml-2 animate-spin" />}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <p className="font-medium mb-2">Payment Status</p>
+                <div className="flex items-center gap-2">
+                  {getPaymentStatusBadge(currentBooking)}
+                  {currentBooking.paymentIntentId && (
+                    <span className="text-xs text-muted-foreground">
+                      ID: {currentBooking.paymentIntentId.slice(0, 12)}...
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
           

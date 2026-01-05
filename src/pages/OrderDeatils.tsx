@@ -112,7 +112,7 @@ interface Order {
   displayId: string;
   customerName: string;
   customerEmail: string;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'shipped' | 'delivered';
+  status: 'pending' | 'confirmed' | 'processing' | 'completed' | 'cancelled';
   paymentStatus: 'paid' | 'unpaid' | 'refunded';
   total: number;
   items: RawOrderItem[];
@@ -136,13 +136,8 @@ export default function OrderDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<Order['status']>('pending');
-  const [newPaymentStatus, setNewPaymentStatus] = useState<Order['paymentStatus']>('unpaid');
-  const [orderNotes, setOrderNotes] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
   const { toast } = useToast();
 
   // Fetch order data
@@ -204,7 +199,9 @@ export default function OrderDetailsPage() {
       };
       
       setOrder(transformedOrder);
-      setOrderNotes(transformedOrder.notes || "");
+      
+      // Log order details
+      console.log('Order Details:', transformedOrder);
       
     } catch (err) {
       console.error('Failed to fetch order:', err);
@@ -227,11 +224,10 @@ export default function OrderDetailsPage() {
   const mapApiStatusToUiStatus = (apiStatus: string): Order['status'] => {
     switch (apiStatus.toLowerCase()) {
       case 'pending':
+      case 'confirmed':
       case 'processing':
       case 'completed':
       case 'cancelled':
-      case 'shipped':
-      case 'delivered':
         return apiStatus.toLowerCase() as Order['status'];
       default:
         return 'pending';
@@ -257,10 +253,9 @@ export default function OrderDetailsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-      case "delivered":
         return <Badge className="bg-green-100 text-green-800 border-green-200 capitalize">{status}</Badge>;
+      case "confirmed":
       case "processing":
-      case "shipped":
         return <Badge className="bg-blue-100 text-blue-800 border-blue-200 capitalize">{status}</Badge>;
       case "pending":
         return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 capitalize">{status}</Badge>;
@@ -287,10 +282,9 @@ export default function OrderDetailsPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
-      case "delivered":
         return <CheckCircle className="h-5 w-5 text-green-600" />;
+      case "confirmed":
       case "processing":
-      case "shipped":
         return <RefreshCw className="h-5 w-5 text-blue-600" />;
       case "pending":
         return <Clock className="h-5 w-5 text-yellow-600" />;
@@ -320,7 +314,10 @@ export default function OrderDetailsPage() {
     
     setUpdatingStatus(true);
     try {
-      // In a real app, you would call an API to update the order status
+      // Call the backend API to update the order status
+      await adminApiService.updateOrderStatus(order.id, newStatus);
+      
+      // Update local state
       setOrder({...order, status: newStatus, updatedAt: new Date().toISOString()});
       
       toast({
@@ -340,56 +337,6 @@ export default function OrderDetailsPage() {
     }
   };
 
-  const handlePaymentStatusUpdate = async () => {
-    if (!order) return;
-    
-    setUpdatingStatus(true);
-    try {
-      // In a real app, you would call an API to update the payment status
-      setOrder({...order, paymentStatus: newPaymentStatus, updatedAt: new Date().toISOString()});
-      
-      toast({
-        title: "Payment status updated",
-        description: `Payment for order ${order.displayId} is now ${newPaymentStatus}`
-      });
-      setPaymentDialogOpen(false);
-    } catch (err) {
-      console.error('Failed to update payment status:', err);
-      toast({
-        variant: "destructive",
-        title: "Error updating payment",
-        description: "Could not update payment status. Please try again.",
-      });
-    } finally {
-      setUpdatingStatus(false);
-    }
-  };
-
-  const handleNotesUpdate = async () => {
-    if (!order) return;
-    
-    setIsUpdating(true);
-    try {
-      // In a real app, you would call an API to update the order notes
-      setOrder({...order, notes: orderNotes, updatedAt: new Date().toISOString()});
-      
-      toast({
-        title: "Order notes updated",
-        description: "Notes have been saved successfully."
-      });
-      setNotesDialogOpen(false);
-    } catch (err) {
-      console.error('Failed to update order notes:', err);
-      toast({
-        variant: "destructive",
-        title: "Error updating notes",
-        description: "Could not update order notes. Please try again.",
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
   const handlePrintInvoice = () => {
     window.print();
   };
@@ -398,12 +345,14 @@ export default function OrderDetailsPage() {
     if (!order) return;
     
     try {
-      // In a real app, you would call an API to delete the order
+      // Call the backend API to delete the order
+      await adminApiService.deleteOrder(order.id);
+      
       toast({
         title: "Order deleted",
         description: `Order ${order.displayId} has been deleted.`
       });
-      navigate('/admin/orders');
+      navigate('/orders');
     } catch (err) {
       console.error('Failed to delete order:', err);
       toast({
@@ -627,25 +576,6 @@ export default function OrderDetailsPage() {
                       <Edit className="h-3 w-3 mr-1" />
                       Update Status
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        setNewPaymentStatus(order.paymentStatus);
-                        setPaymentDialogOpen(true);
-                      }}
-                    >
-                      <DollarSign className="h-3 w-3 mr-1" />
-                      Update Payment
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setNotesDialogOpen(true)}
-                    >
-                      <FileText className="h-3 w-3 mr-1" />
-                      Add Notes
-                    </Button>
                   </div>
                 </div>
               </div>
@@ -724,32 +654,6 @@ export default function OrderDetailsPage() {
                 </Table>
               </CardContent>
             </Card>
-
-            {/* Order Notes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Order Notes & Comments
-                </CardTitle>
-                <CardDescription>Internal notes and customer instructions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-muted/50 rounded-md">
-                    <p className="text-sm whitespace-pre-wrap">
-                      {order.notes || "No notes added for this order."}
-                    </p>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button variant="outline" size="sm" onClick={() => setNotesDialogOpen(true)}>
-                      <Edit className="h-3 w-3 mr-2" />
-                      {order.notes ? "Edit Notes" : "Add Notes"}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Right Column - Order Summary & Actions */}
@@ -813,22 +717,6 @@ export default function OrderDetailsPage() {
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Update Order Status
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => setPaymentDialogOpen(true)}
-                  >
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Update Payment Status
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => setNotesDialogOpen(true)}
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    {order.notes ? "Edit Order Notes" : "Add Order Notes"}
-                  </Button>
                   <Separator />
        
                   <Button 
@@ -871,22 +759,16 @@ export default function OrderDetailsPage() {
                       Pending
                     </div>
                   </SelectItem>
+                  <SelectItem value="confirmed">
+                    <div className="flex items-center">
+                      <ShieldCheck className="h-4 w-4 mr-2 text-blue-600" />
+                      Confirmed
+                    </div>
+                  </SelectItem>
                   <SelectItem value="processing">
                     <div className="flex items-center">
                       <RefreshCw className="h-4 w-4 mr-2 text-blue-600" />
                       Processing
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="shipped">
-                    <div className="flex items-center">
-                      <Truck className="h-4 w-4 mr-2 text-blue-600" />
-                      Shipped
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="delivered">
-                    <div className="flex items-center">
-                      <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                      Delivered
                     </div>
                   </SelectItem>
                   <SelectItem value="completed">
@@ -925,102 +807,6 @@ export default function OrderDetailsPage() {
                 </>
               ) : (
                 'Update Status'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Update Payment Status Dialog */}
-      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update Payment Status</DialogTitle>
-            <DialogDescription>
-              Update payment status for order {order.displayId}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="payment-status">Payment Status</Label>
-              <Select value={newPaymentStatus} onValueChange={(value) => setNewPaymentStatus(value as Order['paymentStatus'])}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unpaid">
-                    <div className="flex items-center">
-                      <CreditCard className="h-4 w-4 mr-2 text-yellow-600" />
-                      Unpaid
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="paid">
-                    <div className="flex items-center">
-                      <DollarSign className="h-4 w-4 mr-2 text-green-600" />
-                      Paid
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="refunded">
-                    <div className="flex items-center">
-                      <RefreshCw className="h-4 w-4 mr-2 text-gray-600" />
-                      Refunded
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPaymentDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handlePaymentStatusUpdate} disabled={updatingStatus}>
-              {updatingStatus ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                'Update Payment Status'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Notes Dialog */}
-      <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Order Notes</DialogTitle>
-            <DialogDescription>
-              Add or edit notes for order {order.displayId}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="order-notes">Notes</Label>
-              <Textarea
-                id="order-notes"
-                placeholder="Enter notes about this order..."
-                value={orderNotes}
-                onChange={(e) => setOrderNotes(e.target.value)}
-                className="mt-1 min-h-[150px]"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setNotesDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleNotesUpdate} disabled={isUpdating}>
-              {isUpdating ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Notes'
               )}
             </Button>
           </DialogFooter>
