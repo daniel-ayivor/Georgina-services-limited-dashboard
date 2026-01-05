@@ -112,7 +112,7 @@ interface Order {
   displayId: string;
   customerName: string;
   customerEmail: string;
-  status: 'pending' | 'confirmed' | 'processing' | 'completed' | 'cancelled';
+  status: 'pending' | 'paid' | 'failed' | 'completed' | 'cancelled';
   paymentStatus: 'paid' | 'unpaid' | 'refunded';
   total: number;
   items: RawOrderItem[];
@@ -224,8 +224,8 @@ export default function OrderDetailsPage() {
   const mapApiStatusToUiStatus = (apiStatus: string): Order['status'] => {
     switch (apiStatus.toLowerCase()) {
       case 'pending':
-      case 'confirmed':
-      case 'processing':
+      case 'paid':
+      case 'failed':
       case 'completed':
       case 'cancelled':
         return apiStatus.toLowerCase() as Order['status'];
@@ -254,11 +254,11 @@ export default function OrderDetailsPage() {
     switch (status) {
       case "completed":
         return <Badge className="bg-green-100 text-green-800 border-green-200 capitalize">{status}</Badge>;
-      case "confirmed":
-      case "processing":
+      case "paid":
         return <Badge className="bg-blue-100 text-blue-800 border-blue-200 capitalize">{status}</Badge>;
       case "pending":
         return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 capitalize">{status}</Badge>;
+      case "failed":
       case "cancelled":
         return <Badge className="bg-red-100 text-red-800 border-red-200 capitalize">{status}</Badge>;
       default:
@@ -759,16 +759,16 @@ export default function OrderDetailsPage() {
                       Pending
                     </div>
                   </SelectItem>
-                  <SelectItem value="confirmed">
+                  <SelectItem value="paid">
                     <div className="flex items-center">
                       <ShieldCheck className="h-4 w-4 mr-2 text-blue-600" />
-                      Confirmed
+                      Paid
                     </div>
                   </SelectItem>
-                  <SelectItem value="processing">
+                  <SelectItem value="failed">
                     <div className="flex items-center">
-                      <RefreshCw className="h-4 w-4 mr-2 text-blue-600" />
-                      Processing
+                      <XCircle className="h-4 w-4 mr-2 text-red-600" />
+                      Failed
                     </div>
                   </SelectItem>
                   <SelectItem value="completed">

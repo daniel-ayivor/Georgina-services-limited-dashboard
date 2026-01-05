@@ -72,7 +72,7 @@ interface Order {
   displayId: string;
   customerName: string;
   customerEmail: string;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'shipped' | 'delivered';
+  status: 'pending' | 'paid' | 'failed' | 'completed' | 'cancelled';
   paymentStatus: 'paid' | 'unpaid' | 'refunded';
   total: number;
   items: RawOrderItem[];
@@ -98,11 +98,10 @@ export default function Orders() {
   const mapApiStatusToUiStatus = (apiStatus: string): Order['status'] => {
     switch (apiStatus.toLowerCase()) {
       case 'pending':
-      case 'processing':
+      case 'paid':
+      case 'failed':
       case 'completed':
       case 'cancelled':
-      case 'shipped':
-      case 'delivered':
         return apiStatus.toLowerCase() as Order['status'];
       default:
         return 'pending';
@@ -220,13 +219,12 @@ export default function Orders() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-      case "delivered":
         return <Badge className="bg-green-100 text-green-800 border-green-200 capitalize">{status}</Badge>;
-      case "processing":
-      case "shipped":
+      case "paid":
         return <Badge className="bg-blue-100 text-blue-800 border-blue-200 capitalize">{status}</Badge>;
       case "pending":
         return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 capitalize">{status}</Badge>;
+      case "failed":
       case "cancelled":
         return <Badge className="bg-red-100 text-red-800 border-red-200 capitalize">{status}</Badge>;
       default:

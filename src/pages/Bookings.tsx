@@ -70,7 +70,7 @@ interface Booking {
   time: string;
   duration: number;
   price: number;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  status: 'pending' | 'paid' | 'failed' | 'completed' | 'cancelled';
   paymentIntentId?: string | null; // Payment intent ID from Stripe
   paymentStatus?: 'pending' | 'completed' | 'failed' | 'refunded'; // Explicit payment status from backend
   paidAmount?: number; // Actual amount paid
@@ -159,7 +159,7 @@ export default function Bookings() {
           time: booking.time || '00:00',
           duration: booking.duration || 1,
           price: booking.price || 0,
-          status: (booking.status as 'pending' | 'confirmed' | 'completed' | 'cancelled') || 'pending',
+          status: (booking.status as 'pending' | 'paid' | 'failed' | 'completed' | 'cancelled') || 'pending',
           paymentIntentId: booking.paymentIntentId || null, // NEW: Payment intent ID
           paymentStatus: booking.paymentStatus || undefined, // NEW: Payment status
           paidAmount: booking.paidAmount || undefined, // NEW: Paid amount
@@ -221,7 +221,7 @@ export default function Bookings() {
 
   // Replace the original handleStatusChange function with this updated version:
   const handleStatusChange = async (
-    status: "pending" | "confirmed" | "completed" | "cancelled"
+    status: "pending" | "paid" | "failed" | "completed" | "cancelled"
   ) => {
     if (!selectedBooking) return;
 
@@ -329,12 +329,14 @@ useEffect(() => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "confirmed":
-        return <Badge className="bg-green-100 text-green-800 border-green-200"><CheckCircle className="w-3 h-3 mr-1" />Confirmed</Badge>;
+      case "paid":
+        return <Badge className="bg-green-100 text-green-800 border-green-200"><CheckCircle className="w-3 h-3 mr-1" />Paid</Badge>;
       case "completed":
         return <Badge className="bg-blue-100 text-blue-800 border-blue-200"><CheckCircle className="w-3 h-3 mr-1" />Completed</Badge>;
       case "pending":
         return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200"><AlertCircle className="w-3 h-3 mr-1" />Pending</Badge>;
+      case "failed":
+        return <Badge className="bg-red-100 text-red-800 border-red-200"><XCircle className="w-3 h-3 mr-1" />Failed</Badge>;
       case "cancelled":
         return <Badge className="bg-red-100 text-red-800 border-red-200"><XCircle className="w-3 h-3 mr-1" />Cancelled</Badge>;
       default:
@@ -413,7 +415,7 @@ useEffect(() => {
 
   // Calculate stats
   const totalRevenue = filteredBookings.reduce((sum, booking) => sum + booking.price, 0);
-  const confirmedBookings = filteredBookings.filter(b => b.status === 'confirmed').length;
+  const confirmedBookings = filteredBookings.filter(b => b.status === 'paid').length;
   const completedBookings = filteredBookings.filter(b => b.status === 'completed').length;
   const totalHours = filteredBookings.reduce((sum, booking) => sum + booking.duration, 0);
 
@@ -527,7 +529,7 @@ useEffect(() => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
+            <CardTitle className="text-sm font-medium">Paid</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -540,7 +542,7 @@ useEffect(() => {
               <>
                 <div className="text-2xl font-bold">{confirmedBookings}</div>
                 <p className="text-xs text-muted-foreground">
-                  Ready to serve
+                  Payment received
                 </p>
               </>
             )}
@@ -596,7 +598,8 @@ useEffect(() => {
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
@@ -829,7 +832,8 @@ useEffect(() => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
