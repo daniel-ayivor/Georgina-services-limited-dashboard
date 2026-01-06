@@ -140,7 +140,7 @@ export default function OrderDetailsPage() {
   const [newStatus, setNewStatus] = useState<Order['status']>('pending');
   const { toast } = useToast();
 
-  // Fetch order data
+
   const fetchOrderData = async () => {
     if (!orderId) return;
     

@@ -35,16 +35,22 @@ export function DashboardHeader() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Navigate to a search results page or perform search action
-      // For now, let's check if it looks like an order number and navigate accordingly
+      // Navigate based on search query type
       if (searchQuery.toUpperCase().startsWith('ORD-')) {
+        // Navigate to order details
         navigate(`/admin/orders/${searchQuery}`);
+      } else if (searchQuery.toUpperCase().startsWith('BOOK-') || searchQuery.toLowerCase().includes('booking')) {
+        // Navigate to bookings
+        navigate('/bookings');
+      } else if (searchQuery.toLowerCase().includes('customer') || searchQuery.toLowerCase().includes('user')) {
+        // Navigate to customers
+        navigate('/users');
       } else {
-        // You can implement a global search page or show a modal with results
-        console.log('Searching for:', searchQuery);
-        // For now, navigate to products page with search query
-        navigate(`/admin/products?search=${encodeURIComponent(searchQuery)}`);
+        // Default: navigate to products page
+        navigate('/products');
       }
+      // Clear search after navigation
+      setSearchQuery("");
     }
   };
 
