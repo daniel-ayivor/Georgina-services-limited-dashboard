@@ -60,6 +60,7 @@ interface RawApiOrder {
   paymentIntentId: string | null;
   paymentMethod: string;
   shippingAddress: string;
+  orderNumber?: string;
   createdAt: string;
   updatedAt: string;
   user: RawOrderUser;
@@ -70,9 +71,10 @@ interface RawApiOrder {
 interface Order {
   id: string;
   displayId: string;
+  orderNumber?: string;
   customerName: string;
   customerEmail: string;
-  status: 'pending' | 'paid' | 'failed' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned' | 'failed';
   paymentStatus: 'paid' | 'unpaid' | 'refunded';
   total: number;
   items: RawOrderItem[];
@@ -121,6 +123,7 @@ export default function Orders() {
     return {
       id: rawOrder.id.toString(),
       displayId: `ORD-${rawOrder.id.toString().padStart(4, '0')}`,
+      orderNumber: rawOrder.orderNumber,
       customerName: rawOrder.user?.name || 'Unknown Customer',
       customerEmail: rawOrder.user?.email || 'No email',
       status: mapApiStatusToUiStatus(rawOrder.status),
@@ -218,15 +221,22 @@ export default function Orders() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "completed":
-        return <Badge className="bg-green-100 text-green-800 border-green-200 capitalize">{status}</Badge>;
-      case "paid":
-        return <Badge className="bg-blue-100 text-blue-800 border-blue-200 capitalize">{status}</Badge>;
+      case "confirmed":
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-200">Confirmed</Badge>;
+      case "processing":
+        return <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200">Processing</Badge>;
+      case "shipped":
+        return <Badge className="bg-purple-100 text-purple-800 border-purple-200">Shipped</Badge>;
+      case "delivered":
+        return <Badge className="bg-green-100 text-green-800 border-green-200">Delivered</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 capitalize">{status}</Badge>;
-      case "failed":
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Pending</Badge>;
       case "cancelled":
-        return <Badge className="bg-red-100 text-red-800 border-red-200 capitalize">{status}</Badge>;
+        return <Badge className="bg-red-100 text-red-800 border-red-200">Cancelled</Badge>;
+      case "returned":
+        return <Badge className="bg-orange-100 text-orange-800 border-orange-200">Returned</Badge>;
+      case "failed":
+        return <Badge className="bg-red-100 text-red-800 border-red-200">Failed</Badge>;
       default:
         return <Badge className="capitalize">{status}</Badge>;
     }
@@ -428,11 +438,13 @@ export default function Orders() {
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
                   <SelectItem value="processing">Processing</SelectItem>
                   <SelectItem value="shipped">Shipped</SelectItem>
                   <SelectItem value="delivered">Delivered</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="returned">Returned</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -453,7 +465,7 @@ export default function Orders() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order ID</TableHead>
+                <TableHead>Order Number</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
@@ -476,8 +488,13 @@ export default function Orders() {
                         to={`/admin/orders/${order.displayId}`} 
                         className="hover:underline text-blue-600 hover:text-blue-800"
                       >
-                        {order.displayId}
+                        {order.orderNumber || order.displayId}
                       </Link>
+                      {order.orderNumber && (
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {order.displayId}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div>

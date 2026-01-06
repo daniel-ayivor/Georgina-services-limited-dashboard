@@ -100,6 +100,7 @@ interface RawApiOrder {
   paymentIntentId: string | null;
   paymentMethod: string;
   shippingAddress: string;
+  orderNumber?: string;
   createdAt: string;
   updatedAt: string;
   user: RawOrderUser;
@@ -110,9 +111,10 @@ interface RawApiOrder {
 interface Order {
   id: string;
   displayId: string;
+  orderNumber?: string;
   customerName: string;
   customerEmail: string;
-  status: 'pending' | 'paid' | 'failed' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned' | 'failed';
   paymentStatus: 'paid' | 'unpaid' | 'refunded';
   total: number;
   items: RawOrderItem[];
@@ -151,6 +153,9 @@ export default function OrderDetailsPage() {
       // In a real app, you would have an endpoint like /api/admin/orders/:id
       // For now, we'll fetch all orders and find the matching one
       const response = await adminApiService.getOrders() as any;
+      
+      console.log('🔍 Raw API Response:', response);
+      
       let rawOrdersData: RawApiOrder[] = [];
       
       if (response && typeof response === 'object') {
@@ -165,6 +170,8 @@ export default function OrderDetailsPage() {
         }
       }
       
+      console.log('📦 Raw Orders Data Array:', rawOrdersData);
+      
       // Find the order by ID (strip the ORD- prefix if present)
       const numericOrderId = orderId.replace('ORD-', '');
       const rawOrder = rawOrdersData.find(order => 
@@ -176,10 +183,14 @@ export default function OrderDetailsPage() {
         throw new Error('Order not found');
       }
       
+      console.log('🎯 Found Raw Order:', rawOrder);
+      console.log('🔢 Order Number field:', rawOrder.orderNumber);
+      
       // Transform to UI format
       const transformedOrder: Order = {
         id: rawOrder.id.toString(),
         displayId: `ORD-${rawOrder.id.toString().padStart(4, '0')}`,
+        orderNumber: rawOrder.orderNumber,
         customerName: rawOrder.user?.name || 'Unknown Customer',
         customerEmail: rawOrder.user?.email || 'No email',
         status: mapApiStatusToUiStatus(rawOrder.status),
@@ -197,6 +208,9 @@ export default function OrderDetailsPage() {
         discount: 0, // You would get this from your API
         notes: "Customer requested expedited shipping. Handle with care."
       };
+      
+      console.log('✅ Transformed Order:', transformedOrder);
+      console.log('📋 Order Number in transformed:', transformedOrder.orderNumber);
       
       setOrder(transformedOrder);
       
@@ -252,15 +266,22 @@ export default function OrderDetailsPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "completed":
-        return <Badge className="bg-green-100 text-green-800 border-green-200 capitalize">{status}</Badge>;
-      case "paid":
-        return <Badge className="bg-blue-100 text-blue-800 border-blue-200 capitalize">{status}</Badge>;
+      case "confirmed":
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-200">Order Confirmed</Badge>;
+      case "processing":
+        return <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200">Being Prepared</Badge>;
+      case "shipped":
+        return <Badge className="bg-purple-100 text-purple-800 border-purple-200">Handed to Courier</Badge>;
+      case "delivered":
+        return <Badge className="bg-green-100 text-green-800 border-green-200">Completed Successfully</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 capitalize">{status}</Badge>;
-      case "failed":
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Pending</Badge>;
       case "cancelled":
-        return <Badge className="bg-red-100 text-red-800 border-red-200 capitalize">{status}</Badge>;
+        return <Badge className="bg-red-100 text-red-800 border-red-200">Cancelled</Badge>;
+      case "returned":
+        return <Badge className="bg-orange-100 text-orange-800 border-orange-200">Returned After Delivery</Badge>;
+      case "failed":
+        return <Badge className="bg-red-100 text-red-800 border-red-200">System/Fulfillment Failure</Badge>;
       default:
         return <Badge className="capitalize">{status}</Badge>;
     }
@@ -281,15 +302,22 @@ export default function OrderDetailsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "completed":
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
       case "confirmed":
+        return <CheckCircle className="h-5 w-5 text-blue-600" />;
       case "processing":
-        return <RefreshCw className="h-5 w-5 text-blue-600" />;
+        return <RefreshCw className="h-5 w-5 text-indigo-600" />;
+      case "shipped":
+        return <Truck className="h-5 w-5 text-purple-600" />;
+      case "delivered":
+        return <CheckCircle className="h-5 w-5 text-green-600" />;
       case "pending":
         return <Clock className="h-5 w-5 text-yellow-600" />;
       case "cancelled":
         return <XCircle className="h-5 w-5 text-red-600" />;
+      case "returned":
+        return <RefreshCw className="h-5 w-5 text-orange-600" />;
+      case "failed":
+        return <AlertCircle className="h-5 w-5 text-red-600" />;
       default:
         return <Clock className="h-5 w-5 text-gray-600" />;
     }
@@ -456,8 +484,13 @@ export default function OrderDetailsPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Order Details</h1>
             <p className="text-muted-foreground">
-              {order.displayId} • Placed on {formatDate(order.createdAt)}
+              {order.orderNumber || order.displayId} • Placed on {formatDate(order.createdAt)}
             </p>
+            {order.orderNumber && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Order ID: {order.displayId}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -474,108 +507,136 @@ export default function OrderDetailsPage() {
 
       <div className="grid gap-6">
         {/* Order Summary */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-lg">Order Summary</CardTitle>
-                <CardDescription>
+        <Card className="border-2">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 pb-4">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div className="space-y-2">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Package className="h-5 w-5 text-blue-600" />
+                  Order Summary
+                </CardTitle>
+                <CardDescription className="text-sm">
                   Last updated: {formatDate(order.updatedAt)}
                 </CardDescription>
+                {/* Order Number Display */}
+                {order.orderNumber && (
+                  <div className="flex items-center gap-2 bg-white dark:bg-gray-900 px-3 py-2 rounded-lg border shadow-sm">
+                    <Hash className="h-4 w-4 text-blue-600" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Order Number</p>
+                      <p className="font-mono font-semibold text-sm">{order.orderNumber}</p>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 bg-white dark:bg-gray-900 px-3 py-2 rounded-lg border shadow-sm">
                   {getStatusIcon(order.status)}
                   {getStatusBadge(order.status)}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-white dark:bg-gray-900 px-3 py-2 rounded-lg border shadow-sm">
                   {getPaymentIcon(order.paymentStatus)}
                   {getPaymentStatusBadge(order.paymentStatus)}
                 </div>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Customer Info */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+              <div className="space-y-3 p-4 rounded-lg border bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-950/10">
+                <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
                     <User className="h-4 w-4" />
-                    Customer Information
-                  </h3>
-                  <div className="space-y-1">
-                    <p className="font-medium">{order.customerName}</p>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Mail className="h-3 w-3" />
-                      {order.customerEmail}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      User ID: {order.userId}
-                    </p>
                   </div>
+                  <h3 className="text-sm font-semibold">Customer Information</h3>
+                </div>
+                <div className="space-y-2 pl-10">
+                  <p className="font-semibold text-base">{order.customerName}</p>
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Mail className="h-3 w-3" />
+                    {order.customerEmail}
+                  </p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Hash className="h-3 w-3" />
+                    User ID: {order.userId}
+                  </p>
                 </div>
               </div>
 
               {/* Shipping Info */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+              <div className="space-y-3 p-4 rounded-lg border bg-gradient-to-br from-green-50/50 to-transparent dark:from-green-950/10">
+                <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                  <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
                     <Truck className="h-4 w-4" />
-                    Shipping Information
-                  </h3>
-                  <div className="space-y-1">
-                    <p className="font-medium">Shipping Address</p>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <MapPin className="h-3 w-3" />
-                      {order.shippingAddress}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Payment Method: {order.paymentMethod || 'Not specified'}
-                    </p>
                   </div>
+                  <h3 className="text-sm font-semibold">Shipping Information</h3>
+                </div>
+                <div className="space-y-2 pl-10">
+                  <p className="font-semibold text-sm">Delivery Address</p>
+                  <p className="text-sm text-muted-foreground flex items-start gap-2">
+                    <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <span className="break-words">{order.shippingAddress}</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-2">
+                    <CreditCard className="h-3 w-3" />
+                    {order.paymentMethod || 'Not specified'}
+                  </p>
                 </div>
               </div>
 
-              {/* Order Dates */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+              {/* Order Timeline */}
+              <div className="space-y-3 p-4 rounded-lg border bg-gradient-to-br from-purple-50/50 to-transparent dark:from-purple-950/10">
+                <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                  <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
                     <Calendar className="h-4 w-4" />
-                    Order Timeline
-                  </h3>
-                  <div className="space-y-1">
-                    <p className="text-sm">
-                      <span className="text-muted-foreground">Created:</span>{' '}
-                      <span className="font-medium">{formatDate(order.createdAt)}</span>
-                    </p>
-                    <p className="text-sm">
-                      <span className="text-muted-foreground">Last Updated:</span>{' '}
-                      <span className="font-medium">{formatDate(order.updatedAt)}</span>
-                    </p>
+                  </div>
+                  <h3 className="text-sm font-semibold">Order Timeline</h3>
+                </div>
+                <div className="space-y-2 pl-10">
+                  <div className="text-sm">
+                    <p className="text-muted-foreground text-xs mb-0.5">Created</p>
+                    <p className="font-medium">{formatDate(order.createdAt)}</p>
+                  </div>
+                  <div className="text-sm">
+                    <p className="text-muted-foreground text-xs mb-0.5">Last Updated</p>
+                    <p className="font-medium">{formatDate(order.updatedAt)}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Quick Actions
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        setNewStatus(order.status);
-                        setStatusDialogOpen(true);
-                      }}
-                    >
-                      <Edit className="h-3 w-3 mr-1" />
-                      Update Status
-                    </Button>
+              {/* Order Stats */}
+              <div className="space-y-3 p-4 rounded-lg border bg-gradient-to-br from-orange-50/50 to-transparent dark:from-orange-950/10">
+                <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+                  <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                    <Hash className="h-4 w-4" />
+                  </div>
+                  <h3 className="text-sm font-semibold">Order Details</h3>
+                </div>
+                <div className="space-y-3 pl-10">
+                  {order.orderNumber && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-0.5">Order Number</p>
+                      <p className="font-mono text-sm font-semibold text-orange-600 dark:text-orange-400 break-all">
+                        {order.orderNumber}
+                      </p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">Total Amount</p>
+                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                      ${(order.total ?? 0).toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Items:</span>
+                      <span className="font-medium">{order.items.length}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Subtotal:</span>
+                      <span className="font-medium">${(order.subtotal ?? order.total ?? 0).toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -759,28 +820,46 @@ export default function OrderDetailsPage() {
                       Pending
                     </div>
                   </SelectItem>
-                  <SelectItem value="paid">
+                  <SelectItem value="confirmed">
                     <div className="flex items-center">
-                      <ShieldCheck className="h-4 w-4 mr-2 text-blue-600" />
-                      Paid
+                      <CheckCircle className="h-4 w-4 mr-2 text-blue-600" />
+                      Confirmed
                     </div>
                   </SelectItem>
-                  <SelectItem value="failed">
+                  <SelectItem value="processing">
                     <div className="flex items-center">
-                      <XCircle className="h-4 w-4 mr-2 text-red-600" />
-                      Failed
+                      <RefreshCw className="h-4 w-4 mr-2 text-indigo-600" />
+                      Processing
                     </div>
                   </SelectItem>
-                  <SelectItem value="completed">
+                  <SelectItem value="shipped">
+                    <div className="flex items-center">
+                      <Truck className="h-4 w-4 mr-2 text-purple-600" />
+                      Shipped
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="delivered">
                     <div className="flex items-center">
                       <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                      Completed
+                      Delivered
                     </div>
                   </SelectItem>
                   <SelectItem value="cancelled">
                     <div className="flex items-center">
                       <XCircle className="h-4 w-4 mr-2 text-red-600" />
                       Cancelled
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="returned">
+                    <div className="flex items-center">
+                      <RefreshCw className="h-4 w-4 mr-2 text-orange-600" />
+                      Returned
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="failed">
+                    <div className="flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-2 text-red-600" />
+                      Failed
                     </div>
                   </SelectItem>
                 </SelectContent>

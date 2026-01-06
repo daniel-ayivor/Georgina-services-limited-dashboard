@@ -1893,7 +1893,7 @@ class AdminApiService {
     return response.data || response;
   }
 
-  async updateOrderStatus(id: string, status: 'pending' | 'paid' | 'failed' | 'completed' | 'cancelled'): Promise<{ success: boolean; data: Order }> {
+  async updateOrderStatus(id: string, status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned' | 'failed'): Promise<{ success: boolean; data: Order }> {
     return this.request(`/api/admin/orders/${id}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status }),
