@@ -148,8 +148,7 @@ export default function OrderDetailsPage() {
       setIsLoading(true);
       setError(null);
       
-      // In a real app, you would have an endpoint like /api/admin/orders/:id
-      // For now, we'll fetch all orders and find the matching one
+
       const response = await adminApiService.getOrders() as any;
 
       console.log('🔍 Raw API Response:', response);
