@@ -100,12 +100,20 @@ export default function Orders() {
   const mapApiStatusToUiStatus = (apiStatus: string): Order['status'] => {
     switch (apiStatus.toLowerCase()) {
       case 'pending':
-      case 'paid':
-      case 'failed':
-      case 'completed':
+      case 'confirmed':
+      case 'processing':
+      case 'shipped':
+      case 'delivered':
       case 'cancelled':
+      case 'returned':
+      case 'failed':
         return apiStatus.toLowerCase() as Order['status'];
+      case 'paid':
+      case 'completed':
+        // Map 'paid' and 'completed' to 'delivered' as they indicate order fulfillment
+        return 'delivered';
       default:
+        console.warn(`Unknown order status: ${apiStatus}, defaulting to 'pending'`);
         return 'pending';
     }
   };
@@ -164,6 +172,7 @@ export default function Orders() {
           rawOrdersData = response as RawApiOrder[];
         }
         // Handle success wrapper format
+        // eslint-disable-next-line no-dupe-else-if
         else if (response.success && response.data && Array.isArray(response.data)) {
           rawOrdersData = response.data as RawApiOrder[];
         }
@@ -258,7 +267,7 @@ export default function Orders() {
   // Calculate stats
   const totalRevenue = filteredOrders.reduce((sum, order) => sum + order.total, 0);
   const paidOrders = filteredOrders.filter(o => o.paymentStatus === 'paid').length;
-  const completedOrders = filteredOrders.filter(o => o.status === 'completed' || o.status === 'delivered').length;
+  const completedOrders = filteredOrders.filter(o => o.status === 'delivered').length;
   const avgOrderValue = filteredOrders.length > 0 ? totalRevenue / filteredOrders.length : 0;
 
   const SkeletonRow = () => (
@@ -490,11 +499,6 @@ export default function Orders() {
                       >
                         {order.orderNumber || order.displayId}
                       </Link>
-                      {order.orderNumber && (
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {order.displayId}
-                        </div>
-                      )}
                     </TableCell>
                     <TableCell>
                       <div>

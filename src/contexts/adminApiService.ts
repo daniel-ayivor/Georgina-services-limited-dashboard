@@ -1879,7 +1879,6 @@ class AdminApiService {
       return response.orders || response.data || [];
     } catch (error) {
       console.warn('Orders endpoint not available, using fallback data:', error);
-      return this.getFallbackOrders();
     }
   }
 
@@ -2244,36 +2243,36 @@ class AdminApiService {
 
 
 
-  private getFallbackOrders(): Order[] {
-    return [
-      {
-        id: 'order-1',
-        customerName: 'John Doe',
-        customerEmail: 'john.doe@example.com',
-        status: 'pending',
-        paymentStatus: 'unpaid',
-        total: 150.00,
-        items: [
-          { id: 'item-1', productId: 'prod-1', quantity: 2, price: 75.00 }
-        ],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'order-2',
-        customerName: 'Jane Smith',
-        customerEmail: 'jane.smith@example.com',
-        status: 'completed',
-        paymentStatus: 'paid',
-        total: 89.99,
-        items: [
-          { id: 'item-2', productId: 'prod-2', quantity: 1, price: 89.99 }
-        ],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ];
-  }
+  // private getFallbackOrders(): Order[] {
+  //   return [
+  //     {
+  //       id: 'order-1',
+  //       customerName: 'John Doe',
+  //       customerEmail: 'john.doe@example.com',
+  //       status: 'pending',
+  //       paymentStatus: 'unpaid',
+  //       total: 150.00,
+  //       items: [
+  //         { id: 'item-1', productId: 'prod-1', quantity: 2, price: 75.00 }
+  //       ],
+  //       createdAt: new Date().toISOString(),
+  //       updatedAt: new Date().toISOString()
+  //     },
+  //     {
+  //       id: 'order-2',
+  //       customerName: 'Jane Smith',
+  //       customerEmail: 'jane.smith@example.com',
+  //       status: 'completed',
+  //       paymentStatus: 'paid',
+  //       total: 89.99,
+  //       items: [
+  //         { id: 'item-2', productId: 'prod-2', quantity: 1, price: 89.99 }
+  //       ],
+  //       createdAt: new Date().toISOString(),
+  //       updatedAt: new Date().toISOString()
+  //     }
+  //   ];
+  // }
 
   private getFallbackCustomers(): Customer[] {
     return [
