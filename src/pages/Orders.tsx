@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import AsyncImageLoader from "@/components/AsyncImageLoader";
 import { 
   Select, 
   SelectContent, 
@@ -40,10 +41,17 @@ interface RawOrderItem {
   orderId: number;
   productId: number;
   productName: string;
+  image: string; // API returns singular 'image', not 'images'
   quantity: number;
   price: number;
   createdAt: string;
   updatedAt: string;
+  product?: {
+    id: number;
+    name: string;
+    price: string;
+    images: string[];
+  };
 }
 
 interface RawOrderUser {
@@ -276,6 +284,13 @@ export default function Orders() {
         <div className="h-4 bg-muted rounded animate-pulse w-20" />
       </TableCell>
       <TableCell>
+        <div className="flex items-center gap-2">
+          <div className="h-10 w-10 bg-muted rounded animate-pulse" />
+          <div className="h-10 w-10 bg-muted rounded animate-pulse" />
+          <div className="h-10 w-10 bg-muted rounded animate-pulse" />
+        </div>
+      </TableCell>
+      <TableCell>
         <div className="space-y-2">
           <div className="h-4 bg-muted rounded animate-pulse w-24" />
           <div className="h-3 bg-muted rounded animate-pulse w-32" />
@@ -475,6 +490,7 @@ export default function Orders() {
             <TableHeader>
               <TableRow>
                 <TableHead>Order Number</TableHead>
+                <TableHead>Items</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
@@ -499,6 +515,32 @@ export default function Orders() {
                       >
                         {order.orderNumber || order.displayId}
                       </Link>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {order.items && order.items.length > 0 ? (
+                          <>
+                            {order.items.slice(0, 3).map((item) => (
+                              <div key={item.id} className="relative">
+                                <AsyncImageLoader
+                                  src={item.image || (item.product?.images && item.product.images[0]) || ''}
+                                  alt={item.productName || 'Product image'}
+                                  className="h-10 w-10 object-cover rounded-md border"
+                                />
+                              </div>
+                            ))}
+                            {order.items.length > 3 && (
+                              <div className="h-10 w-10 flex items-center justify-center bg-muted rounded-md border text-xs font-medium">
+                                +{order.items.length - 3}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="h-10 w-10 flex items-center justify-center bg-muted rounded-md border">
+                            <Package className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div>
@@ -529,7 +571,7 @@ export default function Orders() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10">
+                  <TableCell colSpan={8} className="text-center py-10">
                     <div className="flex flex-col items-center">
                       <Package className="h-10 w-10 text-muted-foreground mb-2" />
                       <p className="text-lg font-medium">No orders found</p>

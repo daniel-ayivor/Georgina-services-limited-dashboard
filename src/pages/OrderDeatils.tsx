@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import AsyncImageLoader from "@/components/AsyncImageLoader";
 import {
   Table,
   TableBody,
@@ -72,11 +73,17 @@ interface RawOrderItem {
   orderId: number;
   productId: number;
   productName: string;
-  images: string[]
+  image: string; // API returns singular 'image', not 'images'
   quantity: number;
   price: number;
   createdAt: string;
   updatedAt: string;
+  product?: {
+    id: number;
+    name: string;
+    price: string;
+    images: string[];
+  };
 }
 
 interface RawOrderUser {
@@ -839,20 +846,12 @@ export default function OrderDetailsPage() {
                               <TableCell className="py-4">
                                 <div className="flex items-center gap-4">
                                   <div className="relative">
-                                    <div className="h-14 w-14 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-                                      {
-                                        item.images ? (
-                                          <img
-                                            src={item.images[0]}
-                                            alt={item.productName}
-                                            className="h-12 w-12 object-contain rounded-lg"
-                                          />
-                                        ) : (
-                                          <div className="h-12 w-12 flex items-center justify-center bg-muted rounded-lg">
-                                            <Package className="h-6 w-6 text-muted-foreground" />
-                                          </div>
-                                        )
-                                      }
+                                    <div className="h-14 w-14 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow overflow-hidden">
+                                      <AsyncImageLoader
+                                        src={item.image || (item.product?.images && item.product.images[0]) || ''}
+                                        alt={item.productName || 'Product image'}
+                                        className="h-full w-full object-cover rounded-lg"
+                                      />
                                     </div>
                                     <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
                                       {index + 1}
