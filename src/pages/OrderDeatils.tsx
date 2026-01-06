@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,10 +12,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -53,26 +51,20 @@ import {
   User,
   MapPin,
   Mail,
-  Phone,
   Calendar,
   FileText,
   Printer,
   Download,
-  Edit,
   Trash2,
   RefreshCw,
   AlertCircle,
   ShoppingBag,
   Tag,
   Hash,
-  ExternalLink,
-  BarChart,
-  TrendingUp,
-  Percent,
-  ShieldCheck
+  Percent
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import adminApiService, { OrderItem } from "@/contexts/adminApiService";
+import adminApiService from "@/contexts/adminApiService";
 
 // Define interfaces based on the actual raw API response
 interface RawOrderItem {
@@ -80,6 +72,7 @@ interface RawOrderItem {
   orderId: number;
   productId: number;
   productName: string;
+  images: string[]
   quantity: number;
   price: number;
   createdAt: string;
@@ -105,6 +98,11 @@ interface RawApiOrder {
   updatedAt: string;
   user: RawOrderUser;
   items: RawOrderItem[];
+  // Optional breakdown fields that may come from API
+  tax?: number;
+  shippingCost?: number;
+  discount?: number;
+  subtotal?: number;
 }
 
 // Our UI Order type
@@ -153,7 +151,7 @@ export default function OrderDetailsPage() {
       // In a real app, you would have an endpoint like /api/admin/orders/:id
       // For now, we'll fetch all orders and find the matching one
       const response = await adminApiService.getOrders() as any;
-      
+
       console.log('🔍 Raw API Response:', response);
       
       let rawOrdersData: RawApiOrder[] = [];
@@ -165,12 +163,11 @@ export default function OrderDetailsPage() {
           rawOrdersData = response.orders as RawApiOrder[];
         } else if (Array.isArray(response)) {
           rawOrdersData = response as RawApiOrder[];
+          // eslint-disable-next-line no-dupe-else-if
         } else if (response.success && response.data && Array.isArray(response.data)) {
           rawOrdersData = response.data as RawApiOrder[];
         }
       }
-      
-      console.log('📦 Raw Orders Data Array:', rawOrdersData);
       
       // Find the order by ID (strip the ORD- prefix if present)
       const numericOrderId = orderId.replace('ORD-', '');
@@ -183,10 +180,15 @@ export default function OrderDetailsPage() {
         throw new Error('Order not found');
       }
       
-      console.log('🎯 Found Raw Order:', rawOrder);
-      console.log('🔢 Order Number field:', rawOrder.orderNumber);
-      
       // Transform to UI format
+      const calculatedSubtotal = rawOrder.subtotal || calculateSubtotal(rawOrder.items);
+      const totalAmount = rawOrder.totalAmount || 0;
+
+      // Calculate tax as the difference between total and subtotal
+      // Formula: Total = Subtotal + Tax + Shipping - Discount
+      // Therefore: Tax = Total - Subtotal - Shipping + Discount
+      const calculatedTax = totalAmount - calculatedSubtotal - (rawOrder.shippingCost || 0) + (rawOrder.discount || 0);
+
       const transformedOrder: Order = {
         id: rawOrder.id.toString(),
         displayId: `ORD-${rawOrder.id.toString().padStart(4, '0')}`,
@@ -195,30 +197,27 @@ export default function OrderDetailsPage() {
         customerEmail: rawOrder.user?.email || 'No email',
         status: mapApiStatusToUiStatus(rawOrder.status),
         paymentStatus: determinePaymentStatus(rawOrder),
-        total: rawOrder.totalAmount || 0,
+        total: totalAmount,
         items: rawOrder.items || [],
         createdAt: rawOrder.createdAt,
         updatedAt: rawOrder.updatedAt,
         shippingAddress: rawOrder.shippingAddress,
         paymentMethod: rawOrder.paymentMethod,
         userId: rawOrder.userId,
-        subtotal: calculateSubtotal(rawOrder.items),
-        tax: calculateTax(rawOrder.totalAmount),
-        shippingCost: 0, // You would get this from your API
-        discount: 0, // You would get this from your API
-        notes: "Customer requested expedited shipping. Handle with care."
+        subtotal: calculatedSubtotal,
+        // Use API-provided tax if available, otherwise calculate from total-subtotal difference
+        // Only show calculated tax if it's a positive value
+        tax: rawOrder.tax !== undefined ? rawOrder.tax : (calculatedTax > 0 ? calculatedTax : undefined),
+        shippingCost: rawOrder.shippingCost,
+        discount: rawOrder.discount,
+        notes: undefined // Will be populated from API if available
       };
-      
-      console.log('✅ Transformed Order:', transformedOrder);
-      console.log('📋 Order Number in transformed:', transformedOrder.orderNumber);
+
       
       setOrder(transformedOrder);
-      
-      // Log order details
-      console.log('Order Details:', transformedOrder);
+
       
     } catch (err) {
-      console.error('Failed to fetch order:', err);
       setError('Failed to load order details. The order may not exist.');
       toast({
         variant: "destructive",
@@ -238,10 +237,13 @@ export default function OrderDetailsPage() {
   const mapApiStatusToUiStatus = (apiStatus: string): Order['status'] => {
     switch (apiStatus.toLowerCase()) {
       case 'pending':
-      case 'paid':
-      case 'failed':
-      case 'completed':
+      case 'confirmed':
+      case 'processing':
+      case 'shipped':
+      case 'delivered':
       case 'cancelled':
+      case 'returned':
+      case 'failed':
         return apiStatus.toLowerCase() as Order['status'];
       default:
         return 'pending';
@@ -259,10 +261,6 @@ export default function OrderDetailsPage() {
     return items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   };
 
-  const calculateTax = (total: number): number => {
-    // Assuming 10% tax for demo purposes
-    return total * 0.1;
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -409,38 +407,74 @@ export default function OrderDetailsPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="outline" size="icon" disabled>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="space-y-2">
-            <div className="h-8 bg-muted rounded animate-pulse w-48" />
-            <div className="h-4 bg-muted rounded animate-pulse w-32" />
-          </div>
-        </div>
-        <div className="grid gap-6">
-          {/* Order Summary Skeleton */}
-          <Card>
-            <CardHeader>
-              <div className="h-6 bg-muted rounded animate-pulse w-32" />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900">
+        <div className="container mx-auto py-8 px-4">
+          {/* Skeleton Header */}
+          <div className="flex items-center gap-4 mb-8">
+            <div className="h-10 w-10 bg-muted rounded-lg animate-pulse" />
+            <div className="space-y-2 flex-1">
+              <div className="h-8 bg-muted rounded-lg animate-pulse w-64" />
               <div className="h-4 bg-muted rounded animate-pulse w-48" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="h-4 bg-muted rounded animate-pulse w-24" />
-                    <div className="h-8 bg-muted rounded animate-pulse w-full" />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-muted rounded animate-pulse w-24" />
-                    <div className="h-8 bg-muted rounded animate-pulse w-full" />
-                  </div>
+            </div>
+            <div className="hidden md:flex gap-2">
+              <div className="h-10 w-32 bg-muted rounded-lg animate-pulse" />
+              <div className="h-10 w-32 bg-muted rounded-lg animate-pulse" />
+            </div>
+          </div>
+
+          {/* Skeleton Cards */}
+          <div className="space-y-6">
+            {/* Summary Skeleton */}
+            <Card className="border-2 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+                <div className="space-y-3">
+                  <div className="h-6 bg-muted rounded-lg animate-pulse w-48" />
+                  <div className="h-4 bg-muted rounded animate-pulse w-64" />
                 </div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="space-y-3 p-4 rounded-lg border animate-pulse">
+                      <div className="h-10 bg-muted rounded-lg w-full" />
+                      <div className="h-16 bg-muted rounded w-full" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Content Skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="shadow-md">
+                  <CardHeader>
+                    <div className="h-6 bg-muted rounded-lg animate-pulse w-40" />
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-20 bg-muted rounded-lg animate-pulse" />
+                    ))}
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
+              <div className="space-y-6">
+                {[1, 2].map((i) => (
+                  <Card key={i} className="shadow-md">
+                    <CardHeader>
+                      <div className="h-6 bg-muted rounded-lg animate-pulse w-32" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="h-10 bg-muted rounded animate-pulse" />
+                        <div className="h-10 bg-muted rounded animate-pulse" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -449,443 +483,665 @@ export default function OrderDetailsPage() {
   // Error state
   if (error || !order) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="outline" onClick={() => navigate('/orders')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Orders
-          </Button>
-        </div>
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium mb-2">Order not found</p>
-            <p className="text-muted-foreground text-center mb-4">
-              {error || "The order you're looking for doesn't exist or has been removed."}
-            </p>
-            <Button onClick={() => navigate('/orders')}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Return to Orders
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900">
+        <div className="container mx-auto py-8 px-4">
+          <div className="flex items-center gap-4 mb-8">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate('/admin/orders')}
+              className="hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
             </Button>
-          </CardContent>
-        </Card>
+            <div>
+              <h1 className="text-2xl font-bold">Order Not Found</h1>
+              <p className="text-sm text-muted-foreground">Unable to load order details</p>
+            </div>
+          </div>
+
+          <Card className="border-2 shadow-xl max-w-2xl mx-auto">
+            <CardContent className="flex flex-col items-center justify-center py-16 px-6">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-red-100 dark:bg-red-900/20 rounded-full blur-2xl opacity-50"></div>
+                <div className="relative bg-red-50 dark:bg-red-900/30 p-6 rounded-full">
+                  <AlertCircle className="h-16 w-16 text-red-500" />
+                </div>
+              </div>
+
+              <h2 className="text-2xl font-bold mb-3">Order Not Found</h2>
+              <p className="text-muted-foreground text-center mb-6 max-w-md">
+                {error || "The order you're looking for doesn't exist or has been removed from the system."}
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+                <Button
+                  onClick={() => navigate('/admin/orders')}
+                  className="flex-1"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Orders
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                  className="flex-1"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Try Again
+                </Button>
+              </div>
+
+              <div className="mt-8 p-4 bg-muted/50 rounded-lg w-full max-w-md">
+                <p className="text-sm text-muted-foreground text-center">
+                  <strong>Need help?</strong> Contact support if you believe this is an error.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => navigate('/admin/orders')}>
-            <ArrowLeft className="h-4 w-4" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900">
+      <div className="container mx-auto py-8 px-4">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/admin/orders')}
+            className="hover:text-foreground"
+          >
+            Orders
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Order Details</h1>
-            <p className="text-muted-foreground">
-              {order.orderNumber || order.displayId} • Placed on {formatDate(order.createdAt)}
-            </p>
-            {order.orderNumber && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Order ID: {order.displayId}
-              </p>
-            )}
+          <span>/</span>
+          <span className="text-foreground font-medium">
+            {order.orderNumber || order.displayId}
+          </span>
+        </div>
+
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
+          <div className="flex items-start gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate(-1)}
+              className="hover:bg-primary hover:text-primary-foreground transition-colors shrink-0 mt-1"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
+                  Order Details
+                </h1>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-muted-foreground">
+
+                <span className="hidden sm:inline">•</span>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>Placed on {new Date(order.createdAt).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              onClick={handlePrintInvoice}
+              className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 dark:hover:bg-blue-950 transition-colors"
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Print
+            </Button>
+            <Button
+              variant="outline"
+              className="hover:bg-green-50 hover:text-green-600 hover:border-green-200 dark:hover:bg-green-950 transition-colors"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+            <Button
+              onClick={() => {
+                setNewStatus(order.status);
+                setStatusDialogOpen(true);
+              }}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Update Status
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(true)}
+              className="text-red-600 hover:bg-red-50 hover:border-red-300 dark:hover:bg-red-950 transition-colors"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handlePrintInvoice}>
-            <Printer className="h-4 w-4 mr-2" />
-            Print Invoice
-          </Button>
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
 
-      <div className="grid gap-6">
-        {/* Order Summary */}
-        <Card className="border-2">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 pb-4">
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-              <div className="space-y-2">
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <Package className="h-5 w-5 text-blue-600" />
-                  Order Summary
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  Last updated: {formatDate(order.updatedAt)}
-                </CardDescription>
-                {/* Order Number Display */}
-                {order.orderNumber && (
-                  <div className="flex items-center gap-2 bg-white dark:bg-gray-900 px-3 py-2 rounded-lg border shadow-sm">
-                    <Hash className="h-4 w-4 text-blue-600" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Order Number</p>
-                      <p className="font-mono font-semibold text-sm">{order.orderNumber}</p>
+        <div className="grid gap-6">
+          {/* Order Summary */}
+          <Card className="border-2 shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 h-1.5"></div>
+            <CardHeader className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 pb-6">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 shadow-lg">
+                      <Package className="h-5 w-5 text-white" />
                     </div>
+                    <CardTitle className="text-2xl">Order Summary</CardTitle>
                   </div>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 bg-white dark:bg-gray-900 px-3 py-2 rounded-lg border shadow-sm">
-                  {getStatusIcon(order.status)}
-                  {getStatusBadge(order.status)}
+                  <CardDescription className="text-sm flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Last updated: {formatDate(order.updatedAt)}
+                  </CardDescription>
                 </div>
-                <div className="flex items-center gap-2 bg-white dark:bg-gray-900 px-3 py-2 rounded-lg border shadow-sm">
-                  {getPaymentIcon(order.paymentStatus)}
-                  {getPaymentStatusBadge(order.paymentStatus)}
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Customer Info */}
-              <div className="space-y-3 p-4 rounded-lg border bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-950/10">
-                <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                    <User className="h-4 w-4" />
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2 bg-white dark:bg-gray-900 px-4 py-2.5 rounded-xl border-2 shadow-sm hover:shadow-md transition-shadow">
+                    {getStatusIcon(order.status)}
+                    {getStatusBadge(order.status)}
                   </div>
-                  <h3 className="text-sm font-semibold">Customer Information</h3>
-                </div>
-                <div className="space-y-2 pl-10">
-                  <p className="font-semibold text-base">{order.customerName}</p>
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Mail className="h-3 w-3" />
-                    {order.customerEmail}
-                  </p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Hash className="h-3 w-3" />
-                    User ID: {order.userId}
-                  </p>
-                </div>
-              </div>
-
-              {/* Shipping Info */}
-              <div className="space-y-3 p-4 rounded-lg border bg-gradient-to-br from-green-50/50 to-transparent dark:from-green-950/10">
-                <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                  <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                    <Truck className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-sm font-semibold">Shipping Information</h3>
-                </div>
-                <div className="space-y-2 pl-10">
-                  <p className="font-semibold text-sm">Delivery Address</p>
-                  <p className="text-sm text-muted-foreground flex items-start gap-2">
-                    <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                    <span className="break-words">{order.shippingAddress}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-2">
-                    <CreditCard className="h-3 w-3" />
-                    {order.paymentMethod || 'Not specified'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Order Timeline */}
-              <div className="space-y-3 p-4 rounded-lg border bg-gradient-to-br from-purple-50/50 to-transparent dark:from-purple-950/10">
-                <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
-                  <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-                    <Calendar className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-sm font-semibold">Order Timeline</h3>
-                </div>
-                <div className="space-y-2 pl-10">
-                  <div className="text-sm">
-                    <p className="text-muted-foreground text-xs mb-0.5">Created</p>
-                    <p className="font-medium">{formatDate(order.createdAt)}</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="text-muted-foreground text-xs mb-0.5">Last Updated</p>
-                    <p className="font-medium">{formatDate(order.updatedAt)}</p>
+                  <div className="flex items-center gap-2 bg-white dark:bg-gray-900 px-4 py-2.5 rounded-xl border-2 shadow-sm hover:shadow-md transition-shadow">
+                    {getPaymentIcon(order.paymentStatus)}
+                    {getPaymentStatusBadge(order.paymentStatus)}
                   </div>
                 </div>
               </div>
-
-              {/* Order Stats */}
-              <div className="space-y-3 p-4 rounded-lg border bg-gradient-to-br from-orange-50/50 to-transparent dark:from-orange-950/10">
-                <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
-                  <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-                    <Hash className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-sm font-semibold">Order Details</h3>
-                </div>
-                <div className="space-y-3 pl-10">
-                  {order.orderNumber && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-0.5">Order Number</p>
-                      <p className="font-mono text-sm font-semibold text-orange-600 dark:text-orange-400 break-all">
-                        {order.orderNumber}
-                      </p>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Customer Info */}
+                <div className="group relative overflow-hidden rounded-xl border-2 bg-gradient-to-br from-blue-50 via-white to-blue-50/30 dark:from-blue-950/20 dark:via-gray-900 dark:to-blue-950/10 p-5 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl"></div>
+                  <div className="relative space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30">
+                        <User className="h-5 w-5 text-white" />
+                      </div>
+                      <h3 className="text-sm font-bold text-blue-900 dark:text-blue-100">Customer</h3>
                     </div>
-                  )}
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-0.5">Total Amount</p>
-                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                      ${(order.total ?? 0).toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Items:</span>
-                      <span className="font-medium">{order.items.length}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Subtotal:</span>
-                      <span className="font-medium">${(order.subtotal ?? order.total ?? 0).toFixed(2)}</span>
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <p className="font-bold text-lg text-foreground">{order.customerName}</p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Mail className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="truncate">{order.customerEmail}</span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-xs hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 dark:hover:bg-blue-950 transition-colors"
+                        onClick={() => navigate(`#`)}
+                      >
+                        <User className="h-3 w-3 mr-1.5" />
+                        View Details
+                      </Button>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Order Items & Notes */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Order Items */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ShoppingBag className="h-5 w-5" />
-                  Order Items ({order.items.length})
-                </CardTitle>
-                <CardDescription>Products and services included in this order</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[300px]">Product</TableHead>
-                      <TableHead className="text-center">Quantity</TableHead>
-                      <TableHead className="text-right">Unit Price</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {order.items.length > 0 ? (
-                      order.items.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
-                                <Package className="h-5 w-5 text-muted-foreground" />
-                              </div>
-                              <div>
-                                <p className="font-medium">{item.productName}</p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <Tag className="h-3 w-3" />
-                                  <span>Product ID: {item.productId}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="outline" className="px-3 py-1">
-                              {item.quantity}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            ${(item.price || 0).toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            ${calculateItemTotal(item).toFixed(2)}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8">
-                          <div className="flex flex-col items-center">
-                            <Package className="h-10 w-10 text-muted-foreground mb-2" />
-                            <p className="text-lg font-medium">No items found</p>
-                            <p className="text-sm text-muted-foreground">
-                              This order doesn't contain any items
-                            </p>
+                {/* Shipping Info */}
+                <div className="group relative overflow-hidden rounded-xl border-2 bg-gradient-to-br from-green-50 via-white to-green-50/30 dark:from-green-950/20 dark:via-gray-900 dark:to-green-950/10 p-5 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/10 rounded-full blur-2xl"></div>
+                  <div className="relative space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-500/30">
+                        <Truck className="h-5 w-5 text-white" />
+                      </div>
+                      <h3 className="text-sm font-bold text-green-900 dark:text-green-100">Shipping</h3>
+                    </div>
+                    <div className="space-y-2.5">
+                      <p className="font-bold text-sm">Delivery Address</p>
+                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                        <span className="break-words line-clamp-2">{order.shippingAddress}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs bg-green-50 dark:bg-green-950/30 px-2 py-1 rounded-md w-fit">
+                        <CreditCard className="h-3 w-3" />
+                        <span>{order.paymentMethod || 'Not specified'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Order Timeline */}
+                <div className="group relative overflow-hidden rounded-xl border-2 bg-gradient-to-br from-purple-50 via-white to-purple-50/30 dark:from-purple-950/20 dark:via-gray-900 dark:to-purple-950/10 p-5 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl"></div>
+                  <div className="relative space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-500/30">
+                        <Calendar className="h-5 w-5 text-white" />
+                      </div>
+                      <h3 className="text-sm font-bold text-purple-900 dark:text-purple-100">Timeline</h3>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Created</p>
+                        <p className="font-semibold text-sm">{new Date(order.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}</p>
+                        <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}</p>
+                      </div>
+                      <Separator />
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Last Updated</p>
+                        <p className="font-semibold text-sm">{new Date(order.updatedAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Order Stats */}
+                <div className="group relative overflow-hidden rounded-xl border-2 bg-gradient-to-br from-orange-50 via-white to-orange-50/30 dark:from-orange-950/20 dark:via-gray-900 dark:to-orange-950/10 p-5 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/10 rounded-full blur-2xl"></div>
+                  <div className="relative space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30">
+                        <DollarSign className="h-5 w-5 text-white" />
+                      </div>
+                      <h3 className="text-sm font-bold text-orange-900 dark:text-orange-100">Amount</h3>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Total Amount</p>
+                        <p className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
+                          ${(order.total ?? 0).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="space-y-2 pt-2 border-t">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Items:</span>
+                          <span className="font-bold">{order.items.flatMap(item=> item.quantity)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Subtotal:</span>
+                          <span className="font-bold">${(order.subtotal ?? order.total ?? 0).toFixed(2)}</span>
+                        </div>
+                        {order.orderNumber && (
+                          <div className="flex items-center gap-1 text-xs bg-orange-50 dark:bg-orange-950/30 px-2 py-1 rounded-md">
+                            <Hash className="h-3 w-3" />
+                            <span className="font-mono font-semibold truncate">{order.orderNumber}</span>
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Main Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Order Items & Notes */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Order Items */}
+              <Card className="shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-1"></div>
+                <CardHeader className="bg-gradient-to-r from-indigo-50/30 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2 text-xl">
+                        <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg">
+                          <ShoppingBag className="h-5 w-5 text-white" />
+                        </div>
+                        Order Items
+                      </CardTitle>
+                      <CardDescription className="mt-2">
+                        {order.items.length} {order.items.length === 1 ? 'item' : 'items'} in this order
+                      </CardDescription>
+                    </div>
+                    <Badge variant="secondary" className="text-lg px-4 py-2 font-bold">
+                      {order.items.length}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader className="bg-muted/50">
+                        <TableRow>
+                          <TableHead className="font-bold">Product</TableHead>
+                          <TableHead className="text-center font-bold">Quantity</TableHead>
+                          <TableHead className="text-right font-bold">Unit Price</TableHead>
+                          <TableHead className="text-right font-bold">Total</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {order.items.length > 0 ? (
+                          order.items.map((item, index) => (
+                            <TableRow
+                              key={item.id}
+                              className="group hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 dark:hover:from-blue-950/20 dark:hover:to-indigo-950/20 transition-all duration-200"
+                            >
+                              <TableCell className="py-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="relative">
+                                    <div className="h-14 w-14 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+                                      {
+                                        item.images ? (
+                                          <img
+                                            src={item.images[0]}
+                                            alt={item.productName}
+                                            className="h-12 w-12 object-contain rounded-lg"
+                                          />
+                                        ) : (
+                                          <div className="h-12 w-12 flex items-center justify-center bg-muted rounded-lg">
+                                            <Package className="h-6 w-6 text-muted-foreground" />
+                                          </div>
+                                        )
+                                      }
+                                    </div>
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
+                                      {index + 1}
+                                    </div>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-base group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                      {item.productName}
+                                    </p>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Badge variant="secondary" className="px-8 py-2 text-base font-bold bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 border-0">
+                                  ×{item.quantity}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="font-semibold text-base">
+                                  ${(item.price || 0).toFixed(2)}
+                                </div>
+                                <div className="text-xs text-muted-foreground">per unit</div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="font-bold text-lg bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                  ${calculateItemTotal(item).toFixed(2)}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center py-12">
+                              <div className="flex flex-col items-center">
+                                <div className="p-4 rounded-full bg-muted mb-4">
+                                  <Package className="h-12 w-12 text-muted-foreground" />
+                                </div>
+                                <p className="text-lg font-semibold mb-1">No items found</p>
+                                <p className="text-sm text-muted-foreground">
+                                  This order doesn't contain any items
+                                </p>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+                {order.items.length > 0 && (
+                  <CardFooter className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border-t py-4">
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <ShoppingBag className="h-4 w-4" />
+                        <span>Total Items: {order.items.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground mb-1">Subtotal</p>
+                        <p className="text-xl font-bold">${(order.subtotal || order.total).toFixed(2)}</p>
+                      </div>
+                    </div>
+                  </CardFooter>
+                )}
+              </Card>
+
+              {/* Order Notes */}
+              {order.notes && (
+                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 h-1"></div>
+                  <CardHeader className="bg-gradient-to-r from-amber-50/30 to-orange-50/30 dark:from-amber-950/20 dark:to-orange-950/20">
+                    <CardTitle className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg">
+                        <FileText className="h-5 w-5 text-white" />
+                      </div>
+                      Order Notes
+                    </CardTitle>
+                    <CardDescription>Special instructions or remarks</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="p-4 rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border-l-4 border-amber-500">
+                      <p className="text-sm leading-relaxed">{order.notes}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Right Column - Order Summary & Actions */}
+            <div className="space-y-6">
+              {/* Order Totals */}
+              <Card className="shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 h-1"></div>
+                <CardHeader className="bg-gradient-to-r from-green-50/30 to-emerald-50/30 dark:from-green-950/20 dark:to-emerald-950/20">
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg">
+                      <DollarSign className="h-5 w-5 text-white" />
+                    </div>
+                    Order Totals
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+                      <span className="text-sm font-medium text-muted-foreground">Subtotal</span>
+                      <span className="font-bold text-base">${(order.subtotal || order.total).toFixed(2)}</span>
+                    </div>
+                    {order.shippingCost && order.shippingCost > 0 && (
+                      <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+                        <div className="flex items-center gap-2">
+                          <Truck className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium text-muted-foreground">Shipping</span>
+                        </div>
+                        <span className="font-bold text-sm">${order.shippingCost.toFixed(2)}</span>
+                      </div>
                     )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Order Summary & Actions */}
-          <div className="space-y-6">
-            {/* Order Totals */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Order Totals
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">${(order.subtotal || order.total).toFixed(2)}</span>
+                    {order.tax && order.tax > 0 && (
+                      <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20">
+                        <div className="flex items-center gap-2">
+                          <Percent className="h-4 w-4 text-amber-600" />
+                          <span className="text-sm font-medium text-muted-foreground">Tax</span>
+                        </div>
+                        <span className="font-bold text-sm">${order.tax.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {order.discount && order.discount > 0 && (
+                      <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-800/20 border border-green-200 dark:border-green-800">
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-4 w-4 text-green-600" />
+                          <span className="text-sm font-medium text-muted-foreground">Discount</span>
+                        </div>
+                        <span className="font-bold text-base text-green-600">-${order.discount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <Separator className="my-4" />
+                    <div className="flex justify-between items-center p-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 shadow-lg shadow-green-500/30">
+                      <span className="text-white font-bold text-lg">Total</span>
+                      <span className="text-white font-bold text-2xl">${order.total.toFixed(2)}</span>
+                    </div>
                   </div>
-                  {order.shippingCost && order.shippingCost > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Shipping</span>
-                      <span className="font-medium">${order.shippingCost.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {order.tax && order.tax > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Tax</span>
-                      <span className="font-medium">${order.tax.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {order.discount && order.discount > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Discount</span>
-                      <span className="font-medium text-green-600">-${order.discount.toFixed(2)}</span>
-                    </div>
-                  )}
-                  <Separator />
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total</span>
-                    <span>${order.total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Order Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <RefreshCw className="h-5 w-5" />
-                  Order Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => setStatusDialogOpen(true)}
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Update Order Status
-                  </Button>
-                  <Separator />
-       
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => setDeleteDialogOpen(true)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Order
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
- 
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Update Status Dialog */}
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Update Order Status</DialogTitle>
-            <DialogDescription>
-              Change the status of order {order.displayId}
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500">
+                <RefreshCw className="h-5 w-5 text-white" />
+              </div>
+              Update Order Status
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              Change the status of order <span className="font-mono font-bold text-foreground">{order.displayId}</span>
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="status">Order Status</Label>
+          <div className="space-y-6 py-4">
+            <div className="space-y-3">
+              <Label htmlFor="status" className="text-base font-semibold">Select New Status</Label>
               <Select value={newStatus} onValueChange={(value) => setNewStatus(value as Order['status'])}>
-                <SelectTrigger>
+                <SelectTrigger className="h-12 text-base border-2">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pending">
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-yellow-600" />
-                      Pending
+                  <SelectItem value="pending" className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 rounded-md bg-yellow-100 dark:bg-yellow-900/30">
+                        <Clock className="h-4 w-4 text-yellow-600" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">Pending</div>
+                        <div className="text-xs text-muted-foreground">Order awaiting confirmation</div>
+                      </div>
                     </div>
                   </SelectItem>
-                  <SelectItem value="confirmed">
-                    <div className="flex items-center">
-                      <CheckCircle className="h-4 w-4 mr-2 text-blue-600" />
-                      Confirmed
+                  <SelectItem value="confirmed" className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30">
+                        <CheckCircle className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">Confirmed</div>
+                        <div className="text-xs text-muted-foreground">Order has been confirmed</div>
+                      </div>
                     </div>
                   </SelectItem>
-                  <SelectItem value="processing">
-                    <div className="flex items-center">
-                      <RefreshCw className="h-4 w-4 mr-2 text-indigo-600" />
-                      Processing
+                  <SelectItem value="processing" className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 rounded-md bg-indigo-100 dark:bg-indigo-900/30">
+                        <RefreshCw className="h-4 w-4 text-indigo-600" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">Processing</div>
+                        <div className="text-xs text-muted-foreground">Order is being prepared</div>
+                      </div>
                     </div>
                   </SelectItem>
-                  <SelectItem value="shipped">
-                    <div className="flex items-center">
-                      <Truck className="h-4 w-4 mr-2 text-purple-600" />
-                      Shipped
+                  <SelectItem value="shipped" className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 rounded-md bg-purple-100 dark:bg-purple-900/30">
+                        <Truck className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">Shipped</div>
+                        <div className="text-xs text-muted-foreground">Order is on the way</div>
+                      </div>
                     </div>
                   </SelectItem>
-                  <SelectItem value="delivered">
-                    <div className="flex items-center">
-                      <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                      Delivered
+                  <SelectItem value="delivered" className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 rounded-md bg-green-100 dark:bg-green-900/30">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">Delivered</div>
+                        <div className="text-xs text-muted-foreground">Order successfully delivered</div>
+                      </div>
                     </div>
                   </SelectItem>
-                  <SelectItem value="cancelled">
-                    <div className="flex items-center">
-                      <XCircle className="h-4 w-4 mr-2 text-red-600" />
-                      Cancelled
+                  <SelectItem value="cancelled" className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 rounded-md bg-red-100 dark:bg-red-900/30">
+                        <XCircle className="h-4 w-4 text-red-600" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">Cancelled</div>
+                        <div className="text-xs text-muted-foreground">Order has been cancelled</div>
+                      </div>
                     </div>
                   </SelectItem>
-                  <SelectItem value="returned">
-                    <div className="flex items-center">
-                      <RefreshCw className="h-4 w-4 mr-2 text-orange-600" />
-                      Returned
+                  <SelectItem value="returned" className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 rounded-md bg-orange-100 dark:bg-orange-900/30">
+                        <RefreshCw className="h-4 w-4 text-orange-600" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">Returned</div>
+                        <div className="text-xs text-muted-foreground">Order has been returned</div>
+                      </div>
                     </div>
                   </SelectItem>
-                  <SelectItem value="failed">
-                    <div className="flex items-center">
-                      <AlertCircle className="h-4 w-4 mr-2 text-red-600" />
-                      Failed
+                  <SelectItem value="failed" className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 rounded-md bg-red-100 dark:bg-red-900/30">
+                        <AlertCircle className="h-4 w-4 text-red-600" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">Failed</div>
+                        <div className="text-xs text-muted-foreground">Order processing failed</div>
+                      </div>
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="status-notes">Status Notes (Optional)</Label>
+            <div className="space-y-3">
+              <Label htmlFor="status-notes" className="text-base font-semibold">Status Notes (Optional)</Label>
               <Textarea
                 id="status-notes"
                 placeholder="Add any notes about this status change..."
-                className="mt-1"
+                className="min-h-[100px] resize-none border-2"
               />
+              <p className="text-xs text-muted-foreground">These notes will be saved in the order history.</p>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setStatusDialogOpen(false)} className="flex-1 sm:flex-none">
               Cancel
             </Button>
-            <Button onClick={handleStatusUpdate} disabled={updatingStatus}>
+            <Button
+              onClick={handleStatusUpdate}
+              disabled={updatingStatus}
+              className="flex-1 sm:flex-none bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            >
               {updatingStatus ? (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                   Updating...
                 </>
               ) : (
-                'Update Status'
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Update Status
+                </>
               )}
             </Button>
           </DialogFooter>
@@ -894,21 +1150,43 @@ export default function OrderDetailsPage() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="sm:max-w-[500px]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete order {order.displayId} and
-              remove all associated data from our servers.
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30">
+                <AlertCircle className="h-6 w-6 text-red-600" />
+              </div>
+              <AlertDialogTitle className="text-2xl">Delete Order?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-base space-y-3 pt-2">
+              <p>
+                You are about to <span className="font-bold text-red-600">permanently delete</span> order{' '}
+                <span className="font-mono font-bold text-foreground">{order.displayId}</span>.
+              </p>
+              <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border-2 border-red-200 dark:border-red-900">
+                <p className="font-semibold text-red-900 dark:text-red-100 mb-2">⚠️ Warning:</p>
+                <ul className="text-sm text-red-800 dark:text-red-200 space-y-1 list-disc list-inside">
+                  <li>This action cannot be undone</li>
+                  <li>All order data will be permanently removed</li>
+                  <li>Order history will be lost</li>
+                  <li>Customer records will be affected</li>
+                </ul>
+              </div>
+              <p className="text-sm">
+                Are you absolutely sure you want to proceed?
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel className="flex-1 sm:flex-none">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteOrder}
-              className="bg-red-600 text-white hover:bg-red-700"
+              className="flex-1 sm:flex-none bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
             >
-              Delete Order
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Permanently
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
