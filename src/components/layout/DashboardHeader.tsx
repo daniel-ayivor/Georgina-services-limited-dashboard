@@ -17,8 +17,13 @@ import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from 'date-fns';
 import { AppNotification } from '@/contexts/adminApiService';
 import { useNotifications } from "@/contexts/useNotifications";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function DashboardHeader() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  
   const { 
     notifications, 
     unreadCount, 
@@ -26,6 +31,22 @@ export function DashboardHeader() {
     markAsRead, 
     markAllAsRead 
   } = useNotifications();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to a search results page or perform search action
+      // For now, let's check if it looks like an order number and navigate accordingly
+      if (searchQuery.toUpperCase().startsWith('ORD-')) {
+        navigate(`/admin/orders/${searchQuery}`);
+      } else {
+        // You can implement a global search page or show a modal with results
+        console.log('Searching for:', searchQuery);
+        // For now, navigate to products page with search query
+        navigate(`/admin/products?search=${encodeURIComponent(searchQuery)}`);
+      }
+    }
+  };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -90,13 +111,15 @@ export function DashboardHeader() {
         </SidebarTrigger>
 
         <div className="ml-auto flex items-center gap-2">
-          <form className="hidden md:flex">
+          <form className="hidden md:flex" onSubmit={handleSearch}>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search..."
+                placeholder="Search orders, products..."
                 className="w-[200px] pl-8 md:w-[240px] lg:w-[320px]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </form>
