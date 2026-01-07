@@ -30,9 +30,16 @@ export default function Login() {
       <div className="relative z-10 min-h-screen grid md:grid-cols-2 items-center">
         <div className="hidden md:flex flex-col p-10 text-primary-foreground animate-slide-in-left">
           <div className="flex-1 flex flex-col justify-center max-w-lg">
-            <h1 className="text-5xl font-bold tracking-tight mb-4 animate-fade-in">
-              E-Commerce Dashboard
-            </h1>
+            {/*<h1 className="text-5xl font-bold tracking-tight mb-4 animate-fade-in">*/}
+            {/*  E-Commerce Dashboard*/}
+            {/*</h1>*/}
+            <div className="p-2 bg-white rounded-md w-fit mb-6">
+              <img
+              src="/gina_logo.png"
+              alt="Gina E-Commerce Logo"
+              className="h-16 animate-fade-in [animation-delay:100ms]"
+              />
+            </div>
             <p className="text-xl text-primary-foreground/90 mb-12 animate-fade-in [animation-delay:200ms]">
               Manage your products, orders, and customer data all in one place.
             </p>
