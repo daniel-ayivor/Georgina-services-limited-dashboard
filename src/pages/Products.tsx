@@ -1697,7 +1697,7 @@ export default function Products() {
                           formData.image instanceof File ? '' :
                               formData.image || ''
                     }
-                    className="h-40"
+                    className="h-40 overflow-y-scroll"
                 />
 
                 <div className="grid grid-cols-2 gap-4">
