@@ -14,21 +14,21 @@ import NotFound from "./pages/NotFound";
 import { lazy, Suspense } from "react";
 
 // Lazy load pages for code splitting
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const Products = lazy(() => import("@/pages/Products"));
-const Orders = lazy(() => import("@/pages/Orders"));
-const Bookings = lazy(() => import("@/pages/Bookings"));
-const Analytics = lazy(() => import("@/pages/Analytics"));
-const Settings = lazy(() => import("@/pages/Settings"));
-const Categories = lazy(() => import("@/pages/Categories"));
-const CreateServices = lazy(() => import("@/pages/CreateService"));
-const ContactMessagesAdmin = lazy(() => import("@/pages/Contacts"));
-const ProductDetails = lazy(() => import("@/pages/ProductDetails"));
-const ProductEdit = lazy(() => import("@/pages/ProductEdit"));
-const Customers = lazy(() => import("@/pages/Customer"));
-const OrderDetailsPage = lazy(() => import("@/pages/OrderDeatils"));
-const Reviews = lazy(() => import("@/pages/Review"));
-const BookingDetails = lazy(() => import("@/pages/BookingDetails"));
+const Dashboard = lazy(() => import("@/pages/Dashboard.tsx"));
+const Products = lazy(() => import("@/pages/Products.tsx"));
+const Orders = lazy(() => import("@/pages/Orders.tsx"));
+const Bookings = lazy(() => import("@/pages/Bookings.tsx"));
+const Analytics = lazy(() => import("@/pages/Analytics.tsx"));
+const Settings = lazy(() => import("@/pages/Settings.tsx"));
+const Categories = lazy(() => import("@/pages/Categories.tsx"));
+const CreateServices = lazy(() => import("@/pages/CreateService.tsx"));
+const ContactMessagesAdmin = lazy(() => import("@/pages/Contacts.tsx"));
+const ProductDetails = lazy(() => import("@/pages/ProductDetails.tsx"));
+const ProductEdit = lazy(() => import("@/pages/ProductEdit.tsx"));
+const Customers = lazy(() => import("@/pages/Customer.tsx"));
+const OrderDetailsPage = lazy(() => import("@/pages/OrderDeatils.tsx"));
+const Reviews = lazy(() => import("@/pages/Review.tsx"));
+const BookingDetails = lazy(() => import("@/pages/BookingDetails.tsx"));
 
 const queryClient = new QueryClient();
 
