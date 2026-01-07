@@ -1122,7 +1122,7 @@ export default function Dashboard() {
     switch (status) {
       case 'completed':
       case 'delivered':
-        return 'text-green-600';
+        return 'text-white';
       case 'processing':
       case 'confirmed':
         return 'text-blue-600';

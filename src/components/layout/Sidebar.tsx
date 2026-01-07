@@ -63,11 +63,17 @@ export function DashboardSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b px-4 py-3">
         <div className="flex items-center gap-2">
-          <ShoppingCart className="h-6 w-6 flex-shrink-0" />
           {!isCollapsed && (
             <div className="flex flex-col">
-              <span className="text-sm font-semibold">E-Commerce</span>
-              <span className="text-xs text-muted-foreground">Admin Dashboard</span>
+              <div>
+                  <Link to="/">
+                   <img
+                    src="/gina_logo.png"
+                    alt="Gina E-Commerce Logo"
+                    className="h-14 mb-1"
+                   />
+                  </Link>
+              </div>
             </div>
           )}
         </div>
