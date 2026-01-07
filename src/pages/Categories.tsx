@@ -2878,6 +2878,12 @@ const Categories = () => {
     ))
   );
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCategories = filteredCategories.slice(startIndex, endIndex);
+
   // Toggle category expansion
   const toggleCategory = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);
