@@ -21,10 +21,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import CreateServices from "./pages/CreateService";
 import ContactMessagesAdmin from "./pages/Contacts";
-import ProductDetails from "./pages/productDetails";
+import ProductDetails from "./pages/ProductDetails";
+import ProductEdit from "./pages/ProductEdit";
 import Customers from "./pages/Customer";
 import OrderDetailsPage from "./pages/OrderDeatils";
 import Reviews from "./pages/Review";
+import BookingDetails from "./pages/BookingDetails";
 
 const queryClient = new QueryClient();
 
@@ -46,12 +48,16 @@ const App = () => (
                 <Route element={<DashboardLayout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/products" element={<Products />} />
+                  <Route path="/admin/products" element={<Products />} />
+                  <Route path="/admin/products/:id" element={<ProductDetails />} />
+                  <Route path="/admin/products/:id/edit" element={<ProductEdit />} />
                    <Route path="/review" element={<Reviews />} />
                    <Route path="/products/:id" element={<ProductDetails />} />
                   <Route path="/categories" element={<Categories />} />
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/admin/orders/:orderId" element={<OrderDetailsPage />} />
                   <Route path="/bookings" element={<Bookings />} />
+                  <Route path="/admin/bookings/:id" element={<BookingDetails />} />
                   <Route path="/contacts" element={<ContactMessagesAdmin />} />
                   <Route path="/create-service" element={<CreateServices/>} />
                    <Route path="/users" element={<Customers />} />

@@ -77,8 +77,6 @@ interface ProductFormData {
   categoryLevel1: string;
   categoryLevel2: string;
   categoryLevel3: string;
-  serviceType: 'physical' | 'digital' | 'service';
-  serviceDuration: string;
   unit: string;
   stock: string;
   brand: string;
@@ -453,10 +451,6 @@ const ProductDetailsModal = ({
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">Type</div>
-                    <div className="text-lg font-semibold capitalize">{product.serviceType}</div>
-                  </div>
-                  <div className="space-y-1">
                     <div className="text-sm text-muted-foreground">Rating</div>
                     <div className="text-lg font-semibold">
                       {product.rating || 0} ⭐ ({product.reviewsCount || 0} reviews)
@@ -512,10 +506,6 @@ const ProductDetailsModal = ({
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Unit</span>
                         <span className="text-sm font-medium capitalize">{product.unit}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Service Duration</span>
-                        <span className="text-sm font-medium">{product.serviceDuration || "N/A"}</span>
                       </div>
                     </div>
                   </div>
@@ -651,8 +641,6 @@ export default function Products() {
     categoryLevel1: "",
     categoryLevel2: "",
     categoryLevel3: "",
-    serviceType: "physical",
-    serviceDuration: "",
     unit: "piece",
     stock: "0",
     brand: "",
@@ -676,7 +664,6 @@ export default function Products() {
   const navigate = useNavigate();
 
 
-  const serviceTypeOptions = ['physical', 'digital', 'service'];
   const unitOptions = ['piece', 'kg', 'g', 'ml', 'l', 'hour', 'day', 'month', 'set', 'pair'];
   const statusOptions = ['all', 'active', 'inactive', 'low-stock', 'no-stock'];
 
@@ -795,8 +782,7 @@ export default function Products() {
         filteredProducts.reduce((sum, p) => sum + parseFloat(p.price?.toString() || '0'), 0) / filteredProducts.length : 0,
   };
   const handleViewProduct = (product: ProductWithSpecial) => {
-    setSelectedProduct(product);
-    setDetailsDialogOpen(true);
+    navigate(`/admin/products/${product.id}`);
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -818,8 +804,6 @@ export default function Products() {
       formDataObj.append('categoryLevel1', formData.categoryLevel1);
       formDataObj.append('categoryLevel2', formData.categoryLevel2);
       formDataObj.append('categoryLevel3', formData.categoryLevel3);
-      formDataObj.append('serviceType', formData.serviceType);
-      formDataObj.append('serviceDuration', formData.serviceDuration);
       formDataObj.append('unit', formData.unit);
       formDataObj.append('stock', formData.stock);
       formDataObj.append('brand', formData.brand);
@@ -908,8 +892,6 @@ export default function Products() {
         categoryLevel1: "",
         categoryLevel2: "",
         categoryLevel3: "",
-        serviceType: "physical",
-        serviceDuration: "",
         unit: "piece",
         stock: "0",
         brand: "",
@@ -951,8 +933,6 @@ export default function Products() {
       categoryLevel1: "",
       categoryLevel2: "",
       categoryLevel3: "",
-      serviceType: "physical",
-      serviceDuration: "",
       unit: "piece",
       stock: "0",
       brand: "",
@@ -1014,8 +994,6 @@ export default function Products() {
       categoryLevel1: productToEdit.categoryLevel1 || "",
       categoryLevel2: productToEdit.categoryLevel2 || "",
       categoryLevel3: productToEdit.categoryLevel3 || "",
-      serviceType: productToEdit.serviceType || "physical",
-      serviceDuration: productToEdit.serviceDuration || "",
       unit: productToEdit.unit || "piece",
       stock: productToEdit.stock?.toString() || "0",
       brand: productToEdit.brand || "",
@@ -1501,11 +1479,11 @@ export default function Products() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleViewProduct(product)}>
+                                    <DropdownMenuItem onClick={() => navigate(`/admin/products/${product.id}`)}>
                                       <Eye className="h-4 w-4 mr-2" />
                                       View Details
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleEditProduct(product)}>
+                                    <DropdownMenuItem onClick={() => navigate(`/admin/products/${product.id}/edit`)}>
                                       <Edit className="h-4 w-4 mr-2" />
                                       Edit
                                     </DropdownMenuItem>
@@ -1825,27 +1803,7 @@ export default function Products() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="serviceType" className="text-xs">Service Type *</Label>
-                    <Select
-                        value={formData.serviceType}
-                        onValueChange={(value: 'physical' | 'digital' | 'service') =>
-                            setFormData({ ...formData, serviceType: value })}
-                        disabled={isSubmitting}
-                    >
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Select service type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {serviceTypeOptions.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type.charAt(0).toUpperCase() + type.slice(1)}
-                            </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="brand" className="text-xs">Brand</Label>
                     <Input
@@ -1857,20 +1815,6 @@ export default function Products() {
                         disabled={isSubmitting}
                     />
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="serviceDuration" className="text-xs">Service Duration</Label>
-                    <Input
-                        id="serviceDuration"
-                        value={formData.serviceDuration}
-                        onChange={(e) => setFormData({ ...formData, serviceDuration: e.target.value })}
-                        placeholder="e.g., 2 hours"
-                        className="h-9 text-sm"
-                        disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="weight" className="text-xs">Weight (kg)</Label>
                     <Input

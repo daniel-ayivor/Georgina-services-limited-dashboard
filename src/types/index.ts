@@ -8,8 +8,6 @@ export interface Product {
   categoryLevel1: string;
   categoryLevel2: string;
   categoryLevel3: string;
-serviceType: 'physical' | 'service';
-  serviceDuration: string | null;
   unit: string;
   stock: number;
   images: string[];

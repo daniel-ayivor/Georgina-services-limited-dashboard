@@ -1,6 +1,7 @@
 
 
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -52,7 +53,8 @@ import {
   RefreshCw,
   DollarSign,
   MapPin,
-  Sparkles
+  Sparkles,
+  Eye
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import adminApiService from "@/contexts/adminApiService";
@@ -613,11 +615,12 @@ useEffect(() => {
                 <TableHead>Booking ID</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Service</TableHead>
-                <TableHead>Selected Features</TableHead> {/* NEW COLUMN */}
+                <TableHead>Selected Features</TableHead>
                 <TableHead>Date & Time</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Payment</TableHead> {/* NEW: Payment Status Column */}
+                <TableHead>Payment</TableHead>
                 <TableHead className="text-right">Price</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -629,10 +632,16 @@ useEffect(() => {
                   paginatedBookings.map((booking) => (
                   <TableRow 
                     key={booking.id} 
-                    onClick={() => handleBookingClick(booking)} 
-                    className="cursor-pointer hover:bg-muted/50"
+                    className="hover:bg-muted/50"
                   >
-                    <TableCell className="font-medium">{booking.id}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link 
+                        to={`/admin/bookings/${booking.id}`} 
+                        className="hover:underline text-blue-600 hover:text-blue-800"
+                      >
+                        {booking.id}
+                      </Link>
+                    </TableCell>
                     <TableCell>
                       <div>
                         {booking.customerName}
@@ -655,12 +664,23 @@ useEffect(() => {
                     </TableCell>
                     <TableCell>{getStatusBadge(booking.status)}</TableCell>
                     <TableCell>{getPaymentStatusBadge(booking)}</TableCell>
-                    <TableCell className="text-right">${(booking.price ?? 0).toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      ${(booking.price ?? 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link 
+                        to={`/admin/bookings/${booking.id}`} 
+                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">View</span>
+                      </Link>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-10">
+                  <TableCell colSpan={9} className="text-center py-10">
                     <div className="flex flex-col items-center">
                       <CalendarCheck className="h-10 w-10 text-muted-foreground mb-2" />
                       <p className="text-lg font-medium">No bookings found</p>
