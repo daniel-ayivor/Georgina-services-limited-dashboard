@@ -543,9 +543,9 @@ export default function Orders() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <div className="font-medium">{order.customerName}</div>
-                        <div className="text-sm text-muted-foreground">
+                      <div className="max-w-[180px]">
+                        <div className="font-medium truncate" title={order.customerName}>{order.customerName}</div>
+                        <div className="text-sm text-muted-foreground truncate" title={order.customerEmail}>
                           {order.customerEmail}
                         </div>
                       </div>

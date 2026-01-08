@@ -3126,35 +3126,8 @@ const Categories = () => {
       return;
     }
 
-    const confirmMessage = `Are you sure you want to delete all ${subcategories.length} subcategor${subcategories.length === 1 ? 'y' : 'ies'} under "${parentCategory.name}"?`;
-    
-    if (!confirm(confirmMessage)) {
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      
-      // Remove subcategories from state
-      setCategories(prev => prev.filter(cat => 
-        cat.id === parentCategory.id || !subcategories.find(sub => sub.id === cat.id)
-      ));
-      
-      toast({ 
-        title: "Subcategories deleted", 
-        description: `All ${subcategories.length} subcategor${subcategories.length === 1 ? 'y' : 'ies'} under "${parentCategory.name}" have been removed` 
-      });
-      
-    } catch (err: any) {
-      console.error('❌ Failed to bulk delete subcategories:', err);
-      toast({
-        variant: "destructive",
-        title: "Error deleting subcategories",
-        description: err.message || "Could not delete some subcategories. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Use the existing delete dialog for confirmation
+    openDeleteDialog(parentCategory);
   };
 
   // Helper Functions
@@ -3247,10 +3220,10 @@ const Categories = () => {
             <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button onClick={handleAddCategory} disabled={isLoading}>
+          {/* <Button onClick={handleAddCategory} disabled={isLoading}>
             <Plus className="mr-2 h-4 w-4" />
             Add Main Category
-          </Button>
+          </Button> */}
           <Button onClick={handleAddSubcategory} variant="outline" disabled={isLoading || topLevelCategories.length === 0}>
             <Plus className="mr-2 h-4 w-4" />
             Add Subcategory/Item
@@ -3259,7 +3232,58 @@ const Categories = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Categories</CardTitle>
+            <Folder className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{categories.length}</div>
+                <p className="text-xs text-muted-foreground">All levels combined</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Category Breakdown</CardTitle>
+            <FolderTree className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <>
+                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+                <div className="h-4 bg-muted rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="flex items-center gap-1">
+                    <Folder className="h-3 w-3 text-blue-500" />
+                    <span className="font-semibold">{totalLevel1}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <FolderTree className="h-3 w-3 text-green-500" />
+                    <span className="font-semibold">{totalLevel2}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Tag className="h-3 w-3 text-orange-500" />
+                    <span className="font-semibold">{totalLevel3}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">Level 1 • Level 2 • Level 3</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Main Categories</CardTitle>
@@ -3274,64 +3298,7 @@ const Categories = () => {
             ) : (
               <>
                 <div className="text-2xl font-bold">{totalLevel1}</div>
-                <p className="text-xs text-muted-foreground">Level 1 categories</p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Subcategories</CardTitle>
-            <FolderTree className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <>
-                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-                <div className="h-4 bg-muted rounded animate-pulse" />
-              </>
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{totalLevel2}</div>
-                <p className="text-xs text-muted-foreground">Level 2 subcategories</p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Items</CardTitle>
-            <Tag className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <>
-                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-                <div className="h-4 bg-muted rounded animate-pulse" />
-              </>
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{totalLevel3}</div>
-                <p className="text-xs text-muted-foreground">Level 3 items</p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <Folder className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <>
-                <div className="h-8 bg-muted rounded animate-pulse mb-2" />
-                <div className="h-4 bg-muted rounded animate-pulse" />
-              </>
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{categories.length}</div>
-                <p className="text-xs text-muted-foreground">All categories</p>
+                <p className="text-xs text-muted-foreground">Top-level categories</p>
               </>
             )}
           </CardContent>
@@ -3805,37 +3772,48 @@ const Categories = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[450px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Trash2 className="h-5 w-5 text-red-500" />
-              Confirm Deletion
-            </DialogTitle>
-            <DialogDescription>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+                <Trash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">Delete Category</DialogTitle>
+              </div>
+            </div>
+            <DialogDescription className="text-base pt-2">
               {categoryToDelete && (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <p>
-                    Are you sure you want to delete{" "}
-                    <strong>"{categoryToDelete.name}"</strong>?
+                    Are you sure you want to delete <strong className="text-foreground">"{categoryToDelete.name}"</strong>?
                   </p>
                   {getSubcategories(categoryToDelete.id).length > 0 && (
-                    <p className="text-amber-600 text-sm">
-                      This will also delete {getSubcategories(categoryToDelete.id).length}{" "}
-                      subcategor{getSubcategories(categoryToDelete.id).length === 1 ? 'y' : 'ies'}.
-                    </p>
+                    <div className="p-3 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900">
+                      <p className="text-sm text-amber-900 dark:text-amber-200 font-medium flex items-center gap-2">
+                        <span>⚠️</span>
+                        <span>This will also delete {getSubcategories(categoryToDelete.id).length} subcategor{getSubcategories(categoryToDelete.id).length === 1 ? 'y' : 'ies'}</span>
+                      </p>
+                    </div>
                   )}
-                  <p className="text-red-600 text-sm font-medium">
-                    This action cannot be undone.
-                  </p>
+                  <div className="p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900">
+                    <p className="text-sm text-red-900 dark:text-red-200 font-medium">
+                      ⚠️ This action cannot be undone
+                    </p>
+                    <p className="text-xs text-red-800 dark:text-red-300 mt-1">
+                      All category data and relationships will be permanently deleted.
+                    </p>
+                  </div>
                 </div>
               )}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="mt-4">
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
               disabled={isLoading}
+              className="sm:mr-2"
             >
               Cancel
             </Button>
@@ -3843,6 +3821,7 @@ const Categories = () => {
               variant="destructive"
               onClick={handleConfirmDelete}
               disabled={isLoading}
+              className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
             >
               {isLoading ? (
                 <>
@@ -3852,7 +3831,7 @@ const Categories = () => {
               ) : (
                 <>
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
+                  Delete Category
                 </>
               )}
             </Button>

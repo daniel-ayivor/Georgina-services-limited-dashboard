@@ -206,7 +206,7 @@ export default function ProductDetails() {
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 p-6 md:p-8 shadow-lg">
         <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))] dark:bg-grid-slate-700/25"></div>
         <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-4 flex-1">
             <Button 
               variant="outline" 
               size="icon" 
@@ -215,7 +215,7 @@ export default function ProductDetails() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <div>
+            <div className="flex-1">
               <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
                   {product.name}
@@ -259,6 +259,10 @@ export default function ProductDetails() {
                   <Hash className="h-3.5 w-3.5" />
                   ID: {product.id}
                 </span>
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5" />
+                  Created: {new Date(product.createdAt).toLocaleDateString()}
+                </span>
               </div>
             </div>
           </div>
@@ -282,23 +286,150 @@ export default function ProductDetails() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Main Content */}
-        <div className="space-y-6">
+      {/* Overview Section - Key Metrics */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Pricing Card */}
+        <Card className="border-2 border-emerald-200 dark:border-emerald-900">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <DollarSign className="h-4 w-4 text-emerald-600" />
+              Pricing
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {product.discountPrice && product.discountPrice > 0 ? (
+              <div className="space-y-2">
+                <div>
+                  <p className="text-2xl font-bold text-emerald-600">
+                    ${Number(product.discountPrice).toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground line-through">
+                    ${Number(product.price).toFixed(2)}
+                  </p>
+                </div>
+                {product.discountPercentage && (
+                  <Badge className="bg-amber-500 text-white text-xs">
+                    -{product.discountPercentage}% OFF
+                  </Badge>
+                )}
+              </div>
+            ) : (
+              <div>
+                <p className="text-2xl font-bold text-emerald-600">
+                  ${Number(product.price).toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">per {product.unit}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Inventory Card */}
+        <Card className={`border-2 ${
+          product.stock > 10 
+            ? 'border-green-200 dark:border-green-900'
+            : product.stock > 0
+            ? 'border-amber-200 dark:border-amber-900'
+            : 'border-red-200 dark:border-red-900'
+        }`}>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Package className="h-4 w-4" />
+              Inventory
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-2xl font-bold">
+                {product.stock} <span className="text-base font-normal text-muted-foreground">{product.unit}s</span>
+              </p>
+              {product.stock === 0 && (
+                <Badge variant="destructive" className="text-xs">
+                  Out of Stock
+                </Badge>
+              )}
+              {product.stock > 0 && product.stock <= 10 && (
+                <Badge className="bg-amber-500 text-xs">
+                  Low Stock
+                </Badge>
+              )}
+              {product.stock > 10 && (
+                <Badge className="bg-green-500 text-xs">
+                  In Stock
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Rating Card */}
+        <Card className="border-2 border-purple-200 dark:border-purple-900">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Star className="h-4 w-4 text-amber-500" />
+              Rating
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {product.rating ? (
+              <div className="space-y-1">
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold">{product.rating}</p>
+                  <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
+                </div>
+                {product.reviewsCount && (
+                  <p className="text-xs text-muted-foreground">
+                    {product.reviewsCount} review{product.reviewsCount !== 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No ratings yet</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Views/Stats Card */}
+        <Card className="border-2 border-blue-200 dark:border-blue-900">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <BarChart3 className="h-4 w-4 text-blue-600" />
+              Category
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm font-semibold">{product.categoryLevel1}</p>
+                {product.categoryLevel2 && (
+                  <p className="text-xs text-muted-foreground">→ {product.categoryLevel2}</p>
+                )}
+                {product.categoryLevel3 && (
+                  <p className="text-xs text-muted-foreground">→ {product.categoryLevel3}</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Left Column - Images (Larger) */}
+        <div className="lg:col-span-2 space-y-6">
           {/* Product Images */}
           <Card className="border-2 hover:shadow-lg transition-shadow overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50">
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                  <Eye className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                </div>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5" />
                 Product Images
               </CardTitle>
+              <CardDescription>View all product images</CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-4">
                 {/* Main Image */}
-                <div className="relative aspect-video max-h-96 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900">
+                <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800">
                   <img
                     src={getImageUrl(images[currentImageIndex])}
                     alt={product.name}
@@ -311,7 +442,7 @@ export default function ProductDetails() {
                 
                 {/* Thumbnail Gallery */}
                 {images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-5 gap-2">
                     {images.map((img, index) => (
                       <button
                         key={index}
@@ -338,280 +469,182 @@ export default function ProductDetails() {
             </CardContent>
           </Card>
 
-          {/* Product Details Tabs */}
+          {/* Product Description */}
           <Card className="border-2">
-            <Tabs defaultValue="details" className="w-full">
-              <CardHeader className="pb-4">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="details">Details</TabsTrigger>
-                  <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                  <TabsTrigger value="categories">Categories</TabsTrigger>
-                </TabsList>
-              </CardHeader>
-              <CardContent>
-                <TabsContent value="details" className="space-y-6 mt-0">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Description</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {product.description || 'No description available'}
-                    </p>
-                  </div>
-
-                  {product.brand && (
-                    <div className="pt-4 border-t">
-                      <h3 className="text-sm font-semibold text-muted-foreground mb-2">Brand</h3>
-                      <Badge variant="secondary" className="text-base px-3 py-1">
-                        {product.brand}
-                      </Badge>
-                    </div>
-                  )}
-
-                  {product.tags && product.tags.length > 0 && (
-                    <div className="pt-4 border-t">
-                      <h3 className="text-sm font-semibold text-muted-foreground mb-3">Tags</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {product.tags.map((tag, index) => (
-                          <Badge key={index} variant="outline" className="px-3 py-1">
-                            <Tag className="h-3 w-3 mr-1" />
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {product.size && (
-                    <div className="pt-4 border-t">
-                      <h3 className="text-sm font-semibold text-muted-foreground mb-3">Available Sizes</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {(Array.isArray(product.size) ? product.size : [product.size]).map((size, index) => (
-                          <Badge key={index} variant="secondary" className="px-4 py-2">
-                            {size}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="specifications" className="space-y-4 mt-0">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                        <span className="text-sm text-muted-foreground">Weight</span>
-                        <span className="text-sm font-medium">{product.weight ? `${product.weight} kg` : "N/A"}</span>
-                      </div>
-                      <div className="flex justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                        <span className="text-sm text-muted-foreground">Dimensions</span>
-                        <span className="text-sm font-medium">{product.dimensions || "N/A"}</span>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="categories" className="space-y-4 mt-0">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-900">
-                      <div className="flex items-center gap-2">
-                        <Layers className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm font-medium">Main Category</span>
-                      </div>
-                      <Badge variant="outline">{product.categoryLevel1}</Badge>
-                    </div>
-                    {product.categoryLevel2 && (
-                      <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-900">
-                        <div className="flex items-center gap-2">
-                          <Layers className="h-4 w-4 text-green-600" />
-                          <span className="text-sm font-medium">Subcategory</span>
-                        </div>
-                        <Badge variant="secondary">{product.categoryLevel2}</Badge>
-                      </div>
-                    )}
-                    {product.categoryLevel3 && (
-                      <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-900">
-                        <div className="flex items-center gap-2">
-                          <Layers className="h-4 w-4 text-purple-600" />
-                          <span className="text-sm font-medium">Sub-subcategory</span>
-                        </div>
-                        <Badge variant="outline">{product.categoryLevel3}</Badge>
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-              </CardContent>
-            </Tabs>
+            <CardHeader>
+              <CardTitle>Product Description</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground leading-relaxed">
+                {product.description || 'No description available'}
+              </p>
+            </CardContent>
           </Card>
         </div>
 
-        {/* Sidebar */}
+        {/* Right Column - Details */}
         <div className="space-y-6">
-          {/* Pricing Card */}
-          <Card className="border-2 border-emerald-200 dark:border-emerald-900 shadow-lg">
-            <CardHeader className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/50 dark:to-green-950/50">
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 bg-emerald-100 dark:bg-emerald-900 rounded-lg">
-                  <DollarSign className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                Pricing
+          {/* Categories */}
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Layers className="h-4 w-4" />
+                Categories
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-4 space-y-3">
-              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 text-center border-2 border-emerald-200 dark:border-emerald-900">
-                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">Regular Price</p>
-                <p className="text-3xl font-bold text-emerald-900 dark:text-emerald-100">
-                  ${Number(product.price).toFixed(2)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-2">per {product.unit}</p>
+            <CardContent className="space-y-2">
+              <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-900">
+                <span className="text-xs font-medium">Level 1</span>
+                <Badge variant="outline" className="text-xs">{product.categoryLevel1}</Badge>
               </div>
-
-              {product.discountPrice && product.discountPrice > 0 && (
-                <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-900">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-amber-900 dark:text-amber-100">Discount Price</span>
-                    {product.discountPercentage && (
-                      <Badge className="bg-amber-500 text-white">
-                        -{product.discountPercentage}%
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">
-                    ${Number(product.discountPrice).toFixed(2)}
-                  </p>
+              {product.categoryLevel2 && (
+                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-900">
+                  <span className="text-xs font-medium">Level 2</span>
+                  <Badge variant="secondary" className="text-xs">{product.categoryLevel2}</Badge>
+                </div>
+              )}
+              {product.categoryLevel3 && (
+                <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-900">
+                  <span className="text-xs font-medium">Level 3</span>
+                  <Badge variant="outline" className="text-xs">{product.categoryLevel3}</Badge>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Inventory Card */}
-          <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-lg">
-            <CardHeader className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50">
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                  <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                Inventory
-              </CardTitle>
+          {/* Product Attributes */}
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle className="text-base">Product Attributes</CardTitle>
             </CardHeader>
-            <CardContent className="pt-4 space-y-3">
-              <div className={`p-3 rounded-lg border-2 ${
-                product.stock > 10 
-                  ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900'
-                  : product.stock > 0
-                  ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900'
-                  : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900'
-              }`}>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-1 text-muted-foreground">
-                  Stock Level
-                </p>
-                <p className="text-2xl font-bold">
-                  {product.stock} <span className="text-lg">{product.unit}s</span>
-                </p>
-                {product.stock === 0 && (
-                  <Badge variant="destructive" className="mt-2">
-                    Out of Stock
-                  </Badge>
-                )}
-                {product.stock > 0 && product.stock <= 10 && (
-                  <Badge className="mt-2 bg-amber-500">
-                    Low Stock
-                  </Badge>
-                )}
-              </div>
+            <CardContent className="space-y-4">
+              {product.brand && (
+                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                  <span className="text-sm text-muted-foreground">Brand</span>
+                  <Badge variant="secondary">{product.brand}</Badge>
+                </div>
+              )}
+              
+              {product.weight && (
+                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                  <span className="text-sm text-muted-foreground">Weight</span>
+                  <span className="text-sm font-medium">{product.weight} kg</span>
+                </div>
+              )}
+              
+              {product.dimensions && (
+                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                  <span className="text-sm text-muted-foreground">Dimensions</span>
+                  <span className="text-sm font-medium">{product.dimensions}</span>
+                </div>
+              )}
+              
+              {product.size && (
+                <div className="space-y-2">
+                  <span className="text-sm text-muted-foreground">Available Sizes</span>
+                  <div className="flex flex-wrap gap-2">
+                    {(Array.isArray(product.size) ? product.size : [product.size]).map((size, index) => (
+                      <Badge key={index} variant="outline">
+                        {size}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Stats Card */}
-          {(product.rating || product.reviewsCount) && (
-            <Card className="border-2 border-purple-200 dark:border-purple-900 shadow-lg">
-              <CardHeader className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50">
-                <CardTitle className="flex items-center gap-2">
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                    <BarChart3 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  Statistics
+          {/* Tags */}
+          {product.tags && product.tags.length > 0 && (
+            <Card className="border-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Tag className="h-4 w-4" />
+                  Tags
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 space-y-4">
-                {product.rating && (
-                  <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Rating</span>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                      <span className="text-sm font-bold">{product.rating}</span>
-                    </div>
-                  </div>
-                )}
-                {product.reviewsCount && (
-                  <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Reviews</span>
-                    <span className="text-sm font-bold">{product.reviewsCount}</span>
-                  </div>
-                )}
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {product.tags.map((tag, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Timeline Card */}
-          <Card className="border-2 border-slate-200 dark:border-slate-800">
+          {/* Timeline */}
+          <Card className="border-2">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Calendar className="h-4 w-4" />
                 Timeline
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
-                <Calendar className="h-4 w-4 text-slate-600 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">Created</p>
-                  <p className="text-sm font-medium mt-1">
-                    {new Date(product.createdAt).toLocaleString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Created</p>
+                <p className="text-sm font-medium">
+                  {new Date(product.createdAt).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
               </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
-                <RefreshCw className="h-4 w-4 text-slate-600 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">Last Updated</p>
-                  <p className="text-sm font-medium mt-1">
-                    {new Date(product.updatedAt).toLocaleString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                </div>
+              <div className="space-y-1 pt-2 border-t">
+                <p className="text-xs text-muted-foreground">Last Updated</p>
+                <p className="text-sm font-medium">
+                  {new Date(product.updatedAt).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Modal */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="sm:max-w-[450px]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Product?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{product.name}"? 
-              This action cannot be undone and will permanently remove this product from your catalog.
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+                <Trash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-xl">Delete Product</AlertDialogTitle>
+              </div>
+            </div>
+            <AlertDialogDescription className="text-base pt-2">
+              Are you sure you want to delete <strong className="text-foreground">"{product.name}"</strong>?
+              <div className="mt-3 p-3 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900">
+                <p className="text-sm text-amber-900 dark:text-amber-200 font-medium">
+                  ⚠️ This action cannot be undone
+                </p>
+                <p className="text-xs text-amber-800 dark:text-amber-300 mt-1">
+                  The product will be permanently removed from your catalog and all associated data will be deleted.
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel className="sm:mr-2">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteProduct}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
             >
-              Delete
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Product
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

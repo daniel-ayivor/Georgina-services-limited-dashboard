@@ -643,9 +643,9 @@ useEffect(() => {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <div>
-                        {booking.customerName}
-                        <div className="text-sm text-muted-foreground">
+                      <div className="max-w-[180px]">
+                        <div className="font-medium truncate" title={booking.customerName}>{booking.customerName}</div>
+                        <div className="text-sm text-muted-foreground truncate" title={booking.customerEmail}>
                           {booking.customerEmail}
                         </div>
                       </div>

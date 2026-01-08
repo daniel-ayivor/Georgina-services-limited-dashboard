@@ -206,7 +206,9 @@ const CreateServices = () => {
   const [services, setServices] = useState<CleaningService[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<CleaningService | null>(null);
+  const [serviceToDelete, setServiceToDelete] = useState<CleaningService | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -360,17 +362,21 @@ const CreateServices = () => {
     setServiceDialogOpen(true);
   };
 
-  const handleDeleteService = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this service? This action cannot be undone.')) {
-      return;
-    }
+  const openDeleteDialog = (service: CleaningService) => {
+    setServiceToDelete(service);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!serviceToDelete) return;
 
     try {
-      await adminApiService.deleteCleaningService(id);
-      setServices(services.filter(service => service.id !== id));
+      setIsLoading(true);
+      await adminApiService.deleteCleaningService(serviceToDelete.id);
+      setServices(services.filter(service => service.id !== serviceToDelete.id));
       toast({ 
         title: "Service deleted", 
-        description: "The service has been removed successfully" 
+        description: `"${serviceToDelete.displayName}" has been removed successfully` 
       });
     } catch (err: any) {
       console.error('Failed to delete service:', err);
@@ -379,6 +385,10 @@ const CreateServices = () => {
         title: "Error deleting service",
         description: err.message,
       });
+    } finally {
+      setIsLoading(false);
+      setDeleteDialogOpen(false);
+      setServiceToDelete(null);
     }
   };
 
@@ -725,7 +735,7 @@ const CreateServices = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDeleteService(service.id)}
+                          onClick={() => openDeleteDialog(service)}
                           disabled={isLoading}
                         >
                           <Trash2 className="h-3 w-3 mr-1" />
@@ -1000,6 +1010,67 @@ const CreateServices = () => {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+                <Trash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">Delete Service</DialogTitle>
+              </div>
+            </div>
+            <DialogDescription className="text-base pt-2">
+              {serviceToDelete && (
+                <div className="space-y-3">
+                  <p>
+                    Are you sure you want to delete <strong className="text-foreground">"{serviceToDelete.displayName}"</strong>?
+                  </p>
+                  <div className="p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900">
+                    <p className="text-sm text-red-900 dark:text-red-200 font-medium">
+                      ⚠️ This action cannot be undone
+                    </p>
+                    <p className="text-xs text-red-800 dark:text-red-300 mt-1">
+                      All service data and settings will be permanently deleted.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={isLoading}
+              className="sm:mr-2"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={isLoading}
+              className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+            >
+              {isLoading ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Service
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
