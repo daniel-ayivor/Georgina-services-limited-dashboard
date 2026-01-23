@@ -256,12 +256,31 @@ export default function OrderDetailsPage() {
     }
   };
 
-  const determinePaymentStatus = (rawOrder: RawApiOrder): Order['paymentStatus'] => {
-    if (rawOrder.paymentIntentId) {
-      return 'paid';
-    }
-    return 'unpaid';
-  };
+
+ 
+
+const determinePaymentStatus = (rawOrder: RawApiOrder): Order['paymentStatus'] => {
+  // Check the actual order status to determine if payment was completed
+  const orderStatus = rawOrder.status.toLowerCase();
+  
+  // These statuses mean payment was successful
+  if (orderStatus === 'paid' || 
+      orderStatus === 'confirmed' || 
+      orderStatus === 'processing' || 
+      orderStatus === 'shipped' || 
+      orderStatus === 'delivered') {
+    return 'paid';
+  }
+  
+  // Refunded status
+  if (orderStatus === 'refunded' || orderStatus === 'returned') {
+    return 'refunded';
+  }
+  
+  // All other statuses (pending, failed, cancelled, expired) mean unpaid
+  return 'unpaid';
+};
+
 
   const calculateSubtotal = (items: RawOrderItem[]): number => {
     return items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
